@@ -1,0 +1,3224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineer Post Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --pink-primary: #e91e8c;
+            --pink-light: #fce4f3;
+            --pink-mid: #f48cb9;
+            --pink-dark: #c2186e;
+            --sky-primary: #0ea5e9;
+            --sky-light: #e0f4fd;
+            --sky-mid: #7dd3f8;
+            --green-primary: #10b981;
+            --green-light: #d1fae5;
+            --green-mid: #6ee7b7;
+            --white: #ffffff;
+            --bg-main: #f8f4fb;
+            --bg-card: #ffffff;
+            --sidebar-bg: #ffffff;
+            --text-dark: #1e1b2e;
+            --text-mid: #5a5472;
+            --text-light: #9896a8;
+            --border: #eee8f5;
+            --shadow: 0 4px 24px rgba(233, 30, 140, 0.07);
+            --shadow-card: 0 2px 16px rgba(14, 165, 233, 0.08);
+            --sidebar-width: 270px;
+            --header-height: 68px;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Outfit', sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ======= LOADER ======= */
+        #loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #fce4f385 0%, #e0f4fd9c 50%, #d1fae57c 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            transition: opacity 0.5s;
+        }
+
+        .bearing-loader {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bearing-outer {
+            width: 80px;
+            height: 80px;
+            border: 4px solid var(--border);
+            border-radius: 50%;
+            position: absolute;
+            animation: bearing-spin 1.8s linear infinite;
+            border-top: 4px solid var(--pink-primary);
+            border-right: 4px solid var(--sky-primary);
+            border-bottom: 4px solid var(--green-primary);
+            border-left: 4px solid transparent;
+        }
+
+        .bearing-mid {
+            width: 52px;
+            height: 52px;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            position: absolute;
+            animation: bearing-spin-rev 1.2s linear infinite;
+            border-top: 3px solid var(--sky-primary);
+            border-right: 3px solid var(--pink-primary);
+            border-bottom: 3px solid transparent;
+            border-left: 3px solid var(--green-primary);
+        }
+
+        .bearing-inner {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pink-primary), var(--sky-primary));
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bearing-pulse 1s ease-in-out infinite;
+        }
+
+        .bearing-cross {
+            position: absolute;
+            width: 12px;
+            height: 2px;
+            background: white;
+            border-radius: 2px;
+        }
+
+        .bearing-cross:nth-child(2) {
+            transform: rotate(90deg);
+        }
+
+        .loader-balls {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            animation: bearing-spin 1.8s linear infinite;
+        }
+
+        .loader-ball {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0 0;
+        }
+
+        .loader-ball:nth-child(1) {
+            background: var(--pink-primary);
+            transform: rotate(0deg) translate(34px, -4.5px);
+        }
+
+        .loader-ball:nth-child(2) {
+            background: var(--sky-primary);
+            transform: rotate(72deg) translate(34px, -4.5px);
+        }
+
+        .loader-ball:nth-child(3) {
+            background: var(--green-primary);
+            transform: rotate(144deg) translate(34px, -4.5px);
+        }
+
+        .loader-ball:nth-child(4) {
+            background: var(--pink-mid);
+            transform: rotate(216deg) translate(34px, -4.5px);
+        }
+
+        .loader-ball:nth-child(5) {
+            background: var(--sky-mid);
+            transform: rotate(288deg) translate(34px, -4.5px);
+        }
+
+        @keyframes bearing-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes bearing-spin-rev {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes bearing-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        .loader-text {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 600;
+            background: linear-gradient(90deg, var(--pink-primary), var(--sky-primary), var(--green-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        /* ======= SIDEBAR ======= */
+        #sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1.5px solid var(--border);
+            z-index: 1040;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(.4, 0, .2, 1), width 0.3s;
+            box-shadow: 4px 0 32px rgba(233, 30, 140, 0.05);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: var(--pink-light);
+            border-radius: 4px;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 22px 24px 18px;
+            border-bottom: 1.5px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--pink-primary) 0%, var(--sky-primary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            box-shadow: 0 4px 14px rgba(233, 30, 140, 0.35);
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        .logo-sub {
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--text-light);
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-light);
+            padding: 16px 24px 6px;
+        }
+
+        .nav-item-wrap {
+            padding: 2px 14px;
+        }
+
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            color: var(--text-mid);
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .nav-link-custom:hover {
+            background: var(--pink-light);
+            color: var(--pink-primary);
+        }
+
+        .nav-link-custom.active {
+            background: linear-gradient(90deg, var(--pink-light) 0%, #f0f8ff 100%);
+            color: var(--pink-primary);
+            font-weight: 600;
+        }
+
+        .nav-link-custom.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: linear-gradient(180deg, var(--pink-primary), var(--sky-primary));
+            margin-left: -14px;
+        }
+
+        .nav-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            background: var(--bg-main);
+            transition: all 0.2s;
+        }
+
+        .nav-link-custom.active .nav-icon,
+        .nav-link-custom:hover .nav-icon {
+            background: white;
+            box-shadow: 0 2px 10px rgba(233, 30, 140, 0.14);
+            color: var(--pink-primary);
+        }
+
+        .nav-text {
+            flex: 1;
+        }
+
+        .nav-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 20px;
+            background: var(--pink-primary);
+            color: white;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .nav-badge.sky {
+            background: var(--sky-primary);
+        }
+
+        .nav-badge.green {
+            background: var(--green-primary);
+        }
+
+        .nav-chevron {
+            font-size: 10px;
+            color: var(--text-light);
+            transition: transform 0.25s;
+        }
+
+        .nav-chevron.open {
+            transform: rotate(90deg);
+        }
+
+        .submenu {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s cubic-bezier(.4, 0, .2, 1);
+            padding-left: 14px;
+        }
+
+        .submenu.open {
+            max-height: 400px;
+        }
+
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: var(--radius-sm);
+            color: var(--text-mid);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 10px 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+            position: relative;
+            margin: 1px 0;
+        }
+
+        .submenu-item::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            /* background: var(--border); */
+            transition: background 0.2s;
+        }
+
+        .submenu-item:hover,
+        .submenu-item.active {
+            background: var(--sky-light);
+            color: var(--sky-primary);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 14px;
+            border-top: 1.5px solid var(--border);
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-main);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sidebar-user:hover {
+            background: var(--pink-light);
+        }
+
+        .sidebar-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--pink-primary), var(--sky-primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-user-role {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        /* ======= HEADER ======= */
+        #header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            background: white;
+            border-bottom: 1.5px solid var(--border);
+            z-index: 1030;
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            gap: 16px;
+            transition: left 0.3s;
+            box-shadow: 0 2px 16px rgba(233, 30, 140, 0.05);
+        }
+
+        .header-toggle {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: var(--bg-main);
+            color: var(--text-mid);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .header-toggle:hover {
+            background: var(--pink-light);
+            color: var(--pink-primary);
+        }
+
+        .header-breadcrumb {
+            flex: 1;
+        }
+
+        .breadcrumb-title {
+            font-family: var(--font-display);
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        .breadcrumb-sub {
+            font-size: 12px;
+            color: var(--text-light);
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .breadcrumb-sep {
+            color: var(--border);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--text-mid);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .header-icon-btn:hover {
+            background: var(--pink-light);
+            border-color: var(--pink-mid);
+            color: var(--pink-primary);
+        }
+
+        .notif-dot {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--pink-primary);
+            border: 2px solid white;
+        }
+
+        .notif-dot.sky {
+            background: var(--sky-primary);
+        }
+
+        .notif-dot.green {
+            background: var(--green-primary);
+        }
+
+        /* Notification Dropdown */
+        .notif-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 320px;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+            z-index: 2000;
+            display: none;
+            animation: fadeDown 0.2s ease;
+        }
+
+        .notif-dropdown.show {
+            display: block;
+        }
+
+        .notif-head {
+            padding: 16px 18px 12px;
+            border-bottom: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .notif-head-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .notif-mark {
+            font-size: 11.5px;
+            color: var(--sky-primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .notif-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .notif-item:hover {
+            background: var(--bg-main);
+        }
+
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+
+        .notif-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .notif-avatar.pink {
+            background: var(--pink-light);
+            color: var(--pink-primary);
+        }
+
+        .notif-avatar.sky {
+            background: var(--sky-light);
+            color: var(--sky-primary);
+        }
+
+        .notif-avatar.green {
+            background: var(--green-light);
+            color: var(--green-primary);
+        }
+
+        .notif-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notif-msg {
+            font-size: 12.5px;
+            color: var(--text-dark);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .notif-time {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 3px;
+        }
+
+        .unread-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--pink-primary);
+            flex-shrink: 0;
+            margin-top: 5px;
+        }
+
+        /* Profile Dropdown */
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: white;
+            padding: 5px 12px 5px 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .profile-btn:hover {
+            background: var(--pink-light);
+            border-color: var(--pink-mid);
+        }
+
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--pink-primary) 0%, var(--sky-primary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .profile-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .profile-role {
+            font-size: 10.5px;
+            color: var(--text-light);
+        }
+
+        .profile-chevron {
+            font-size: 10px;
+            color: var(--text-light);
+            margin-left: 3px;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 230px;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+            z-index: 2000;
+            display: none;
+            animation: fadeDown 0.2s ease;
+            overflow: hidden;
+        }
+
+        .profile-dropdown.show {
+            display: block;
+        }
+
+        .profile-drop-head {
+            padding: 16px;
+            background: linear-gradient(135deg, var(--pink-light), var(--sky-light));
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-drop-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--pink-primary), var(--sky-primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(233, 30, 140, 0.25);
+        }
+
+        .profile-drop-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .profile-drop-role {
+            font-size: 11.5px;
+            color: var(--text-mid);
+        }
+
+        .profile-drop-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 11px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-mid);
+            cursor: pointer;
+            transition: all 0.15s;
+            border-bottom: 1px solid var(--border);
+            text-decoration: none;
+        }
+
+        .profile-drop-item:hover {
+            background: var(--bg-main);
+            color: var(--pink-primary);
+        }
+
+        .profile-drop-item:last-child {
+            border-bottom: none;
+        }
+
+        .profile-drop-item i {
+            width: 18px;
+            text-align: center;
+        }
+
+        .profile-drop-item.danger {
+            color: #ef4444;
+        }
+
+        .profile-drop-item.danger:hover {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        @keyframes fadeDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ======= MAIN CONTENT ======= */
+        #main {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 28px;
+            min-height: calc(100vh - var(--header-height));
+            transition: margin-left 0.3s;
+        }
+
+        /* ======= TOASTER ======= */
+        .toaster-wrap {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9998;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: white;
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            min-width: 300px;
+            max-width: 380px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border-left: 4px solid var(--pink-primary);
+            pointer-events: all;
+            animation: toastIn 0.35s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .toast-item.sky {
+            border-left-color: var(--sky-primary);
+        }
+
+        .toast-item.green {
+            border-left-color: var(--green-primary);
+        }
+
+        .toast-item.red {
+            border-left-color: #ef4444;
+        }
+
+        .toast-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .toast-icon.pink {
+            background: var(--pink-light);
+            color: var(--pink-primary);
+        }
+
+        .toast-icon.sky {
+            background: var(--sky-light);
+            color: var(--sky-primary);
+        }
+
+        .toast-icon.green {
+            background: var(--green-light);
+            color: var(--green-primary);
+        }
+
+        .toast-icon.red {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .toast-body {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .toast-msg {
+            font-size: 12px;
+            color: var(--text-mid);
+            margin-top: 2px;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .toast-close:hover {
+            color: var(--text-dark);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ======= STAT CARDS ======= */
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 22px;
+            border: 1.5px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 0 0 0 80px;
+            opacity: 0.07;
+        }
+
+        .stat-card.pink::after {
+            background: var(--pink-primary);
+        }
+
+        .stat-card.sky::after {
+            background: var(--sky-primary);
+        }
+
+        .stat-card.green::after {
+            background: var(--green-primary);
+        }
+
+        .stat-card.orange::after {
+            background: #f59e0b;
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+
+        .stat-icon.pink {
+            background: var(--pink-light);
+            color: var(--pink-primary);
+        }
+
+        .stat-icon.sky {
+            background: var(--sky-light);
+            color: var(--sky-primary);
+        }
+
+        .stat-icon.green {
+            background: var(--green-light);
+            color: var(--green-primary);
+        }
+
+        .stat-icon.orange {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 12.5px;
+            color: var(--text-light);
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11.5px;
+            font-weight: 600;
+            margin-top: 8px;
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+
+        .stat-change.up {
+            background: var(--green-light);
+            color: var(--green-primary);
+        }
+
+        .stat-change.down {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        /* ======= TABLE ======= */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            border: 1.5px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-light);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-pink {
+            background: linear-gradient(135deg, var(--pink-primary) 0%, var(--pink-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 4px 14px rgba(233, 30, 140, 0.25);
+        }
+
+        .btn-pink:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(233, 30, 140, 0.35);
+        }
+
+        .btn-sky {
+            background: linear-gradient(135deg, var(--sky-primary) 0%, #0284c7 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.25);
+        }
+
+        .btn-sky:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--green-primary) 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--text-mid);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--pink-mid);
+            color: var(--pink-primary);
+            background: var(--pink-light);
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box input {
+            padding: 9px 14px 9px 36px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            font-size: 13px;
+            color: var(--text-dark);
+            background: var(--bg-main);
+            outline: none;
+            transition: border-color 0.2s;
+            width: 220px;
+            font-family: var(--font-main);
+        }
+
+        .search-box input:focus {
+            border-color: var(--pink-mid);
+            background: white;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 11px;
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table.ep-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        table.ep-table thead tr {
+            background: var(--bg-main);
+        }
+
+        table.ep-table thead th {
+            padding: 13px 18px;
+            text-align: left;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--text-light);
+            border-bottom: 1.5px solid var(--border);
+            white-space: nowrap;
+        }
+
+        table.ep-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        table.ep-table tbody tr:hover {
+            background: var(--bg-main);
+        }
+
+        table.ep-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        table.ep-table tbody td {
+            padding: 14px 18px;
+            vertical-align: middle;
+        }
+
+        .table-user {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .table-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .table-avatar.a1 {
+            background: linear-gradient(135deg, #e91e8c, #0ea5e9);
+        }
+
+        .table-avatar.a2 {
+            background: linear-gradient(135deg, #10b981, #0ea5e9);
+        }
+
+        .table-avatar.a3 {
+            background: linear-gradient(135deg, #f59e0b, #e91e8c);
+        }
+
+        .table-avatar.a4 {
+            background: linear-gradient(135deg, #0ea5e9, #10b981);
+        }
+
+        .table-avatar.a5 {
+            background: linear-gradient(135deg, #e91e8c, #10b981);
+        }
+
+        .table-name {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .table-email {
+            font-size: 11.5px;
+            color: var(--text-light);
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+
+        .badge-status.active {
+            background: var(--green-light);
+            color: var(--green-primary);
+        }
+
+        .badge-status.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-status.inactive {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .badge-status.review {
+            background: var(--sky-light);
+            color: var(--sky-primary);
+        }
+
+        .badge-status i {
+            font-size: 8px;
+        }
+
+        .badge-role {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-role.sr {
+            background: var(--pink-light);
+            color: var(--pink-primary);
+        }
+
+        .badge-role.jr {
+            background: var(--sky-light);
+            color: var(--sky-primary);
+        }
+
+        .badge-role.lead {
+            background: var(--green-light);
+            color: var(--green-primary);
+        }
+
+        .badge-role.mgr {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--text-light);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .action-btn:hover.view {
+            background: var(--sky-light);
+            border-color: var(--sky-mid);
+            color: var(--sky-primary);
+        }
+
+        .action-btn:hover.edit {
+            background: var(--pink-light);
+            border-color: var(--pink-mid);
+            color: var(--pink-primary);
+        }
+
+        .action-btn:hover.del {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #ef4444;
+        }
+
+        .table-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 22px;
+            border-top: 1.5px solid var(--border);
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .pagination-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .pag-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--text-mid);
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .pag-btn.active,
+        .pag-btn:hover {
+            background: var(--pink-primary);
+            border-color: var(--pink-primary);
+            color: white;
+        }
+
+        /* ======= FORM ======= */
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-mid);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1.5px;
+            background: var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-mid);
+            margin-bottom: 7px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .form-label .required {
+            color: var(--pink-primary);
+        }
+
+        .form-control-ep {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            color: var(--text-dark);
+            background: var(--bg-main);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            font-family: var(--font-main);
+        }
+
+        .form-control-ep:focus {
+            border-color: var(--pink-mid);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(233, 30, 140, 0.07);
+        }
+
+        .form-control-ep::placeholder {
+            color: var(--text-light);
+        }
+
+        textarea.form-control-ep {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .input-icon-wrap {
+            position: relative;
+        }
+
+        .input-icon-wrap .form-control-ep {
+            padding-left: 38px;
+        }
+
+        .input-icon-wrap .form-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        select.form-control-ep {
+            cursor: pointer;
+        }
+
+        .form-hint {
+            font-size: 11.5px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        .form-check-ep {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .form-check-ep:hover {
+            border-color: var(--pink-mid);
+            background: var(--pink-light);
+        }
+
+        .form-check-ep input[type="checkbox"],
+        .form-check-ep input[type="radio"] {
+            accent-color: var(--pink-primary);
+            width: 15px;
+            height: 15px;
+        }
+
+        .form-check-ep label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        .form-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 8px;
+        }
+
+        /* ======= ACTIVITY ======= */
+        .activity-feed {
+            padding: 18px 22px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .activity-line {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 13px;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .activity-text strong {
+            color: var(--pink-primary);
+        }
+
+        .activity-time {
+            font-size: 11.5px;
+            color: var(--text-light);
+            margin-top: 3px;
+        }
+
+        /* ======= MINI CHART BAR ======= */
+        .mini-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 5px;
+            height: 55px;
+            padding: 0 22px 16px;
+        }
+
+        .mini-bar {
+            flex: 1;
+            border-radius: 5px 5px 0 0;
+            background: var(--pink-light);
+            transition: height 0.4s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .mini-bar:hover {
+            background: var(--pink-primary);
+        }
+
+        .mini-bar span {
+            position: absolute;
+            bottom: calc(100% + 3px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+
+        /* ======= SETTINGS PAGE COMPONENTS ======= */
+        .settings-section {
+            margin-bottom: 28px;
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: var(--radius);
+            border: 1.5px solid var(--border);
+            overflow: hidden;
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        .settings-row-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .settings-row-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .settings-row-label {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .settings-row-sub {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--border);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            left: 3px;
+            bottom: 3px;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: var(--pink-primary);
+        }
+
+        .toggle-switch input:checked+.toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        /* ======= TAB SYSTEM ======= */
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            padding: 16px 22px 0;
+            border-bottom: 1.5px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 9px 18px;
+            border-radius: 10px 10px 0 0;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-light);
+            border: none;
+            background: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: var(--pink-primary);
+            border-bottom-color: var(--pink-primary);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-dark);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 22px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ======= RESPONSIVE ======= */
+        @media (max-width: 1200px) {
+            .stat-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 991px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            #sidebar {
+                transform: translateX(-270px);
+                width: 270px;
+            }
+
+            #sidebar.open {
+                transform: translateX(0);
+            }
+
+            #header {
+                left: 0;
+            }
+
+            #main {
+                margin-left: 0;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.3);
+                z-index: 1039;
+                display: none;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stat-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            #main {
+                padding: 18px;
+            }
+
+            #header {
+                padding: 0 16px;
+                gap: 10px;
+            }
+
+            .breadcrumb-title {
+                font-size: 15px;
+            }
+
+            .notif-dropdown,
+            .profile-dropdown {
+                right: 0;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stat-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .profile-name,
+            .profile-role {
+                display: none;
+            }
+
+            .card-head {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
+
+        /* ======= UTILS ======= */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .progress-bar-custom {
+            height: 6px;
+            background: var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.6s;
+        }
+
+        .text-pink {
+            color: var(--pink-primary);
+        }
+
+        .text-sky {
+            color: var(--sky-primary);
+        }
+
+        .text-green {
+            color: var(--green-primary);
+        }
+
+        .fw-700 {
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOADER -->
+    <div id="loader-overlay">
+        <div class="bearing-loader">
+            <div class="bearing-outer"></div>
+            <div class="loader-balls">
+                <div class="loader-ball"></div>
+                <div class="loader-ball"></div>
+                <div class="loader-ball"></div>
+                <div class="loader-ball"></div>
+                <div class="loader-ball"></div>
+            </div>
+            <div class="bearing-mid"></div>
+            <div class="bearing-inner">
+                <div class="bearing-cross"></div>
+                <div class="bearing-cross"></div>
+            </div>
+        </div>
+        <div class="loader-text">EPMS LOADING</div>
+    </div>
+
+    <!-- SIDEBAR OVERLAY -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon"><i class="fa-solid fa-gears"></i></div>
+            <div class="logo-text">
+                <div class="logo-title">EngineerPMS</div>
+                <div class="logo-sub">Post Management System</div>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">Main Menu</div>
+
+        <div class="nav-item-wrap">
+            <a class="nav-link-custom active" href="#" onclick="showPage('dashboard',this)">
+                <div class="nav-icon"><i class="fa-solid fa-house-chimney"></i></div>
+                <span class="nav-text">Dashboard</span>
+            </a>
+        </div>
+
+        <div class="nav-item-wrap">
+            <div class="nav-link-custom" onclick="toggleSubmenu('engsub',this)">
+                <div class="nav-icon"><i class="fa-solid fa-hard-hat"></i></div>
+                <span class="nav-text">Engineers</span>
+                <i class="fa-solid fa-chevron-right nav-chevron" id="engsub-chev"></i>
+            </div>
+            <div class="submenu" id="engsub">
+                <a class="submenu-item active" href="#" onclick="showPage('engineers',this)">All Engineers</a>
+                <a class="submenu-item" href="#" onclick="showPage('engineers',this)">Add Engineer</a>
+                <a class="submenu-item" href="#" onclick="showPage('engineers',this)">Designations</a>
+            </div>
+        </div>
+
+        <div class="nav-item-wrap">
+            <div class="nav-link-custom" onclick="toggleSubmenu('postsub',this)">
+                <div class="nav-icon"><i class="fa-solid fa-file-lines"></i></div>
+                <span class="nav-text">Posts</span>
+                <span class="nav-badge">12</span>
+                <i class="fa-solid fa-chevron-right nav-chevron" id="postsub-chev"></i>
+            </div>
+            <div class="submenu" id="postsub">
+                <a class="submenu-item" href="#" onclick="showPage('engineers',this)">All Posts</a>
+                <a class="submenu-item" href="#" onclick="showPage('form',this)">Create Post</a>
+                <a class="submenu-item" href="#">Post Categories</a>
+                <a class="submenu-item" href="#">Archived Posts</a>
+            </div>
+        </div>
+
+        <div class="nav-item-wrap">
+            <div class="nav-link-custom" onclick="toggleSubmenu('projsub',this)">
+                <div class="nav-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                <span class="nav-text">Projects</span>
+                <i class="fa-solid fa-chevron-right nav-chevron" id="projsub-chev"></i>
+            </div>
+            <div class="submenu" id="projsub">
+                <a class="submenu-item" href="#">Active Projects</a>
+                <a class="submenu-item" href="#">Completed</a>
+                <a class="submenu-item" href="#">Project Reports</a>
+            </div>
+        </div>
+
+        <div class="nav-item-wrap">
+            <a class="nav-link-custom" href="#" onclick="showPage('engineers',this)">
+                <div class="nav-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <span class="nav-text">Activity Log</span>
+            </a>
+        </div>
+
+        <div class="sidebar-section-label">Management</div>
+
+        <div class="nav-item-wrap">
+            <a class="nav-link-custom" href="#" onclick="showPage('engineers',this)">
+                <div class="nav-icon"><i class="fa-solid fa-users"></i></div>
+                <span class="nav-text">Departments</span>
+                <span class="nav-badge sky">5</span>
+            </a>
+        </div>
+
+        <div class="nav-item-wrap">
+            <a class="nav-link-custom" href="#" onclick="showPage('engineers',this)">
+                <div class="nav-icon"><i class="fa-solid fa-chart-bar"></i></div>
+                <span class="nav-text">Reports</span>
+            </a>
+        </div>
+
+        <div class="nav-item-wrap">
+            <div class="nav-link-custom" onclick="toggleSubmenu('settingsub',this)">
+                <div class="nav-icon"><i class="fa-solid fa-sliders"></i></div>
+                <span class="nav-text">Settings</span>
+                <i class="fa-solid fa-chevron-right nav-chevron" id="settingsub-chev"></i>
+            </div>
+            <div class="submenu" id="settingsub">
+                <a class="submenu-item" href="#" onclick="showPage('settings',this)">General</a>
+                <a class="submenu-item" href="#">Roles & Permissions</a>
+                <a class="submenu-item" href="#">Notifications</a>
+                <a class="submenu-item" href="#">Backup</a>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-avatar">AS</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name">Arjun Sharma</div>
+                    <div class="sidebar-user-role">Super Admin</div>
+                </div>
+                <i class="fa-solid fa-ellipsis-vertical" style="color:var(--text-light);font-size:13px;"></i>
+            </div>
+        </div>
+    </aside>
+
+    <!-- HEADER -->
+    <header id="header">
+        <button class="header-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="header-breadcrumb">
+            <div class="breadcrumb-title" id="pageTitle">Dashboard</div>
+            <div class="breadcrumb-sub">
+                <i class="fa-solid fa-house-chimney" style="font-size:10px;color:var(--pink-primary)"></i>
+                <span class="breadcrumb-sep">/</span>
+                <span id="pageSub">Overview</span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <!-- Search -->
+            <button class="header-icon-btn" title="Search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+
+            <!-- Notifications -->
+            <div style="position:relative">
+                <button class="header-icon-btn" id="notifBtn" onclick="toggleNotif()" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-head">
+                        <span class="notif-head-title">Notifications <span
+                                style="font-size:11px;background:var(--pink-light);color:var(--pink-primary);border-radius:20px;padding:2px 7px;margin-left:5px;">4
+                                New</span></span>
+                        <span class="notif-mark">Mark all read</span>
+                    </div>
+                    <div class="notif-item">
+                        <div class="notif-avatar pink"><i class="fa-solid fa-hard-hat"></i></div>
+                        <div class="notif-body">
+                            <div class="notif-msg">New engineer post submitted for approval — Rahul Verma</div>
+                            <div class="notif-time"><i class="fa-regular fa-clock"></i> 5 mins ago</div>
+                        </div>
+                        <div class="unread-dot"></div>
+                    </div>
+                    <div class="notif-item">
+                        <div class="notif-avatar sky"><i class="fa-solid fa-file-lines"></i></div>
+                        <div class="notif-body">
+                            <div class="notif-msg">Post #EP-0042 has been approved by Department Head</div>
+                            <div class="notif-time"><i class="fa-regular fa-clock"></i> 22 mins ago</div>
+                        </div>
+                        <div class="unread-dot"></div>
+                    </div>
+                    <div class="notif-item">
+                        <div class="notif-avatar green"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="notif-body">
+                            <div class="notif-msg">Project Alpha milestone completed successfully</div>
+                            <div class="notif-time"><i class="fa-regular fa-clock"></i> 1 hour ago</div>
+                        </div>
+                        <div class="unread-dot"></div>
+                    </div>
+                    <div class="notif-item">
+                        <div class="notif-avatar pink"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="notif-body">
+                            <div class="notif-msg">System maintenance scheduled for tonight 11 PM</div>
+                            <div class="notif-time"><i class="fa-regular fa-clock"></i> 3 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <button class="header-icon-btn" title="Messages">
+                <i class="fa-solid fa-envelope"></i>
+                <span class="notif-dot sky"></span>
+            </button>
+
+            <!-- Profile -->
+            <div style="position:relative">
+                <button class="profile-btn" id="profileBtn" onclick="toggleProfile()">
+                    <div class="profile-avatar">AS</div>
+                    <div style="text-align:left">
+                        <div class="profile-name">Arjun Sharma</div>
+                        <div class="profile-role">Super Admin</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down profile-chevron"></i>
+                </button>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="profile-drop-head">
+                        <div class="profile-drop-avatar">AS</div>
+                        <div>
+                            <div class="profile-drop-name">Arjun Sharma</div>
+                            <div class="profile-drop-role">Super Admin &bull; Engineering Dept.</div>
+                        </div>
+                    </div>
+                    <a class="profile-drop-item" href="#"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a class="profile-drop-item" href="#"><i class="fa-solid fa-id-card"></i> Account Details</a>
+                    <a class="profile-drop-item" href="#"><i class="fa-solid fa-lock"></i> Change Password</a>
+                    <a class="profile-drop-item" href="#"><i class="fa-solid fa-gear"></i> Preferences</a>
+                    <a class="profile-drop-item" href="#"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
+                    <a class="profile-drop-item danger" href="#"><i class="fa-solid fa-right-from-bracket"></i> Sign
+                        Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main id="main">
+
+        <!-- DASHBOARD PAGE -->
+        <div id="page-dashboard">
+            <!-- Stat Cards -->
+            <div class="stat-cards">
+                <div class="stat-card pink">
+                    <div class="stat-icon pink"><i class="fa-solid fa-hard-hat"></i></div>
+                    <div class="stat-value">248</div>
+                    <div class="stat-label">Total Engineers</div>
+                    <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +12 this month</div>
+                </div>
+                <div class="stat-card sky">
+                    <div class="stat-icon sky"><i class="fa-solid fa-file-lines"></i></div>
+                    <div class="stat-value">1,842</div>
+                    <div class="stat-label">Total Posts</div>
+                    <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +84 this week</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="stat-value">196</div>
+                    <div class="stat-label">Active Projects</div>
+                    <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +8 new</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
+                    <div class="stat-value">37</div>
+                    <div class="stat-label">Pending Approval</div>
+                    <div class="stat-change down"><i class="fa-solid fa-arrow-trend-down"></i> -5 resolved</div>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-bottom:24px">
+                <!-- Posts Overview Card -->
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-title">Posts Overview</div>
+                            <div class="card-subtitle">Weekly submission activity</div>
+                        </div>
+                        <select
+                            style="font-size:12px;padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);color:var(--text-mid);background:var(--bg-main);cursor:pointer;font-family:var(--font-main)">
+                            <option>This Week</option>
+                            <option>This Month</option>
+                        </select>
+                    </div>
+                    <div style="padding:18px 22px 8px;display:flex;gap:18px;align-items:center">
+                        <div style="flex:1">
+                            <div
+                                style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--text-dark)">
+                                284</div>
+                            <div style="font-size:12px;color:var(--text-light);margin-bottom:12px">Total this week</div>
+                            <div style="display:flex;flex-direction:column;gap:8px">
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                                        <span
+                                            style="font-size:12px;color:var(--text-mid);font-weight:600">Approved</span>
+                                        <span
+                                            style="font-size:12px;color:var(--green-primary);font-weight:700">68%</span>
+                                    </div>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-fill"
+                                            style="width:68%;background:linear-gradient(90deg,var(--green-primary),var(--sky-primary))">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                                        <span
+                                            style="font-size:12px;color:var(--text-mid);font-weight:600">Pending</span>
+                                        <span style="font-size:12px;color:#f59e0b;font-weight:700">20%</span>
+                                    </div>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-fill"
+                                            style="width:20%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                                        <span
+                                            style="font-size:12px;color:var(--text-mid);font-weight:600">Rejected</span>
+                                        <span style="font-size:12px;color:#ef4444;font-weight:700">12%</span>
+                                    </div>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-fill"
+                                            style="width:12%;background:linear-gradient(90deg,#ef4444,#f87171)"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mini-chart" id="miniChart"></div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-title">Recent Activity</div>
+                            <div class="card-subtitle">Latest system events</div>
+                        </div>
+                        <button class="btn-outline" style="font-size:12px;padding:6px 12px"><i
+                                class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+                    </div>
+                    <div class="activity-feed">
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background:var(--pink-light);color:var(--pink-primary)"><i
+                                    class="fa-solid fa-plus"></i></div>
+                            <div class="activity-line">
+                                <div class="activity-text"><strong>Rahul Verma</strong> submitted a new post for Civil
+                                    Dept</div>
+                                <div class="activity-time"><i class="fa-regular fa-clock"></i> 8 min ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background:var(--green-light);color:var(--green-primary)">
+                                <i class="fa-solid fa-check"></i></div>
+                            <div class="activity-line">
+                                <div class="activity-text"><strong>Post #EP-0041</strong> approved by Dept Head</div>
+                                <div class="activity-time"><i class="fa-regular fa-clock"></i> 25 min ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background:var(--sky-light);color:var(--sky-primary)"><i
+                                    class="fa-solid fa-user-plus"></i></div>
+                            <div class="activity-line">
+                                <div class="activity-text"><strong>Priya Singh</strong> joined as Junior Engineer</div>
+                                <div class="activity-time"><i class="fa-regular fa-clock"></i> 1 hr ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background:#fef3c7;color:#d97706"><i
+                                    class="fa-solid fa-pen"></i></div>
+                            <div class="activity-line">
+                                <div class="activity-text"><strong>Manish Kumar</strong> updated post #EP-0038</div>
+                                <div class="activity-time"><i class="fa-regular fa-clock"></i> 2 hrs ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background:#fef2f2;color:#ef4444"><i
+                                    class="fa-solid fa-xmark"></i></div>
+                            <div class="activity-line">
+                                <div class="activity-text"><strong>Post #EP-0035</strong> rejected - incomplete
+                                    documents</div>
+                                <div class="activity-time"><i class="fa-regular fa-clock"></i> 3 hrs ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engineer Table Preview -->
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">Recent Engineer Posts</div>
+                        <div class="card-subtitle">Showing latest 5 submissions</div>
+                    </div>
+                    <div class="card-actions">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" placeholder="Search engineers...">
+                        </div>
+                        <button class="btn-pink" onclick="showPage('form')"><i class="fa-solid fa-plus"></i> Add
+                            Post</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="ep-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" style="accent-color:var(--pink-primary)"></th>
+                                <th>Engineer</th>
+                                <th>Post / Designation</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                <td>
+                                    <div class="table-user">
+                                        <div class="table-avatar a1">RV</div>
+                                        <div>
+                                            <div class="table-name">Rahul Verma</div>
+                                            <div class="table-email">rahul.v@epms.in</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge-role sr">Senior Engineer</span></td>
+                                <td>Civil</td>
+                                <td><span class="badge-status pending"><i class="fa-solid fa-circle"></i> Pending</span>
+                                </td>
+                                <td>Apr 16, 2026</td>
+                                <td>
+                                    <div class="action-btns"><button class="action-btn view" title="View"><i
+                                                class="fa-solid fa-eye"></i></button><button class="action-btn edit"
+                                            title="Edit"><i class="fa-solid fa-pen"></i></button><button
+                                            class="action-btn del" title="Delete"><i
+                                                class="fa-solid fa-trash"></i></button></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                <td>
+                                    <div class="table-user">
+                                        <div class="table-avatar a2">PS</div>
+                                        <div>
+                                            <div class="table-name">Priya Singh</div>
+                                            <div class="table-email">priya.s@epms.in</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge-role jr">Junior Engineer</span></td>
+                                <td>Electrical</td>
+                                <td><span class="badge-status active"><i class="fa-solid fa-circle"></i> Active</span>
+                                </td>
+                                <td>Apr 15, 2026</td>
+                                <td>
+                                    <div class="action-btns"><button class="action-btn view"><i
+                                                class="fa-solid fa-eye"></i></button><button class="action-btn edit"><i
+                                                class="fa-solid fa-pen"></i></button><button class="action-btn del"><i
+                                                class="fa-solid fa-trash"></i></button></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                <td>
+                                    <div class="table-user">
+                                        <div class="table-avatar a3">MK</div>
+                                        <div>
+                                            <div class="table-name">Manish Kumar</div>
+                                            <div class="table-email">manish.k@epms.in</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge-role lead">Lead Engineer</span></td>
+                                <td>Mechanical</td>
+                                <td><span class="badge-status review"><i class="fa-solid fa-circle"></i> In
+                                        Review</span></td>
+                                <td>Apr 14, 2026</td>
+                                <td>
+                                    <div class="action-btns"><button class="action-btn view"><i
+                                                class="fa-solid fa-eye"></i></button><button class="action-btn edit"><i
+                                                class="fa-solid fa-pen"></i></button><button class="action-btn del"><i
+                                                class="fa-solid fa-trash"></i></button></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                <td>
+                                    <div class="table-user">
+                                        <div class="table-avatar a4">AJ</div>
+                                        <div>
+                                            <div class="table-name">Anjali Joshi</div>
+                                            <div class="table-email">anjali.j@epms.in</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge-role mgr">Manager</span></td>
+                                <td>IT & Systems</td>
+                                <td><span class="badge-status active"><i class="fa-solid fa-circle"></i> Active</span>
+                                </td>
+                                <td>Apr 13, 2026</td>
+                                <td>
+                                    <div class="action-btns"><button class="action-btn view"><i
+                                                class="fa-solid fa-eye"></i></button><button class="action-btn edit"><i
+                                                class="fa-solid fa-pen"></i></button><button class="action-btn del"><i
+                                                class="fa-solid fa-trash"></i></button></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                <td>
+                                    <div class="table-user">
+                                        <div class="table-avatar a5">SR</div>
+                                        <div>
+                                            <div class="table-name">Suresh Rao</div>
+                                            <div class="table-email">suresh.r@epms.in</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge-role sr">Senior Engineer</span></td>
+                                <td>Civil</td>
+                                <td><span class="badge-status inactive"><i class="fa-solid fa-circle"></i>
+                                        Inactive</span></td>
+                                <td>Apr 12, 2026</td>
+                                <td>
+                                    <div class="action-btns"><button class="action-btn view"><i
+                                                class="fa-solid fa-eye"></i></button><button class="action-btn edit"><i
+                                                class="fa-solid fa-pen"></i></button><button class="action-btn del"><i
+                                                class="fa-solid fa-trash"></i></button></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-pagination">
+                    <span>Showing <strong>1–5</strong> of <strong>248</strong> engineers</span>
+                    <div class="pagination-btns">
+                        <button class="pag-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button class="pag-btn active">1</button>
+                        <button class="pag-btn">2</button>
+                        <button class="pag-btn">3</button>
+                        <span style="align-self:center;color:var(--text-light)">...</span>
+                        <button class="pag-btn">50</button>
+                        <button class="pag-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ENGINEERS / TABLE PAGE -->
+        <div id="page-engineers" style="display:none">
+            <div class="card">
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="switchTab(this,'tab-all')">All Engineers</button>
+                    <button class="tab-btn" onclick="switchTab(this,'tab-active')">Active</button>
+                    <button class="tab-btn" onclick="switchTab(this,'tab-pending')">Pending</button>
+                    <button class="tab-btn" onclick="switchTab(this,'tab-inactive')">Inactive</button>
+                </div>
+                <div id="tab-all" class="tab-content active">
+                    <div
+                        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap">
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" placeholder="Search by name, ID...">
+                            </div>
+                            <select class="form-control-ep" style="width:auto;padding:9px 14px">
+                                <option>All Departments</option>
+                                <option>Civil</option>
+                                <option>Electrical</option>
+                                <option>Mechanical</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:8px">
+                            <button class="btn-outline"><i class="fa-solid fa-filter"></i> Filter</button>
+                            <button class="btn-outline"><i class="fa-solid fa-file-export"></i> Export</button>
+                            <button class="btn-pink" onclick="showPage('form')"><i class="fa-solid fa-plus"></i> New
+                                Post</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="ep-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" style="accent-color:var(--pink-primary)"></th>
+                                    <th>Emp ID</th>
+                                    <th>Engineer</th>
+                                    <th>Designation</th>
+                                    <th>Department</th>
+                                    <th>Post Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                    <td style="font-size:12px;font-weight:700;color:var(--sky-primary)">#EP-0248</td>
+                                    <td>
+                                        <div class="table-user">
+                                            <div class="table-avatar a1">RV</div>
+                                            <div>
+                                                <div class="table-name">Rahul Verma</div>
+                                                <div class="table-email">rahul.v@epms.in</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge-role sr">Senior Eng.</span></td>
+                                    <td>Civil</td>
+                                    <td>Apr 16, 2026</td>
+                                    <td><span class="badge-status pending"><i class="fa-solid fa-circle"></i>
+                                            Pending</span></td>
+                                    <td>
+                                        <div class="action-btns"><button class="action-btn view"><i
+                                                    class="fa-solid fa-eye"></i></button><button
+                                                class="action-btn edit"><i class="fa-solid fa-pen"></i></button><button
+                                                class="action-btn del"><i class="fa-solid fa-trash"></i></button></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                    <td style="font-size:12px;font-weight:700;color:var(--sky-primary)">#EP-0247</td>
+                                    <td>
+                                        <div class="table-user">
+                                            <div class="table-avatar a2">PS</div>
+                                            <div>
+                                                <div class="table-name">Priya Singh</div>
+                                                <div class="table-email">priya.s@epms.in</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge-role jr">Junior Eng.</span></td>
+                                    <td>Electrical</td>
+                                    <td>Apr 15, 2026</td>
+                                    <td><span class="badge-status active"><i class="fa-solid fa-circle"></i>
+                                            Active</span></td>
+                                    <td>
+                                        <div class="action-btns"><button class="action-btn view"><i
+                                                    class="fa-solid fa-eye"></i></button><button
+                                                class="action-btn edit"><i class="fa-solid fa-pen"></i></button><button
+                                                class="action-btn del"><i class="fa-solid fa-trash"></i></button></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                    <td style="font-size:12px;font-weight:700;color:var(--sky-primary)">#EP-0246</td>
+                                    <td>
+                                        <div class="table-user">
+                                            <div class="table-avatar a3">MK</div>
+                                            <div>
+                                                <div class="table-name">Manish Kumar</div>
+                                                <div class="table-email">manish.k@epms.in</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge-role lead">Lead Eng.</span></td>
+                                    <td>Mechanical</td>
+                                    <td>Apr 14, 2026</td>
+                                    <td><span class="badge-status review"><i class="fa-solid fa-circle"></i> In
+                                            Review</span></td>
+                                    <td>
+                                        <div class="action-btns"><button class="action-btn view"><i
+                                                    class="fa-solid fa-eye"></i></button><button
+                                                class="action-btn edit"><i class="fa-solid fa-pen"></i></button><button
+                                                class="action-btn del"><i class="fa-solid fa-trash"></i></button></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                    <td style="font-size:12px;font-weight:700;color:var(--sky-primary)">#EP-0245</td>
+                                    <td>
+                                        <div class="table-user">
+                                            <div class="table-avatar a4">AJ</div>
+                                            <div>
+                                                <div class="table-name">Anjali Joshi</div>
+                                                <div class="table-email">anjali.j@epms.in</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge-role mgr">Manager</span></td>
+                                    <td>IT & Systems</td>
+                                    <td>Apr 13, 2026</td>
+                                    <td><span class="badge-status active"><i class="fa-solid fa-circle"></i>
+                                            Active</span></td>
+                                    <td>
+                                        <div class="action-btns"><button class="action-btn view"><i
+                                                    class="fa-solid fa-eye"></i></button><button
+                                                class="action-btn edit"><i class="fa-solid fa-pen"></i></button><button
+                                                class="action-btn del"><i class="fa-solid fa-trash"></i></button></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" style="accent-color:var(--pink-primary)"></td>
+                                    <td style="font-size:12px;font-weight:700;color:var(--sky-primary)">#EP-0244</td>
+                                    <td>
+                                        <div class="table-user">
+                                            <div class="table-avatar a5">SR</div>
+                                            <div>
+                                                <div class="table-name">Suresh Rao</div>
+                                                <div class="table-email">suresh.r@epms.in</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge-role sr">Senior Eng.</span></td>
+                                    <td>Civil</td>
+                                    <td>Apr 12, 2026</td>
+                                    <td><span class="badge-status inactive"><i class="fa-solid fa-circle"></i>
+                                            Inactive</span></td>
+                                    <td>
+                                        <div class="action-btns"><button class="action-btn view"><i
+                                                    class="fa-solid fa-eye"></i></button><button
+                                                class="action-btn edit"><i class="fa-solid fa-pen"></i></button><button
+                                                class="action-btn del"><i class="fa-solid fa-trash"></i></button></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-pagination">
+                        <span>Showing <strong>1–5</strong> of <strong>248</strong> records</span>
+                        <div class="pagination-btns">
+                            <button class="pag-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="pag-btn active">1</button>
+                            <button class="pag-btn">2</button>
+                            <button class="pag-btn">3</button>
+                            <button class="pag-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-active" class="tab-content">
+                    <div style="padding:40px;text-align:center;color:var(--text-light)"><i
+                            class="fa-solid fa-circle-check fa-2x"
+                            style="color:var(--green-primary);margin-bottom:12px"></i><br>Active engineers table would
+                        appear here.</div>
+                </div>
+                <div id="tab-pending" class="tab-content">
+                    <div style="padding:40px;text-align:center;color:var(--text-light)"><i
+                            class="fa-solid fa-clock fa-2x" style="color:#f59e0b;margin-bottom:12px"></i><br>Pending
+                        engineers table would appear here.</div>
+                </div>
+                <div id="tab-inactive" class="tab-content">
+                    <div style="padding:40px;text-align:center;color:var(--text-light)"><i class="fa-solid fa-ban fa-2x"
+                            style="color:#6b7280;margin-bottom:12px"></i><br>Inactive engineers table would appear here.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORM PAGE -->
+        <div id="page-form" style="display:none">
+            <div class="grid-2" style="align-items:start">
+                <div>
+                    <div class="card">
+                        <div class="card-head">
+                            <div>
+                                <div class="card-title"><i class="fa-solid fa-plus"
+                                        style="color:var(--pink-primary)"></i> Create Engineer Post</div>
+                                <div class="card-subtitle">Fill in the details below to submit a new post</div>
+                            </div>
+                        </div>
+                        <div style="padding:22px">
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fa-solid fa-user"
+                                        style="color:var(--pink-primary)"></i> Personal Information</div>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">First Name <span class="required">*</span></label>
+                                        <div class="input-icon-wrap">
+                                            <i class="form-icon fa-solid fa-user"></i>
+                                            <input type="text" class="form-control-ep" placeholder="e.g. Rahul">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Last Name <span class="required">*</span></label>
+                                        <div class="input-icon-wrap">
+                                            <i class="form-icon fa-solid fa-user"></i>
+                                            <input type="text" class="form-control-ep" placeholder="e.g. Verma">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Employee ID <span class="required">*</span></label>
+                                    <div class="input-icon-wrap">
+                                        <i class="form-icon fa-solid fa-id-badge"></i>
+                                        <input type="text" class="form-control-ep"
+                                            placeholder="Auto-generated: EP-0249">
+                                    </div>
+                                    <div class="form-hint">Employee ID will be auto-generated on submission</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email Address <span class="required">*</span></label>
+                                    <div class="input-icon-wrap">
+                                        <i class="form-icon fa-solid fa-envelope"></i>
+                                        <input type="email" class="form-control-ep" placeholder="name@epms.in">
+                                    </div>
+                                </div>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Phone Number</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="form-icon fa-solid fa-phone"></i>
+                                            <input type="tel" class="form-control-ep" placeholder="+91 XXXXX XXXXX">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Date of Birth</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="form-icon fa-solid fa-calendar"></i>
+                                            <input type="date" class="form-control-ep">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fa-solid fa-building"
+                                        style="color:var(--sky-primary)"></i> Post Details</div>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Department <span class="required">*</span></label>
+                                        <select class="form-control-ep">
+                                            <option value="">Select Department</option>
+                                            <option>Civil Engineering</option>
+                                            <option>Electrical Engineering</option>
+                                            <option>Mechanical Engineering</option>
+                                            <option>IT & Systems</option>
+                                            <option>Project Management</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Designation <span class="required">*</span></label>
+                                        <select class="form-control-ep">
+                                            <option value="">Select Designation</option>
+                                            <option>Junior Engineer</option>
+                                            <option>Senior Engineer</option>
+                                            <option>Lead Engineer</option>
+                                            <option>Manager</option>
+                                            <option>Director</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Post Date <span class="required">*</span></label>
+                                        <div class="input-icon-wrap">
+                                            <i class="form-icon fa-solid fa-calendar-check"></i>
+                                            <input type="date" class="form-control-ep">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Post Type</label>
+                                        <select class="form-control-ep">
+                                            <option>Permanent</option>
+                                            <option>Contract</option>
+                                            <option>Temporary</option>
+                                            <option>Probation</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Post Description</label>
+                                    <textarea class="form-control-ep"
+                                        placeholder="Describe the engineer's post, responsibilities and scope..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fa-solid fa-file-arrow-up"
+                                        style="color:var(--green-primary)"></i> Documents</div>
+                                <div class="form-group">
+                                    <label class="form-label">Qualification Certificate</label>
+                                    <div style="border:2px dashed var(--border);border-radius:var(--radius-sm);padding:24px;text-align:center;cursor:pointer;transition:border-color 0.2s;background:var(--bg-main)"
+                                        onmouseover="this.style.borderColor='var(--pink-mid)'"
+                                        onmouseout="this.style.borderColor='var(--border)'">
+                                        <i class="fa-solid fa-cloud-arrow-up"
+                                            style="font-size:24px;color:var(--text-light);margin-bottom:8px;display:block"></i>
+                                        <div style="font-size:13px;font-weight:600;color:var(--text-mid)">Drop files
+                                            here or <span style="color:var(--pink-primary)">browse</span></div>
+                                        <div style="font-size:11.5px;color:var(--text-light);margin-top:4px">PDF, DOC,
+                                            JPG up to 10MB</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:8px">
+                                    <div class="form-check-ep"><input type="checkbox" id="c1"><label for="c1">ID Proof
+                                            Uploaded</label></div>
+                                    <div class="form-check-ep"><input type="checkbox" id="c2"><label for="c2">Previous
+                                            Experience Certificate</label></div>
+                                    <div class="form-check-ep"><input type="checkbox" id="c3"><label for="c3">Medical
+                                            Fitness Certificate</label></div>
+                                </div>
+                            </div>
+
+                            <div class="form-footer">
+                                <button class="btn-outline"
+                                    onclick="showToast('info','Saved','Draft saved successfully.')"><i
+                                        class="fa-regular fa-floppy-disk"></i> Save Draft</button>
+                                <button class="btn-sky"
+                                    onclick="showToast('sky','Previewing','Post preview loaded.')"><i
+                                        class="fa-solid fa-eye"></i> Preview</button>
+                                <button class="btn-pink"
+                                    onclick="showToast('success','Submitted','Post submitted for approval!')"><i
+                                        class="fa-solid fa-paper-plane"></i> Submit Post</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel -->
+                <div>
+                    <div class="card" style="margin-bottom:18px">
+                        <div class="card-head">
+                            <div class="card-title"><i class="fa-solid fa-circle-info"
+                                    style="color:var(--sky-primary)"></i> Submission Guide</div>
+                        </div>
+                        <div style="padding:18px">
+                            <div style="display:flex;flex-direction:column;gap:12px">
+                                <div style="display:flex;gap:12px;align-items:flex-start">
+                                    <div
+                                        style="width:28px;height:28px;border-radius:8px;background:var(--pink-light);color:var(--pink-primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">
+                                        1</div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600;color:var(--text-dark)">Fill Personal
+                                            Details</div>
+                                        <div style="font-size:12px;color:var(--text-light)">Ensure all mandatory fields
+                                            are completed accurately.</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:12px;align-items:flex-start">
+                                    <div
+                                        style="width:28px;height:28px;border-radius:8px;background:var(--sky-light);color:var(--sky-primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">
+                                        2</div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600;color:var(--text-dark)">Post
+                                            Information</div>
+                                        <div style="font-size:12px;color:var(--text-light)">Select correct department
+                                            and designation.</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:12px;align-items:flex-start">
+                                    <div
+                                        style="width:28px;height:28px;border-radius:8px;background:var(--green-light);color:var(--green-primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">
+                                        3</div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600;color:var(--text-dark)">Upload
+                                            Documents</div>
+                                        <div style="font-size:12px;color:var(--text-light)">Attach all required
+                                            certificates before submitting.</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:12px;align-items:flex-start">
+                                    <div
+                                        style="width:28px;height:28px;border-radius:8px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">
+                                        4</div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600;color:var(--text-dark)">Review &
+                                            Submit</div>
+                                        <div style="font-size:12px;color:var(--text-light)">Post goes to department head
+                                            for approval.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-title"><i class="fa-solid fa-chart-pie"
+                                    style="color:var(--green-primary)"></i> Post Statistics</div>
+                        </div>
+                        <div style="padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                            <div
+                                style="background:var(--pink-light);border-radius:var(--radius-sm);padding:14px;text-align:center">
+                                <div
+                                    style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--pink-primary)">
+                                    248</div>
+                                <div style="font-size:11.5px;color:var(--text-mid);font-weight:500">Total Posts</div>
+                            </div>
+                            <div
+                                style="background:var(--sky-light);border-radius:var(--radius-sm);padding:14px;text-align:center">
+                                <div
+                                    style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--sky-primary)">
+                                    196</div>
+                                <div style="font-size:11.5px;color:var(--text-mid);font-weight:500">Approved</div>
+                            </div>
+                            <div
+                                style="background:#fef3c7;border-radius:var(--radius-sm);padding:14px;text-align:center">
+                                <div
+                                    style="font-family:var(--font-display);font-size:22px;font-weight:800;color:#d97706">
+                                    37</div>
+                                <div style="font-size:11.5px;color:var(--text-mid);font-weight:500">Pending</div>
+                            </div>
+                            <div
+                                style="background:var(--green-light);border-radius:var(--radius-sm);padding:14px;text-align:center">
+                                <div
+                                    style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--green-primary)">
+                                    15</div>
+                                <div style="font-size:11.5px;color:var(--text-mid);font-weight:500">Rejected</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS PAGE -->
+        <div id="page-settings" style="display:none">
+            <div class="grid-2" style="align-items:start">
+                <div>
+                    <div class="settings-section">
+                        <div class="card-title" style="margin-bottom:14px;font-family:var(--font-display)"><i
+                                class="fa-solid fa-bell" style="color:var(--pink-primary)"></i> Notifications</div>
+                        <div class="settings-card">
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-icon"
+                                        style="background:var(--pink-light);color:var(--pink-primary)"><i
+                                            class="fa-solid fa-envelope"></i></div>
+                                    <div>
+                                        <div class="settings-row-label">Email Notifications</div>
+                                        <div class="settings-row-sub">Receive alerts via email</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-icon"
+                                        style="background:var(--sky-light);color:var(--sky-primary)"><i
+                                            class="fa-solid fa-mobile-screen"></i></div>
+                                    <div>
+                                        <div class="settings-row-label">Push Notifications</div>
+                                        <div class="settings-row-sub">Browser push alerts</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-icon"
+                                        style="background:var(--green-light);color:var(--green-primary)"><i
+                                            class="fa-solid fa-file-lines"></i></div>
+                                    <div>
+                                        <div class="settings-row-label">Post Approval Alerts</div>
+                                        <div class="settings-row-sub">Notify on post status change</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox"><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-icon" style="background:#fef3c7;color:#d97706"><i
+                                            class="fa-solid fa-triangle-exclamation"></i></div>
+                                    <div>
+                                        <div class="settings-row-label">System Alerts</div>
+                                        <div class="settings-row-sub">Critical system notifications</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="card-title" style="margin-bottom:14px;font-family:var(--font-display)"><i
+                                class="fa-solid fa-shield-halved" style="color:var(--sky-primary)"></i> Security</div>
+                        <div class="settings-card">
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-icon"
+                                        style="background:var(--sky-light);color:var(--sky-primary)"><i
+                                            class="fa-solid fa-key"></i></div>
+                                    <div>
+                                        <div class="settings-row-label">Two-Factor Auth</div>
+                                        <div class="settings-row-sub">Adds extra login security</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-icon"
+                                        style="background:var(--green-light);color:var(--green-primary)"><i
+                                            class="fa-solid fa-clock-rotate-left"></i></div>
+                                    <div>
+                                        <div class="settings-row-label">Session Timeout</div>
+                                        <div class="settings-row-sub">Auto logout after 30 mins</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox"><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-icon"
+                                        style="background:var(--pink-light);color:var(--pink-primary)"><i
+                                            class="fa-solid fa-list-check"></i></div>
+                                    <div>
+                                        <div class="settings-row-label">Audit Logging</div>
+                                        <div class="settings-row-sub">Log all admin actions</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="settings-section">
+                        <div class="card-title" style="margin-bottom:14px;font-family:var(--font-display)"><i
+                                class="fa-solid fa-gear" style="color:var(--green-primary)"></i> General Settings</div>
+                        <div class="card">
+                            <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+                                <div class="form-group" style="margin:0">
+                                    <label class="form-label">System Name</label>
+                                    <input type="text" class="form-control-ep" value="Engineer Post Management System">
+                                </div>
+                                <div class="form-group" style="margin:0">
+                                    <label class="form-label">Admin Email</label>
+                                    <input type="email" class="form-control-ep" value="admin@epms.in">
+                                </div>
+                                <div class="form-group" style="margin:0">
+                                    <label class="form-label">Timezone</label>
+                                    <select class="form-control-ep">
+                                        <option selected>Asia/Kolkata (IST +05:30)</option>
+                                        <option>UTC</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin:0">
+                                    <label class="form-label">Date Format</label>
+                                    <select class="form-control-ep">
+                                        <option>DD/MM/YYYY</option>
+                                        <option selected>MMM DD, YYYY</option>
+                                    </select>
+                                </div>
+                                <div class="form-footer" style="padding:0">
+                                    <button class="btn-outline"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                                    <button class="btn-pink"
+                                        onclick="showToast('success','Saved','Settings saved successfully!')"><i
+                                            class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- TOASTER -->
+    <div class="toaster-wrap" id="toasterWrap"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const l = document.getElementById('loader-overlay');
+                l.style.opacity = '0';
+                setTimeout(() => l.style.display = 'none', 500);
+                showToast('success', 'Welcome Back!', 'Engineer PMS loaded successfully.');
+            }, 2000);
+        });
+
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const s = document.getElementById('sidebar');
+            const o = document.getElementById('sidebarOverlay');
+            s.classList.toggle('open');
+            o.classList.toggle('show');
+        }
+
+        // Submenu
+        function toggleSubmenu(id, el) {
+            const sub = document.getElementById(id);
+            const chev = document.getElementById(id + '-chev');
+            const isOpen = sub.classList.contains('open');
+            document.querySelectorAll('.submenu.open').forEach(s => s.classList.remove('open'));
+            document.querySelectorAll('.nav-chevron.open').forEach(c => c.classList.remove('open'));
+            if (!isOpen) { sub.classList.add('open'); if (chev) chev.classList.add('open'); }
+        }
+
+        // Page navigation
+        function showPage(page, el) {
+            document.querySelectorAll('#main > div').forEach(p => p.style.display = 'none');
+            const target = document.getElementById('page-' + page);
+            if (target) target.style.display = 'block';
+            // Update active nav
+            if (el) {
+                document.querySelectorAll('.nav-link-custom').forEach(n => n.classList.remove('active'));
+                el.classList.add('active');
+            }
+            const titles = { dashboard: ['Dashboard', 'Overview'], engineers: ['Engineer Posts', 'Engineers / All Posts'], form: ['Create Post', 'Posts / New Post'], settings: ['Settings', 'Settings / General'] };
+            const t = titles[page] || ['Dashboard', 'Overview'];
+            document.getElementById('pageTitle').textContent = t[0];
+            document.getElementById('pageSub').textContent = t[1];
+        }
+
+        // Notifications
+        function toggleNotif() {
+            const d = document.getElementById('notifDropdown');
+            const p = document.getElementById('profileDropdown');
+            p.classList.remove('show');
+            d.classList.toggle('show');
+            document.addEventListener('click', closeDropdowns, true);
+        }
+        function toggleProfile() {
+            const p = document.getElementById('profileDropdown');
+            const d = document.getElementById('notifDropdown');
+            d.classList.remove('show');
+            p.classList.toggle('show');
+            document.addEventListener('click', closeDropdowns, true);
+        }
+        function closeDropdowns(e) {
+            if (!e.target.closest('#notifBtn') && !e.target.closest('#notifDropdown')) document.getElementById('notifDropdown').classList.remove('show');
+            if (!e.target.closest('#profileBtn') && !e.target.closest('#profileDropdown')) document.getElementById('profileDropdown').classList.remove('show');
+        }
+
+        // Tab system
+        function switchTab(btn, tabId) {
+            const card = btn.closest('.card');
+            card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            card.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Toaster
+        function showToast(type, title, msg) {
+            const wrap = document.getElementById('toasterWrap');
+            const colors = { success: 'green', sky: 'sky', info: 'sky', error: 'red', warning: 'orange' };
+            const icons = { success: 'fa-circle-check', sky: 'fa-circle-info', info: 'fa-circle-info', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation' };
+            const c = colors[type] || 'pink';
+            const ic = icons[type] || 'fa-circle-check';
+            const t = document.createElement('div');
+            t.className = `toast-item ${c}`;
+            t.innerHTML = `<div class="toast-icon ${c}"><i class="fa-solid ${ic}"></i></div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
+            wrap.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(30px)'; t.style.transition = 'all 0.3s'; setTimeout(() => t.remove(), 300); }, 4000);
+        }
+
+        // Mini bar chart
+        (function buildChart() {
+            const data = [40, 65, 52, 78, 60, 88, 72];
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const c = document.getElementById('miniChart');
+            if (!c) return;
+            const max = Math.max(...data);
+            data.forEach((v, i) => {
+                const b = document.createElement('div');
+                b.className = 'mini-bar';
+                b.style.height = Math.round((v / max) * 100) + '%';
+                if (i === 5) b.style.background = 'var(--pink-primary)';
+                b.innerHTML = `<span>${days[i]}</span>`;
+                c.appendChild(b);
+            });
+        })();
+    </script>
+</body>
+
+</html>

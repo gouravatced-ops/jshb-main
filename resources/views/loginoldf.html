@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | JESA Portal</title>
+    <meta name="description" content="Login to the Jharkhand Engineering Service Association portal." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #07111a;
+            --panel: rgba(7, 17, 26, 0.92);
+            --panel-soft: rgba(15, 53, 64, 0.95);
+            --accent: #e9204f;
+            --accent-soft: #f35b7e;
+            --teal: #0cb6b6;
+            --text: #edf2f7;
+            --muted: #aac4cb;
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow: 0 32px 80px rgba(0, 0, 0, 0.28);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: radial-gradient(circle at top left, rgba(12, 182, 182, 0.16), transparent 24%),
+                radial-gradient(circle at 90% 20%, rgba(233, 32, 79, 0.12), transparent 20%),
+                linear-gradient(135deg, #07111a 0%, #112d3f 100%);
+            color: var(--text);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 32px 32px;
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .page-shell {
+            display: grid;
+            min-height: 100vh;
+            place-items: center;
+            padding: 32px 20px;
+        }
+
+        .login-panel {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 32px;
+            width: min(1200px, 100%);
+        }
+
+        .panel-card {
+            background: rgba(8, 20, 33, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 46%);
+            pointer-events: none;
+        }
+
+        .hero-card {
+            min-height: 620px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 32px;
+            background: linear-gradient(180deg, rgba(12, 182, 182, 0.11), rgba(233, 32, 79, 0.11));
+        }
+
+        .hero-headline {
+            margin: 0;
+            font-size: clamp(2.1rem, 2vw, 3rem);
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+        }
+
+        .hero-text {
+            max-width: 500px;
+            margin: 18px 0 0;
+            color: var(--muted);
+            line-height: 1.75;
+        }
+
+        .carousel-frame {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            margin-top: 30px;
+            min-height: 320px;
+        }
+
+        .slides {
+            display: flex;
+            width: 300%;
+            animation: slide-loop 18s infinite ease-in-out;
+        }
+
+        .slide {
+            width: 100%;
+            min-height: 320px;
+            position: relative;
+            display: grid;
+            align-items: end;
+            padding: 28px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 24px;
+        }
+
+        .slide::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 20%, rgba(7, 17, 26, 0.88) 85%);
+            border-radius: inherit;
+        }
+
+        .slide-content {
+            position: relative;
+            z-index: 1;
+            max-width: 78%;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--teal);
+            font-size: 0.82rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .slide-title {
+            margin: 16px 0 0;
+            font-size: clamp(1.75rem, 2vw, 2.55rem);
+            line-height: 1.05;
+        }
+
+        .slide-copy {
+            margin-top: 16px;
+            color: rgba(255, 255, 255, 0.78);
+            line-height: 1.8;
+            max-width: 420px;
+        }
+
+        .slide-1 { background-image: url('https://images.unsplash.com/photo-1542744094-24638eff58bb?auto=format&fit=crop&w=1200&q=80'); }
+        .slide-2 { background-image: url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80'); }
+        .slide-3 { background-image: url('https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80'); }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .carousel-dots span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.22);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+        }
+
+        .login-card {
+            padding: 40px 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(5, 15, 27, 0.98);
+        }
+
+        .brand-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .brand-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 6px rgba(233, 32, 79, 0.12);
+        }
+
+        .brand-title {
+            font-size: 0.92rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--teal);
+        }
+
+        .login-title {
+            margin: 0;
+            font-size: clamp(2rem, 2.4vw, 2.8rem);
+            line-height: 1.02;
+        }
+
+        .login-subtitle {
+            margin: 14px 0 28px;
+            color: var(--muted);
+            line-height: 1.75;
+        }
+
+        .field {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .field input {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            padding: 16px 18px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .field input:focus {
+            border-color: rgba(12, 182, 182, 0.9);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-foot {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 26px;
+        }
+
+        .remember {
+            display: inline-flex;
+            gap: 10px;
+            align-items: center;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .remember input {
+            accent-color: var(--accent);
+        }
+
+        .forgot-link {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .btn-submit {
+            width: 100%;
+            border: none;
+            border-radius: 16px;
+            padding: 18px 20px;
+            background: linear-gradient(135deg, var(--accent), #f05a7d);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 18px 40px rgba(233, 32, 79, 0.2);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 24px 48px rgba(233, 32, 79, 0.25);
+        }
+
+        .note-link {
+            margin-top: 26px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .note-link a {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .status-box {
+            margin-bottom: 20px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: rgba(12, 182, 182, 0.14);
+            color: #d6f7ff;
+            border: 1px solid rgba(12, 182, 182, 0.3);
+        }
+
+        @keyframes slide-loop {
+            0%, 28% { transform: translateX(0); }
+            33%, 61% { transform: translateX(-100%); }
+            66%, 94% { transform: translateX(-200%); }
+            100% { transform: translateX(0); }
+        }
+
+        @media (max-width: 992px) {
+            .login-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-card,
+            .login-card {
+                min-height: auto;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page-shell {
+                padding: 24px 14px;
+            }
+
+            .hero-card,
+            .login-card {
+                padding: 28px 22px;
+            }
+
+            .carousel-frame {
+                min-height: 260px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page-shell">
+        <div class="login-panel">
+            <section class="panel-card hero-card">
+                <div>
+                    <p class="brand-title">Jharkhand Engineering Service Association</p>
+                    <h1 class="hero-headline">Login to the secure member portal</h1>
+                    <p class="hero-text">Access event updates, membership news, and collaboration resources with a polished login experience built for JESA.</p>
+                </div>
+
+                <div class="carousel-frame">
+                    <div class="slides">
+                        <article class="slide slide-1">
+                            <div class="slide-content">
+                                <span class="eyebrow">Networking</span>
+                                <h2 class="slide-title">Connect with Engineers</h2>
+                                <p class="slide-copy">See activity highlights, upcoming sessions, and membership benefits in one beautiful dashboard preview.</p>
+                            </div>
+                        </article>
+                        <article class="slide slide-2">
+                            <div class="slide-content">
+                                <span class="eyebrow">Events</span>
+                                <h2 class="slide-title">Discover Workshops</h2>
+                                <p class="slide-copy">Keep track of seminars, technical meetups, and knowledge-sharing programs across Jharkhand.</p>
+                            </div>
+                        </article>
+                        <article class="slide slide-3">
+                            <div class="slide-content">
+                                <span class="eyebrow">Growth</span>
+                                <h2 class="slide-title">Access Member Resources</h2>
+                                <p class="slide-copy">Quickly reach notifications, documents, and association updates designed for engineering professionals.</p>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="carousel-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </section>
+
+            <section class="panel-card login-card">
+                <div class="brand-bar">
+                    <span class="brand-dot"></span>
+                    <span class="brand-title">JESA MEMBER LOGIN</span>
+                </div>
+                <h2 class="login-title">Welcome back</h2>
+                <p class="login-subtitle">Enter your credentials below to continue to the member area.</p>
+
+                @if (session('success'))
+                    <div class="status-box">{{ session('success') }}</div>
+                @endif
+
+                <form method="POST" action="/login" class="login-form">
+                    @csrf
+                    <div class="field">
+                        <label for="email">Email or Username</label>
+                        <input id="email" name="email" type="text" placeholder="yourname@example.com" required>
+                    </div>
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <input id="password" name="password" type="password" placeholder="Enter password" required>
+                    </div>
+                    <div class="form-foot">
+                        <label class="remember"><input type="checkbox" name="remember"> Remember me</label>
+                        <a href="#" class="forgot-link">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn-submit">Login to Account</button>
+                </form>
+
+                <p class="note-link">Need a read-only preview? <a href="/">Visit welcome page</a></p>
+            </section>
+        </div>
+    </main>
+</body>
+
+</html>
