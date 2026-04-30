@@ -15,7 +15,7 @@
     <div class="header-breadcrumb">
         <div class="breadcrumb-title" id="pageTitle">{{ config('panel.app_name') }}</div>
         <!-- subtitle  -->
-        <span style="font-size: 14px;">{{ config('panel.app_sub_title') }}</span>
+        <span class="breadcrumb-sub">({{ config('panel.organization') }})</span>
     </div>
 
     @if(session()->has('session_expires_at_ts'))

@@ -3,57 +3,89 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Forgot Password | {{ config('panel.portal_name') }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <meta name="description" content="Jharkhand Housing Board - Official management login portal" />
+    <!-- Google Fonts + Font Awesome -->
+    <link rel="stylesheet" href="{{ asset('css/font.css') }}">
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/all.css') }}">
 </head>
 
 <body>
-    <main class="page-shell">
-        <div class="login-panel">
-            <section class="panel-card hero-card">
-                <div class="hero-header">
-                    <div class="hero-logo">
-                        <img src="{{ asset(config('panel.logo')) }}" alt="JESA Logo">
-                    </div>
-                    <div class="hero-copy">
-                        <p class="hero-hindi">{{ config('panel.organization_hindi') }}</p>
-                        <p class="hero-company">{{ config('panel.organization') }}</p>
-                        <p class="hero-subtitle">Password recovery access</p>
-                    </div>
-                </div>
-                <div class="carousel-frame">
-                    <div class="slides">
-                        <article class="slide">
-                            <img class="slide-image" src="{{ asset('slider/main-slider-1-3.jpg')}}">
-                        </article>
 
-                        <article class="slide">
-                            <img class="slide-image" src="{{ asset('slider/main-slider-1-2.jpg')}}">
-                        </article>
+    <div class="floating-bg">
+        <div class="float-item" style="top: 12%; left: 3%;"><i class="fa-solid fa-hard-hat"></i></div>
+        <div class="float-item" style="top: 70%; right: 5%; width: 90px; height: 90px;"><i class="fa-solid fa-building-columns"></i></div>
+        <div class="float-item" style="bottom: 15%; left: 8%;"><i class="fa-solid fa-ruler-combined"></i></div>
+        <div class="float-item" style="top: 40%; right: 12%; width: 55px; height: 55px;"><i class="fa-solid fa-trowel-bricks"></i></div>
+    </div>
 
-                        <article class="slide">
-                            <img class="slide-image" src="{{ asset('slider/main-slider-1-1.jpg')}}">
-                        </article>
+    <div class="login-container">
+        <div class="glass-panel">
+            <!-- left side - hero + slider background -->
+            <div class="hero-side">
+                <div class="brand-header">
+                    <!-- Left Side: Organization Logo -->
+                    <div class="logo-circle">
+                        <img src="{{ asset(config('panel.logo')) }}" alt="JH Housing Board Logo" style="background:white; border-radius:12px;" onerror="this.src='https://placehold.co/80x80/ffffff/1f7b4d?text=JH'">
+                    </div>
+
+                    <!-- Center: Organization Titles -->
+                    <div class="org-titles">
+                        <h4>{{ config('panel.organization_hindi') }}</h4>
+                        <h2>{{ config('panel.organization') }}</h2>
+                        <small>Password recovery access</small>
+                    </div>
+
+                    <!-- Right Side: Government Logo -->
+                    <div class="govt-logo-circle">
+                        <a href="https://jharkhand.gov.in/" target="_blank" rel="noopener noreferrer">
+                            <img src="{{ asset(config('panel.govermentLogo')) }}" alt="Government Logo">
+                        </a>
                     </div>
                 </div>
-                <div>
-                    <p class="hero-text">Enter your registered email address. We will send a secure verification link so you can reset your password.</p>
-                </div>
-            </section>
 
-            <section class="panel-card login-card">
-                <div class="brand-bar">
-                    <span class="brand-dot"></span>
-                    <span class="brand-title">FORGOT PASSWORD</span>
+                <!-- modern carousel background (slide images as dynamic backdrop) -->
+                <div class="bg-slider-wrapper" id="bgCarousel">
+                    <div class="bg-slides" id="slidesContainer">
+                        <div class="bg-slide active" style="background-image: url('img/slider1.png');">
+                            <div class="slide-overlay"></div>
+                            <div class="carousel-caption-text">Fill the Application</div>
+                        </div>
+                        <div class="bg-slide" style="background-image: url('img/slider2.png');">
+                            <div class="slide-overlay"></div>
+                            <div class="carousel-caption-text">Manage Panel</div>
+                        </div>
+                    </div>
                 </div>
-                <p class="login-subtitle">Use your member email to receive an OTP for password reset verification.</p>
+
+                <div class="hero-description">
+                    Jharkhand Housing Board – OTP verification is complete. Create a fresh password to regain access to the JSHB portal.
+                </div>
+            </div>
+
+            <!-- right side: login form -->
+            <div class="login-side">
+                <div class="mobile-brand">
+                    <div class="logo-circle" style="width: 50px; height: 50px;">
+                        <img src="{{ asset(config('panel.logo')) }}" style="width: 100%;">
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1rem; color: var(--yellow-dark);">{{ config('panel.organization') }}</h4>
+                        <strong>Member Portal</strong>
+                    </div>
+                </div>
+
+                <div class="badge-login">
+                    <span class="badge-dot"></span>
+                    <span class="badge-text">FORGOT PASSWORD</span>
+                </div>
+                <!-- <h1 class="login-title">Welcome </h1> -->
+                <p class="login-sub">Use your member email to receive an OTP for password reset verification.</p>
 
                 @if (session('success'))
-                <div class="status-box">{{ session('success') }}</div>
+                <div class="status-box success">{{ session('success') }}</div>
                 @endif
 
                 @if ($errors->any())
@@ -84,9 +116,35 @@
                 </form>
 
                 <p class="note-link" style="text-align:center;">Remembered it? <a href="{{ route('login') }}">Back to login</a></p>
-            </section>
+
+                <!-- Government & Bank logos, partner section -->
+                <div class="login-footer">
+
+                    <!-- Govt / Bank Section -->
+                    <div class="footer-block">
+                        <span class="footer-label">Powered by</span>
+                        <div class="govt-logos">
+                            <div class="govt-icon">
+                                <a href="https://indianbank.bank.in/" target="_blank" rel="noopener noreferrer">
+                                    <img src="{{ asset(config('panel.patrnterLogo')) }}" alt="Bank">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tech Partner -->
+                    <div class="footer-block">
+                        <span class="footer-label">Tech Partner</span>
+                        <a href="https://www.computered.in/" target="_blank" rel="noopener noreferrer" class="partner-badge">
+                            <img src="{{ asset(config('panel.techpatrnterLogo')) }}" alt="Computer Ed">
+                        </a>
+                    </div>
+
+                </div>
+                <p class="footer-note">© Jharkhand Housing Board | Secured by Govt. Infrastructure</p>
+            </div>
         </div>
-    </main>
+    </div>
     <script src="{{ asset('js/login.js') }}"></script>
 </body>
 

@@ -48,7 +48,7 @@
         <div class="sidebar-logo">
             <div class="logo-icon"><img src="{{ asset(config('panel.logo')) }}" alt="JESA Logo"></div>
             <div class="logo-text">
-                <div class="logo-title">{{ config('panel.organization') }}</div>
+                <div class="logo-title">JSHB</div>
             </div>
         </div>
 
@@ -281,7 +281,7 @@
                 </div>
                 <div class="sidebar-user-info">
                     <div class="sidebar-user-name">{{ $sidebarUser->name ?? 'Guest User' }}</div>
-                    <small>{{ $sidebarUser->email ?? 'guest@domain.com' }}</small>
+                    <span>{{ $sidebarUser->email ?? 'guest@domain.com' }}</span>
                 </div>
             </div>
         </div>

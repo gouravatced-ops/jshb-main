@@ -36,32 +36,80 @@
 <body>
     <!-- LOADER -->
     <div id="loader-overlay">
-        <div class="bearing-loader">
-            <div class="bearing-outer"></div>
-            <div class="loader-balls">
-                <div class="loader-ball"></div>
-                <div class="loader-ball"></div>
-                <div class="loader-ball"></div>
-                <div class="loader-ball"></div>
-                <div class="loader-ball"></div>
+        <!-- House Scene -->
+        <div class="loader-house-scene">
+            <!-- Ground -->
+            <div class="loader-ground"></div>
+            <div class="loader-ground-line"></div>
+
+            <!-- Roof -->
+            <div class="loader-roof"></div>
+            <div class="loader-roof-inner"></div>
+
+            <!-- House Body with Bricks -->
+            <div class="loader-house-body">
+                <div class="loader-brick-row">
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                </div>
+                <div class="loader-brick-row">
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                </div>
+                <div class="loader-brick-row">
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                </div>
+                <div class="loader-brick-row">
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                </div>
+                <div class="loader-brick-row">
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                    <div class="loader-brick"></div>
+                </div>
             </div>
-            <div class="bearing-mid"></div>
-            <div class="bearing-inner">
-                <div class="bearing-cross"></div>
-                <div class="bearing-cross"></div>
+
+            <!-- Door -->
+            <div class="loader-door">
+                <div class="loader-door-knob"></div>
+            </div>
+
+            <!-- Windows -->
+            <div class="loader-window loader-window-left loader-window-lit">
+                <div class="loader-window-cross-h"></div>
+                <div class="loader-window-cross-v"></div>
+            </div>
+            <!-- <div class="loader-window loader-window-right">
+                <div class="loader-window-cross-h"></div>
+                <div class="loader-window-cross-v"></div>
+            </div> -->
+
+            <!-- Chimney -->
+            <div class="loader-chimney"></div>
+
+            <!-- Smoke -->
+            <div class="loader-smoke">
+                <div class="loader-smoke-puff"></div>
+                <div class="loader-smoke-puff"></div>
+                <div class="loader-smoke-puff"></div>
             </div>
         </div>
-        <div class="loader-text">EPMS LOADING</div>
-    </div>
 
-    <div id="secondary-loader-overlay" aria-hidden="true">
-        <div class="secondary-loader-card">
-            <div class="secondary-bearing-loader">
-                <div class="secondary-bearing-outer"></div>
-                <div class="secondary-bearing-mid"></div>
-                <div class="secondary-bearing-inner"></div>
+        <!-- Progress Bar -->
+        <div class="loader-progress-wrap">
+            <div class="loader-progress-meta">
+                <span class="loader-progress-label">Loading</span>
+                <!-- <span class="loader-progress-pct"><span id="loaderPercent">0</span>%</span> -->
             </div>
-            <div class="secondary-loader-text" id="secondaryLoaderText">Processing...</div>
+            <div class="loader-progress-track">
+                <div class="loader-progress-bar" id="loaderBar"></div>
+            </div>
         </div>
     </div>
 

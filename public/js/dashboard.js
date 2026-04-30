@@ -4,10 +4,12 @@ window.addEventListener('load', () => {
     const hasSeenPrimaryLoader = sessionStorage.getItem('epms-primary-loader-seen') === '1';
     const hidePrimaryLoader = () => {
         if (!primaryLoader) return;
-        primaryLoader.style.opacity = '0';
+        primaryLoader.style.transition = 'opacity 5s ease-out, visibility 5s ease-out';
+        primaryLoader.style.opacity = '0.8';
+        primaryLoader.style.visibility = 'hidden';
         setTimeout(() => {
             primaryLoader.style.display = 'none';
-        }, 500);
+        }, 1000);
     };
 
     if (hasSeenPrimaryLoader) {
@@ -22,7 +24,7 @@ window.addEventListener('load', () => {
         hidePrimaryLoader();
         initializeSessionTimer();
         initializeSecondaryLoaderBindings();
-    }, 2000);
+    }, 1000);
 });
 
 function showSecondaryLoader(message = 'Processing...') {
@@ -130,13 +132,59 @@ function toggleSubmenu(id, el) {
     const sub = document.getElementById(id);
     const chev = document.getElementById(id + '-chev');
     const isOpen = sub.classList.contains('open');
-    document.querySelectorAll('.submenu.open').forEach(s => s.classList.remove('open'));
-    document.querySelectorAll('.nav-chevron.open').forEach(c => c.classList.remove('open'));
+    
+    // Check if submenu or its children contain active items
+    const hasActiveChild = sub.querySelector('.submenu-item.active') !== null;
+    
+    // Close other submenus only if this one doesn't have active items
+    if (!isOpen || (isOpen && !hasActiveChild)) {
+        document.querySelectorAll('.submenu.open').forEach(s => {
+            // Don't close if it has active children
+            if (s.querySelector('.submenu-item.active') === null) {
+                s.classList.remove('open');
+            }
+        });
+        document.querySelectorAll('.nav-chevron.open').forEach(c => {
+            // Don't close if parent submenu has active children
+            const submenuId = c.id.replace('-chev', '');
+            const submenu = document.getElementById(submenuId);
+            if (!submenu || submenu.querySelector('.submenu-item.active') === null) {
+                c.classList.remove('open');
+            }
+        });
+    }
+    
+    // Toggle current submenu
     if (!isOpen) {
         sub.classList.add('open');
         if (chev) chev.classList.add('open');
+    } else if (!hasActiveChild) {
+        // Only close if it doesn't have active items
+        sub.classList.remove('open');
+        if (chev) chev.classList.remove('open');
     }
 }
+
+// Initialize active submenus on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Open submenus that have active items
+    document.querySelectorAll('.submenu-item.active').forEach(activeItem => {
+        const submenu = activeItem.closest('.submenu');
+        if (submenu) {
+            submenu.classList.add('open');
+            const chev = document.getElementById(submenu.id + '-chev');
+            if (chev) chev.classList.add('open');
+        }
+    });
+    
+    // Open parent nav link if submenu is active
+    document.querySelectorAll('.submenu.open').forEach(submenu => {
+        const parentNav = submenu.previousElementSibling;
+        if (parentNav && parentNav.classList.contains('nav-link-custom')) {
+            parentNav.classList.add('active');
+        }
+    });
+});
 
 // Page navigation
 function showPage(page, el) {
