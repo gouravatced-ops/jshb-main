@@ -1,5 +1,12 @@
 /* ======= TOKENS ======= */
 :root {
+    --primary-color: #15803d;
+    --primary-hover: #1a7a3f;
+    --sidebar-bg: #066a52;
+    --sidebar-secondary: rgb(32, 143, 80);
+    --sidebar-hover: #064e3b;
+    --sidebar-active: #119041;
+    --sidebar-active-secondary: #4ade80;
     --white: #ffffff;
     --bg-main: #f8fafc;
     --bg-card: #ffffff;

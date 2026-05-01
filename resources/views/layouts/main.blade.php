@@ -12,23 +12,6 @@
     <link rel="stylesheet" href="{{ asset('css/font/font.css') }}">
     <link rel="stylesheet" href="{{ asset('css/icons/all.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
-    @php
-        $themeName = config('panel.theme', 'forest-green');
-        $theme = config('panel.themes.' . $themeName) 
-            ?? config('panel.themes.gov-indigo');
-    @endphp
-
-    <style>
-        :root {
-            --primary-color: {{ $theme['primary-color'] ?? '#000' }};
-            --primary-hover: {{ $theme['primary-hover'] ?? '#000' }};
-            --sidebar-bg: {{ $theme['sidebar-bg'] ?? '#000' }};
-            --sidebar-secondary: {{ $theme['sidebar-secondary'] ?? '#000' }};
-            --sidebar-hover: {{ $theme['sidebar-hover'] ?? '#000' }};
-            --sidebar-active: {{ $theme['sidebar-active'] ?? '#000' }};
-            --sidebar-active-secondary: {{ $theme['sidebar-active-secondary'] ?? '#000' }};
-        }
-    </style>
 </head>
 
 <body>
