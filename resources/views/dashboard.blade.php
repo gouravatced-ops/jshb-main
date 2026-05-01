@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'User Dashboard | JESA')
+@section('title', 'User Dashboard | JSHB')
 
 @section('content')
 <div id="page-dashboard">

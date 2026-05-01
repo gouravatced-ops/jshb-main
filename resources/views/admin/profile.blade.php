@@ -1,7 +1,7 @@
 {{-- resources/views/admin/profile.blade.php --}}
 @extends('layouts.main')
 
-@section('title', ucfirst($user->role ?? 'User') . ' Profile | JESA')
+@section('title', ucfirst($user->role ?? 'User') . ' Profile | JSHB')
 
 @section('content')
 @php

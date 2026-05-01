@@ -1,12 +1,12 @@
 <!-- HEADER -->
 @php
-    $authUser = auth()->user();
-    $profileRoute = $authUser?->role === 'admin' ? route('admin.profile') : route('profile');
-    $profileInitials = 'U';
-    if ($authUser && ! empty($authUser->name)) {
-        $nameParts = preg_split('/\s+/', trim($authUser->name));
-        $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? ''));
-    }
+$authUser = auth()->user();
+$profileRoute = $authUser?->role === 'admin' ? route('admin.profile') : route('profile');
+$profileInitials = 'U';
+if ($authUser && ! empty($authUser->name)) {
+$nameParts = preg_split('/\s+/', trim($authUser->name));
+$profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? ''));
+}
 @endphp
 <header id="header">
     <button class="header-toggle" id="sidebarToggle" onclick="toggleSidebar()">
@@ -19,13 +19,13 @@
     </div>
 
     @if(session()->has('session_expires_at_ts'))
-        <div class="session-timer" id="sessionTimer"
-            data-expiry-ts="{{ session('session_expires_at_ts') }}"
-            data-logout-url="{{ route('logout', ['auto' => 1]) }}">
-            <i class="fa-solid fa-clock"></i>
-            <span>Session</span>
-            <strong id="sessionCountdown">00:00</strong>
-        </div>
+    <div class="session-timer" id="sessionTimer"
+        data-expiry-ts="{{ session('session_expires_at_ts') }}"
+        data-logout-url="{{ route('logout', ['auto' => 1]) }}">
+        <i class="fa-solid fa-clock"></i>
+        <span>Session</span>
+        <strong id="sessionCountdown">00:00</strong>
+    </div>
     @endif
 
     <div class="header-actions">
@@ -97,9 +97,9 @@
             <button class="profile-btn" id="profileBtn" onclick="toggleProfile()">
                 <div class="profile-avatar">
                     @if($authUser && $authUser->photo)
-                        <img src="{{ asset('storage/photos/' . $authUser->photo) }}" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+                    <img src="{{ asset('storage/photos/' . $authUser->photo) }}" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
                     @else
-                        {{ $profileInitials }}
+                    {{ $profileInitials }}
                     @endif
                 </div>
                 <div style="text-align:left">
@@ -117,7 +117,7 @@
                     </div>
                 </div>
                 <a class="profile-drop-item" href="{{ $profileRoute }}"><i class="fa-solid fa-user"></i> My Profile</a>
-                <a class="profile-drop-item" href="{{ $profileRoute }}"><i class="fa-solid fa-id-card"></i> Account Details</a>
+                <!-- <a class="profile-drop-item" href="{{ $profileRoute }}"><i class="fa-solid fa-id-card"></i> Account Details</a> -->
                 <a class="profile-drop-item" href="javascript:void(0)" onclick="openPasswordResetModal(event); return false;"><i class="fa-solid fa-lock"></i> Change Password</a>
                 <!-- <a class="profile-drop-item" href="#"><i class="fa-solid fa-gear"></i> Preferences</a> -->
                 <!-- <a class="profile-drop-item" href="#"><i class="fa-solid fa-circle-question"></i> Help & Support</a> -->

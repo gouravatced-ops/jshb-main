@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Division List | JESA')
+@section('title', 'Division List | JSHB')
 
 @section('content')
 <div class="card">

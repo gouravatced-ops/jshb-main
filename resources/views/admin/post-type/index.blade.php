@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Post Type List | JESA')
+@section('title', 'Post Type List | JSHB')
 
 @section('content')
 <div class="card">

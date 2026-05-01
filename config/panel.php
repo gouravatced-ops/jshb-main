@@ -15,7 +15,7 @@ return [
     'app_sub_title' => 'JSHB Administration',
     'logo' => 'img/jshb_logo.png',
     'stategovermentLogo' => 'assets/logo.png',
-    'faviconIcon' => 'img/favicons/apple-touch-icon.png',
+    'faviconIcon' => 'img/favicons/favicon.png',
     'techpatrnterLogo' => 'img/computered-logo.png',
     'govermentLogo' => 'img/logo.png',
     'patrnterLogo' => 'img/indian-bank.png',

@@ -7,9 +7,9 @@
     <title>Reset Password | {{ config('panel.portal_name') }}</title>
     <meta name="description" content="Jharkhand Housing Board - Official management login portal" />
     <!-- Google Fonts + Font Awesome -->
-    <link rel="stylesheet" href="{{ asset('css/font.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/font/font.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/icons/all.css') }}">
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/all.css') }}">
 </head>
 
 <body>

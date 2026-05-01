@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Lock Screen | {{ config('panel.organization') }}</title>
-    <link rel="stylesheet" href="{{ asset('css/font.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/all.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/font/font.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/icons/all.css') }}">
     <style>
         * {
             margin: 0;

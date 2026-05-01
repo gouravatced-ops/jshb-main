@@ -5,14 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'JESA Dashboard')</title>
-    <meta name="description" content="Login to the Jharkhand Engineering Service Association portal." />
-    <link rel="https://computered.co.in/jesa/apple-touch-icon" sizes="180x180" href="{{asset(config('panel.faviconIcon'))}}" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <title>@yield('title', 'JSHB Dashboard')</title>
+    <meta name="description" content="Jharkhand State Housing Board | Admin Portal" />
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset(config('panel.faviconIcon')) }}">
+    <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/font/font.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/icons/all.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
     @php
         $themeName = config('panel.theme', 'forest-green');

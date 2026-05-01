@@ -6,10 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Login | Jharkhand Housing Board</title>
   <meta name="description" content="Jharkhand Housing Board - Official management login portal" />
+  <link rel="shortcut icon" type="image/x-icon" href="{{ asset(config('panel.faviconIcon')) }}">
   <!-- Google Fonts + Font Awesome -->
-  <link rel="stylesheet" href="{{ asset('css/font.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/font/font.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/icons/all.css') }}">
   <link rel="stylesheet" href="{{ asset('css/login.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/all.css') }}">
 </head>
 
 <body>

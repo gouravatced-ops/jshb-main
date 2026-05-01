@@ -29,7 +29,7 @@ class CustomResetPasswordNotification extends Notification
         return (new MailMessage)
             ->subject(config('panel.portal_name') . ' Password Reset')
             ->greeting('Hello ' . ($notifiable->name ?: 'Member') . ',')
-            ->line('We received a password reset request for your JESA member account.')
+            ->line('We received a password reset request for your JSHB member account.')
             ->action('Reset Password', $url)
             ->line('This reset link will expire in 60 minutes.')
             ->line('If you did not request a password reset, no further action is required.');

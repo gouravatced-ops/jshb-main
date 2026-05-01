@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Add Sub Division | JESA')
+@section('title', 'Add Sub Division | JSHB')
 
 @section('content')
 <div class="form-container">

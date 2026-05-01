@@ -1,7 +1,7 @@
 {{-- resources/views/admin/scheme/create.blade.php --}}
 @extends('layouts.main')
 
-@section('title', 'Create New Scheme | JESA')
+@section('title', 'Create New Scheme | JSHB')
 
 @section('content')
 <div class="form-container">

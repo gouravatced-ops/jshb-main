@@ -46,7 +46,7 @@
     @endphp
     <aside id="sidebar">
         <div class="sidebar-logo">
-            <div class="logo-icon"><img src="{{ asset(config('panel.logo')) }}" alt="JESA Logo"></div>
+            <div class="logo-icon"><img src="{{ asset(config('panel.logo')) }}" alt="JSHB Logo"></div>
             <div class="logo-text">
                 <div class="logo-title">JSHB</div>
             </div>
@@ -152,19 +152,6 @@
 
         <div class="sidebar-section-label">Components Management</div>
 
-
-        <div class="nav-item-wrap">
-            <div class="nav-link-custom {{ $isPostTypeActive ? 'active' : '' }}" onclick="toggleSubmenu('posttypesub',this)">
-                <div class="nav-icon"><i class="fa-solid fa-hard-hat"></i></div>
-                <span class="nav-text">Post Types</span>
-                <i class="fa-solid fa-chevron-right nav-chevron" id="posttypesub-chev"></i>
-            </div>
-            <div class="submenu" id="posttypesub">
-                <a class="submenu-item {{ request()->routeIs('admin.post-types.index') ? 'active' : '' }}" href="{{ $postTypeIndexRoute }}">Post Type List</a>
-                <a class="submenu-item {{ request()->routeIs('admin.post-types.create') ? 'active' : '' }}" href="{{ $postTypeCreateRoute }}">Add Post Type</a>
-            </div>
-        </div>
-
         <div class="nav-item-wrap">
             <div class="nav-link-custom {{ $isDivisionActive ? 'active' : '' }}" onclick="toggleSubmenu('divisionsub',this)">
                 <div class="nav-icon"><i class="fa-solid fa-diagram-project"></i></div>
@@ -189,55 +176,12 @@
             </div>
         </div>
 
-        <!-- <div class="nav-item-wrap">
-            <div class="nav-link-custom {{ $isDepartmentActive ? 'active' : '' }}" onclick="toggleSubmenu('departmentsub',this)">
-                <div class="nav-icon"><i class="fa-solid fa-building-user"></i></div>
-                <span class="nav-text">Department</span>
-                <i class="fa-solid fa-chevron-right nav-chevron" id="departmentsub-chev"></i>
-            </div>
-            <div class="submenu" id="departmentsub">
-                <a class="submenu-item {{ request()->routeIs('admin.departments.index') ? 'active' : '' }}" href="{{ $departmentIndexRoute }}">Department List</a>
-                <a class="submenu-item {{ request()->routeIs('admin.departments.create') ? 'active' : '' }}" href="{{ $departmentCreateRoute }}">Add Department</a>
-            </div>
-        </div> -->
-
-        <!-- <div class="nav-item-wrap">
-            <a class="nav-link-custom {{ $isRequisitionActive ? 'active' : '' }}" href="{{ $adminRequisitionIndexRoute }}">
-                <div class="nav-icon"><i class="fa-solid fa-hotel"></i></div>
-                <span class="nav-text">Requisitions</span>
-            </a>
-        </div> -->
-
-        <div class="nav-item-wrap">
-            <div class="nav-link-custom {{ $isBlockActive ? 'active' : '' }}" onclick="toggleSubmenu('blocksub',this)">
-                <div class="nav-icon"><i class="fa-solid fa-cubes-stacked"></i></div>
-                <span class="nav-text">Blocks</span>
-                <i class="fa-solid fa-chevron-right nav-chevron" id="blocksub-chev"></i>
-            </div>
-            <div class="submenu" id="blocksub">
-                <a class="submenu-item {{ request()->routeIs('admin.blocks.index') ? 'active' : '' }}" href="{{ $blockIndexRoute }}">Block List</a>
-                <a class="submenu-item {{ request()->routeIs('admin.blocks.create') ? 'active' : '' }}" href="{{ $blockCreateRoute }}">Add Block</a>
-            </div>
-        </div>
-
         @else
         <div class="nav-item-wrap">
             <a class="nav-link-custom {{ $isProfileActive ? 'active' : '' }}" href="{{ $profileRoute }}">
                 <div class="nav-icon"><i class="fa-solid fa-id-card"></i></div>
                 <span class="nav-text">My Profile</span>
             </a>
-        </div>
-
-        <div class="nav-item-wrap">
-            <div class="nav-link-custom {{ $isRequisitionActive ? 'active' : '' }}" onclick="toggleSubmenu('usersubreq',this)">
-                <div class="nav-icon"><i class="fa-solid fa-hotel"></i></div>
-                <span class="nav-text">Requisitions</span>
-                <i class="fa-solid fa-chevron-right nav-chevron" id="usersubreq-chev"></i>
-            </div>
-            <div class="submenu" id="usersubreq">
-                <a class="submenu-item {{ request()->routeIs('requisitions.index') ? 'active' : '' }}" href="{{ $userRequisitionIndexRoute }}">My Requisitions</a>
-                <a class="submenu-item {{ request()->routeIs('requisitions.create') ? 'active' : '' }}" href="{{ $userRequisitionCreateRoute }}">New Requisition</a>
-            </div>
         </div>
 
         <div class="nav-item-wrap">

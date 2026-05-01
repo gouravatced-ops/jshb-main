@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'New Requisition | JESA')
+@section('title', 'New Requisition | JSHB')
 
 @section('content')
 <div class="card">
