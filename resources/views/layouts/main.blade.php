@@ -94,6 +94,18 @@
         </div>
     </div>
 
+    <!-- SECONDARY LOADER -->
+    <div id="secondary-loader-overlay" aria-hidden="true">
+        <div class="secondary-loader-card">
+            <div class="secondary-bearing-loader">
+                <div class="secondary-bearing-outer"></div>
+                <div class="secondary-bearing-mid"></div>
+                <div class="secondary-bearing-inner"></div>
+            </div>
+            <div class="secondary-loader-text" id="secondaryLoaderText">Processing...</div>
+        </div>
+    </div>
+
     <!-- SIDEBAR -->
     <x-sidebar></x-sidebar>
 

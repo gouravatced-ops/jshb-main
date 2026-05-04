@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\User;
 
 class RoleMiddleware
 {
@@ -16,14 +17,24 @@ class RoleMiddleware
             abort(403, 'Permission denied.');
         }
 
-        if (! in_array($user->role, $roles, true)) {
-            $dashboardRoute = $user->role === 'admin' ? 'admin.dashboard' : 'dashboard';
-
-            return redirect()
-                ->route($dashboardRoute)
-                ->with('error', 'You do not have permission to access that page.');
+        if (in_array($user->role, $roles, true)) {
+            return $next($request);
         }
 
-        return $next($request);
+        return redirect()
+            ->route($this->dashboardRoute($user))
+            ->with('error', 'You do not have permission to access that page.');
+    }
+
+    private function dashboardRoute(User $user): string
+    {
+        return match ($user->role) {
+            'user'        => 'dashboard',
+            'admin'       => 'admin.dashboard',
+            'staff'       => 'staff.dashboard',
+            'division'    => 'division.dashboard',
+            'subdivision' => 'subdivision.dashboard',
+            default       => 'dashboard',
+        };
     }
 }

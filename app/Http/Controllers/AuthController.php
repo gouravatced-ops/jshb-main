@@ -220,6 +220,13 @@ class AuthController extends Controller
 
     private function dashboardRoute(User $user): string
     {
-        return $user->role === 'admin' ? 'admin.dashboard' : 'dashboard';
+        return match ($user->role) {
+            'user'        => 'dashboard',
+            'admin'       => 'admin.dashboard',
+            'staff'       => 'staff.dashboard',
+            'division'    => 'division.dashboard',
+            'subdivision' => 'subdivision.dashboard',
+            default       => 'dashboard', // fallback safety
+        };
     }
 }

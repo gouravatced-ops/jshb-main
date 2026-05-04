@@ -11,6 +11,8 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ParentOrganizationController;
 use App\Http\Controllers\PostTypeController;
 use App\Http\Controllers\SubDivisionController;
+use App\Http\Controllers\Admin\CategoriesController;
+use App\Http\Controllers\Admin\SchemeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -39,6 +41,22 @@ Route::middleware('auth')
         Route::get('/sub-divisions/{subDivision}/edit', [SubDivisionController::class, 'edit'])->name('sub-divisions.edit');
         Route::put('/sub-divisions/{subDivision}', [SubDivisionController::class, 'update'])->name('sub-divisions.update');
         Route::delete('/sub-divisions/{subDivision}', [SubDivisionController::class, 'destroy'])->name('sub-divisions.destroy');
+
+        Route::get('/categories', [CategoriesController::class, 'index'])->name('categories.index');
+        Route::get('/categories/search', [CategoriesController::class, 'search'])->name('categories.search');
+        Route::get('/categories/create', [CategoriesController::class, 'create'])->name('categories.create');
+        Route::post('/categories', [CategoriesController::class, 'store'])->name('categories.store');
+        Route::get('/categories/{categories}/edit', [CategoriesController::class, 'edit'])->name('categories.edit');
+        Route::put('/categories/{categories}', [CategoriesController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{categories}', [CategoriesController::class, 'destroy'])->name('categories.destroy');
+
+        Route::get('/schemes', [SchemeController::class, 'index'])->name('schemes.index');
+        Route::get('/schemes/search', [SchemeController::class, 'search'])->name('schemes.search');
+        Route::get('/schemes/create', [SchemeController::class, 'create'])->name('schemes.create');
+        Route::post('/schemes', [SchemeController::class, 'store'])->name('schemes.store');
+        Route::get('/schemes/{schemes}/edit', [SchemeController::class, 'edit'])->name('schemes.edit');
+        Route::put('/schemes/{schemes}', [SchemeController::class, 'update'])->name('schemes.update');
+        Route::delete('/schemes/{schemes}', [SchemeController::class, 'destroy'])->name('schemes.destroy');
 
         Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations.index');
         Route::get('/organizations/search', [OrganizationController::class, 'search'])->name('organizations.search');

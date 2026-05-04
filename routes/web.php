@@ -33,3 +33,6 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__ . '/user-routes.php';
 require __DIR__ . '/admin-routes.php';
+require __DIR__ . '/staff-routes.php';
+require __DIR__ . '/division-routes.php';
+require __DIR__ . '/subdivision-routes.php';

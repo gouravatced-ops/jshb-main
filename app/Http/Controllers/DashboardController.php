@@ -17,7 +17,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 30 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
         }
 
         if (! Auth::check()) {
@@ -46,13 +46,13 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('dashboard', compact('user', 'employeeDetail', 'recentLogins', 'otpLogCount', 'recentRequisitions'));
+        return view('user.dashboard', compact('user', 'employeeDetail', 'recentLogins', 'otpLogCount', 'recentRequisitions'));
     }
 
     public function admin(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 30 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
         }
 
         if ($redirect = $this->redirectIfLocked()) {
@@ -68,59 +68,100 @@ class DashboardController extends Controller
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
         $otpLogs = OtpLog::latest()->take(10)->get();
-
-        $totalEngineers = EngineerDetail::count();
-        $districtCoverage = EngineerDetail::distinct('district_id')->count('district_id');
-        $totalOrganizations = Organization::count();
-        $totalPostTypes = PostType::count();
-        $pendingRequisitions = GuestHouseRequisition::where('status', 'pending')->count();
-
-        $recentEngineers = EngineerDetail::with([
-            'user',
-            'currentOrganization',
-            'district',
-            'block',
-            'postType',
-        ])
-            ->latest()
-            ->take(8)
-            ->get();
-
-        $recentRequisitions = GuestHouseRequisition::query()
-            ->with(['user', 'district', 'block'])
-            ->latest()
-            ->take(6)
-            ->get();
-
-        $districtEngineerCounts = EngineerDetail::query()
-            ->selectRaw('districts.name_en as district_name, COUNT(engineer_details.id) as engineer_count')
-            ->join('districts', 'districts.id', '=', 'engineer_details.district_id')
-            ->where('districts.state_id', 15)
-            ->groupBy('districts.id', 'districts.name_en')
-            ->orderByDesc('engineer_count')
-            ->orderBy('districts.name_en')
-            ->take(10)
-            ->get();
-
-        $latestEngineer = $recentEngineers->first();
         $latestLogin = $loginLogs->first();
-        $topDistrict = $districtEngineerCounts->first();
 
         return view('admin.module.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
-            'totalEngineers',
-            'districtCoverage',
-            'totalOrganizations',
-            'totalPostTypes',
-            'pendingRequisitions',
-            'recentEngineers',
-            'recentRequisitions',
-            'districtEngineerCounts',
-            'latestEngineer',
             'latestLogin',
-            'topDistrict'
+        ));
+    }
+
+    public function staff(Request $request)
+    {
+        if ($this->checkSessionExpiry($request)) {
+            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+        }
+
+        if ($redirect = $this->redirectIfLocked()) {
+            return $redirect;
+        }
+
+        $user = Auth::user();
+
+        if (! $user || $user->role !== 'staff') {
+            return redirect()->route('dashboard')->with('error', 'Staff access required.');
+        }
+
+        $users = User::with('detail')->orderByDesc('created_at')->get();
+        $loginLogs = LoginLog::latest()->take(10)->get();
+        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $latestLogin = $loginLogs->first();
+
+        return view('staff.dashboard', compact(
+            'users',
+            'loginLogs',
+            'otpLogs',
+            'latestLogin',
+        ));
+    }
+
+    public function division(Request $request)
+    {
+        if ($this->checkSessionExpiry($request)) {
+            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+        }
+
+        if ($redirect = $this->redirectIfLocked()) {
+            return $redirect;
+        }
+
+        $user = Auth::user();
+
+        if (! $user || $user->role !== 'division') {
+            return redirect()->route('dashboard')->with('error', 'Division access required.');
+        }
+
+        $users = User::with('detail')->orderByDesc('created_at')->get();
+        $loginLogs = LoginLog::latest()->take(10)->get();
+        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $latestLogin = $loginLogs->first();
+
+        return view('division.dashboard', compact(
+            'users',
+            'loginLogs',
+            'otpLogs',
+            'latestLogin',
+        ));
+    }
+
+    public function subdivision(Request $request)
+    {
+        if ($this->checkSessionExpiry($request)) {
+            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+        }
+
+        if ($redirect = $this->redirectIfLocked()) {
+            return $redirect;
+        }
+
+        $user = Auth::user();
+
+        if (! $user || $user->role !== 'subdivision') {
+            return redirect()->route('dashboard')->with('error', 'Sub Division access required.');
+        }
+
+        $users = User::with('detail')->orderByDesc('created_at')->get();
+        $loginLogs = LoginLog::latest()->take(10)->get();
+        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $latestLogin = $loginLogs->first();
+
+        return view('subdivision.dashboard', compact(
+            'users',
+            'loginLogs',
+            'otpLogs',
+            'latestLogin',
         ));
     }
 
