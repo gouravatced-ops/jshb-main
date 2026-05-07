@@ -86,6 +86,12 @@ class QuarterType extends Model
         'status' => 1,
     ];
 
+    protected $appends = ['qt_en_id'];
+
+    public function getQtEnIdAttribute()
+    {
+        return encryptId($this->quarter_id);
+    }
 
     public function scopeActive($query)
     {

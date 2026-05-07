@@ -15,15 +15,9 @@ $divisionIndexRoute = route('admin.divisions.index');
 $divisionCreateRoute = route('admin.divisions.create');
 $subDivisionIndexRoute = route('admin.sub-divisions.index');
 $subDivisionCreateRoute = route('admin.sub-divisions.create');
-$organizationIndexRoute = route('admin.organizations.index');
-$organizationCreateRoute = route('admin.organizations.create');
-$parentOrganizationIndexRoute = route('admin.parent-organizations.index');
-$parentOrganizationCreateRoute = route('admin.parent-organizations.create');
 $isDivisionActive = request()->routeIs('admin.divisions.*');
 $isSubDivisionActive = request()->routeIs('admin.sub-divisions.*');
 $isCategoriesActive = request()->routeIs('admin.categories.*');
-$isParentOrganizationActive = request()->routeIs('admin.parent-organizations.*');
-$isOrganizationActive = request()->routeIs('admin.organizations.*');
 @endphp
 
 <aside id="sidebar">

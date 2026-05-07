@@ -8,29 +8,28 @@
 
 <div class="sidebar-section-label">Management</div>
 
-<!-- Parent Organization -->
+<!-- Allottee -->
 <div class="nav-item-wrap">
-    <div class="nav-link-custom {{ $isParentOrganizationActive ? 'active' : '' }}" onclick="toggleSubmenu('templateparent',this)">
-        <div class="nav-icon"><i class="fa-solid fa-building-columns"></i></div>
-        <span class="nav-text">Parent Organization</span>
-        <i class="fa-solid fa-chevron-right nav-chevron" id="templateparent-chev"></i>
+    <div class="nav-link-custom" onclick="toggleSubmenu('allottee',this)">
+        <div class="nav-icon">
+            <i class="fa-solid fa-user-check"></i> <!-- Main Allottee Icon -->
+        </div>
+        <span class="nav-text">Allottee</span>
+        <i class="fa-solid fa-chevron-right nav-chevron" id="allottee-chev"></i>
     </div>
-    <div class="submenu" id="templateparent">
-        <a class="submenu-item {{ request()->routeIs('admin.parent-organizations.index') ? 'active' : '' }}" href="{{ $parentOrganizationIndexRoute }}">Parent Organization List</a>
-        <a class="submenu-item {{ request()->routeIs('admin.parent-organizations.create') ? 'active' : '' }}" href="{{ $parentOrganizationCreateRoute }}">Add Parent Organization</a>
-    </div>
-</div>
 
-<!-- Organization -->
-<div class="nav-item-wrap">
-    <div class="nav-link-custom {{ $isOrganizationActive ? 'active' : '' }}" onclick="toggleSubmenu('templatesub',this)">
-        <div class="nav-icon"><i class="fa-solid fa-warehouse"></i></div>
-        <span class="nav-text">Organization</span>
-        <i class="fa-solid fa-chevron-right nav-chevron" id="templatesub-chev"></i>
-    </div>
-    <div class="submenu" id="templatesub">
-        <a class="submenu-item {{ request()->routeIs('admin.organizations.index') ? 'active' : '' }}" href="{{ $organizationIndexRoute }}">Organization List</a>
-        <a class="submenu-item {{ request()->routeIs('admin.organizations.create') ? 'active' : '' }}" href="{{ $organizationCreateRoute }}">Add Organization</a>
+    <div class="submenu" id="allottee">
+        <!-- Allottee List -->
+        <a class="submenu-item"
+            href="#">
+            <i class="fa-solid fa-list"></i> Allottee List
+        </a>
+
+        <!-- Create Allottee -->
+        <a class="submenu-item {{ request()->routeIs('admin.apply.index') ? 'active' : '' }}"
+            href="{{ route('admin.apply.index') }}">
+            <i class="fa-solid fa-user-plus"></i> Add Allottee
+        </a>
     </div>
 </div>
 
@@ -44,8 +43,12 @@
         <i class="fa-solid fa-chevron-right nav-chevron" id="divisionsub-chev"></i>
     </div>
     <div class="submenu" id="divisionsub">
-        <a class="submenu-item {{ request()->routeIs('admin.divisions.index') ? 'active' : '' }}" href="{{ $divisionIndexRoute }}">Division List</a>
-        <a class="submenu-item {{ request()->routeIs('admin.divisions.create') ? 'active' : '' }}" href="{{ $divisionCreateRoute }}">Add Division</a>
+        <a class="submenu-item {{ request()->routeIs('admin.divisions.index') ? 'active' : '' }}" href="{{ $divisionIndexRoute }}">
+            <i class="fa-solid fa-list"></i> Division List
+        </a>
+        <a class="submenu-item {{ request()->routeIs('admin.divisions.create') ? 'active' : '' }}" href="{{ $divisionCreateRoute }}">
+            <i class="fa-solid fa-plus"></i> Add Division
+        </a>
     </div>
 </div>
 
@@ -57,8 +60,12 @@
         <i class="fa-solid fa-chevron-right nav-chevron" id="subdivisionsub-chev"></i>
     </div>
     <div class="submenu" id="subdivisionsub">
-        <a class="submenu-item {{ request()->routeIs('admin.sub-divisions.index') ? 'active' : '' }}" href="{{ $subDivisionIndexRoute }}">Sub Division List</a>
-        <a class="submenu-item {{ request()->routeIs('admin.sub-divisions.create') ? 'active' : '' }}" href="{{ $subDivisionCreateRoute }}">Add Sub Division</a>
+        <a class="submenu-item {{ request()->routeIs('admin.sub-divisions.index') ? 'active' : '' }}" href="{{ $subDivisionIndexRoute }}">
+            <i class="fa-solid fa-list-ul"></i> Sub Division List
+        </a>
+        <a class="submenu-item {{ request()->routeIs('admin.sub-divisions.create') ? 'active' : '' }}" href="{{ $subDivisionCreateRoute }}">
+            <i class="fa-solid fa-plus"></i> Add Sub Division
+        </a>
     </div>
 </div>
 
@@ -72,8 +79,12 @@
         <i class="fa-solid fa-chevron-right nav-chevron" id="categories-chev"></i>
     </div>
     <div class="submenu" id="categories">
-        <a class="submenu-item {{ request()->routeIs('admin.categories.index') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">Category List</a>
-        <a class="submenu-item {{ request()->routeIs('admin.categories.create') ? 'active' : '' }}" href="{{ route('admin.categories.create') }}">Add Category</a>
+        <a class="submenu-item {{ request()->routeIs('admin.categories.index') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
+            <i class="fa-solid fa-tags"></i> Category List
+        </a>
+        <a class="submenu-item {{ request()->routeIs('admin.categories.create') ? 'active' : '' }}" href="{{ route('admin.categories.create') }}">
+            <i class="fa-solid fa-tag"></i> Add Category
+        </a>
     </div>
 </div>
 
@@ -87,8 +98,12 @@
         <i class="fa-solid fa-chevron-right nav-chevron" id="schemes-chev"></i>
     </div>
     <div class="submenu" id="schemes">
-        <a class="submenu-item {{ request()->routeIs('admin.schemes.index') ? 'active' : '' }}" href="{{ route('admin.schemes.index') }}">Scheme List</a>
-        <a class="submenu-item {{ request()->routeIs('admin.schemes.create') ? 'active' : '' }}" href="{{ route('admin.schemes.create') }}">Add Scheme</a>
+        <a class="submenu-item {{ request()->routeIs('admin.schemes.index') ? 'active' : '' }}" href="{{ route('admin.schemes.index') }}">
+            <i class="fa-solid fa-table"></i> Scheme List
+        </a>
+        <a class="submenu-item {{ request()->routeIs('admin.schemes.create') ? 'active' : '' }}" href="{{ route('admin.schemes.create') }}">
+            <i class="fa-solid fa-circle-plus"></i> Add Scheme
+        </a>
     </div>
 </div>
 @endif

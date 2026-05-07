@@ -1,13 +1,23 @@
 <!-- Common Settings and Footer for all roles -->
 <div class="nav-item-wrap">
     <div class="nav-link-custom" onclick="toggleSubmenu('settingsub',this)">
-        <div class="nav-icon"><i class="fa-solid fa-sliders"></i></div>
+        <div class="nav-icon">
+            <i class="fa-solid fa-sliders"></i>
+        </div>
         <span class="nav-text">Settings</span>
         <i class="fa-solid fa-chevron-right nav-chevron" id="settingsub-chev"></i>
     </div>
+
     <div class="submenu" id="settingsub">
-        <a class="submenu-item" href="javascript:void(0)" onclick="openPasswordResetModal(event); return false;">Change Password</a>
-        <a class="submenu-item" href="{{ route('logout') }}">Sign Out</a>
+        <!-- Change Password -->
+        <a class="submenu-item" href="javascript:void(0)" onclick="openPasswordResetModal(event); return false;">
+            <i class="fa-solid fa-key"></i> Change Password
+        </a>
+
+        <!-- Logout -->
+        <a class="submenu-item" href="{{ route('logout') }}">
+            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+        </a>
     </div>
 </div>
 

@@ -15,6 +15,10 @@
 </head>
 
 <body>
+
+    <!-- TOASTER -->
+    <div class="toaster-wrap" id="toasterWrap"></div>
+    
     <!-- LOADER -->
     <div id="loader-overlay">
         <!-- House Scene -->

@@ -29,6 +29,13 @@ class SubDivision extends Model
         ];
     }
 
+    protected $appends = ['sub_dv_en_id'];
+
+    public function getSubDvEnIdAttribute()
+    {
+        return encryptId($this->id);
+    }
+
     public function division(): BelongsTo
     {
         return $this->belongsTo(Division::class);

@@ -255,7 +255,7 @@ function switchTab(btn, tabId) {
 }
 
 // Toaster
-function showToast(type, title, msg) {
+function showToast(title , msg, type) {
     const wrap = document.getElementById('toasterWrap');
     const colors = {
         success: 'green',
@@ -276,6 +276,7 @@ function showToast(type, title, msg) {
     const t = document.createElement('div');
     t.className = `toast-item ${c}`;
     t.innerHTML = `<div class="toast-icon ${c}"><i class="fa-solid ${ic}"></i></div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
+    console.log(t.innerHTML);
     wrap.appendChild(t);
     setTimeout(() => {
         t.style.opacity = '0';

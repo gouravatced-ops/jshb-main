@@ -17,6 +17,13 @@ class PropertyType extends Model
         'status'
     ];
 
+    protected $appends = ['pt_en_id'];
+
+    public function getPtEnIdAttribute()
+    {
+        return encryptId($this->id);
+    }
+
     public function propertyCategory()
     {
         return $this->belongsTo(PropertyCategory::class, 'category_id');

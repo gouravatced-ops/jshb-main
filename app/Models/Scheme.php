@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\EncryptedRouteKey;
@@ -35,6 +34,8 @@ class Scheme extends Model
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'scheme_start_date' => 'datetime',
+        'scheme_end_date' => 'datetime',
     ];
 
     public function division()

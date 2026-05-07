@@ -18,6 +18,13 @@ class PropertyMainType extends Model
         'status'
     ];
 
+    protected $appends = ['pctm_en_id'];
+
+    public function getPctmEnIdAttribute()
+    {
+        return encryptId($this->id);
+    }
+
     // Relationship to PropertyType
     public function propertyType()
     {

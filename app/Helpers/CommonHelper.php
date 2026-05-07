@@ -1,7 +1,87 @@
 <?php
+
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\District;
+use App\Models\Division;
+use App\Models\SubDivision;
+use App\Models\PropertyCategory;
+use App\Models\PropertyType;
+use App\Models\PropertyMainType;
+use App\Models\QuarterType;
+use App\Models\Scheme;
+
+if (!function_exists('getDivisions')) {
+    function getDivisions()
+    {
+        return Division::where('status', 1)
+            ->orderBy('name', 'asc')
+            ->get();
+    }
+}
+
+if (!function_exists('getPropertyCategory')) {
+    function getPropertyCategory()
+    {
+        return PropertyCategory::where('status', 1)
+            ->get();
+    }
+}
+
+if (!function_exists('getSubDivisions')) {
+    function getSubDivisions($divisionId)
+    {
+        return SubDivision::where('division_id', $divisionId)
+            ->where('status', 1)
+            ->orderBy('name', 'asc')
+            ->get();
+    }
+}
+
+if (!function_exists('getSubDivisionById')) {
+    function getSubDivisionById($subDivisionId)
+    {
+        return SubDivision::where('id', $subDivisionId)
+            ->where('status', 1)->first();
+    }
+}
+
+if (!function_exists('getQuarterType')) {
+    function getQuarterType()
+    {
+        return QuarterType::where('status', 1)
+            ->get();
+    }
+}
+
+if (!function_exists('getSchemeName')) {
+    function getSchemeName($schemeId)
+    {
+        return Scheme::where('id', $schemeId)
+            ->value('scheme_name');
+    }
+}
+
+if (!function_exists('getPropertyType')) {
+    function getPropertyType($category_id)
+    {
+        return PropertyType::where('category_id', $category_id)
+            ->where('status', 1)
+            ->orderBy('name', 'asc')
+            ->get();
+    }
+}
+
+if (!function_exists('getPropertySubType')) {
+    function getPropertySubType($typeId)
+    {
+        return PropertyMainType::where('ptype_id', $typeId)
+            ->where('status', 1)
+            ->orderBy('name', 'asc')
+            ->get();
+    }
+}
 
 if (!function_exists('getDistrictsByStateId')) {
     function getDistrictsByStateId($stateId)
@@ -15,6 +95,30 @@ if (!function_exists('getdistrictNameById')) {
     {
         $district = District::find($districtId);
         return $district ? $district->name_en : null;
+    }
+}
+
+if (!function_exists('getDistrict')) {
+    function getDistrict($stateId)
+    {
+        return DB::table('districts')->where('state_id', $stateId)->get();
+    }
+}
+
+if (!function_exists('getStates')) {
+    function getStates()
+    {
+        return DB::table('states')
+            ->orderByRaw("
+                CASE 
+                    WHEN name_en = 'Bihar (Now Jharkhand)' THEN 1
+                    WHEN name_en = 'Jharkhand' THEN 2
+                    WHEN name_en = 'Bihar' THEN 3
+                    ELSE 4
+                END
+            ")
+            ->orderBy('name_en', 'ASC') // optional: sort remaining states
+            ->get();
     }
 }
 

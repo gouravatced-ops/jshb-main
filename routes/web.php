@@ -29,6 +29,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/password/check-expiry', [PasswordController::class, 'checkPasswordExpiry'])->name('password.check-expiry');
     Route::post('/password/update', [PasswordController::class, 'update'])->name('password.update');
     Route::post('/password/generate-captcha', [PasswordController::class, 'generateCaptcha'])->name('password.captcha');
+    Route::get('/get-sub-divisions/{division}', function ($division) {
+        return response()->json(getSubDivisions($division));
+    });
+    Route::get('/get-property-types/{category}', function ($category) {
+        return response()->json(getPropertyType($category));
+    });
+
+    Route::get('/get-property-sub-types/{typeId}', function ($typeId) {
+        return response()->json(getPropertySubType($typeId));
+    });
+
+    Route::get('/districts/{stateId}', function ($stateId) {
+        return response()->json(getDistrict($stateId));
+    });
 });
 
 require __DIR__ . '/user-routes.php';

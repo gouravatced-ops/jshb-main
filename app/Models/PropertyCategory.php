@@ -23,6 +23,13 @@ class PropertyCategory extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected $appends = ['pct_en_id'];
+
+    public function getPctEnIdAttribute()
+    {
+        return encryptId($this->id);
+    }
+
     public function propertycategoryType()
     {
         return $this->hasMany(PropertyCategory::class, 'category_id');

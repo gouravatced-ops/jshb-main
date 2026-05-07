@@ -1,18 +1,12 @@
 <?php
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\BlockListController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DivisionController;
-use App\Http\Controllers\EngineerController;
-use App\Http\Controllers\GuestHouseRequisitionController;
-use App\Http\Controllers\OrganizationController;
-use App\Http\Controllers\ParentOrganizationController;
-use App\Http\Controllers\PostTypeController;
 use App\Http\Controllers\SubDivisionController;
 use App\Http\Controllers\Admin\CategoriesController;
 use App\Http\Controllers\Admin\SchemeController;
+use App\Http\Controllers\Admin\AllotteeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -23,9 +17,8 @@ Route::middleware('auth')
         Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
         Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
         Route::post('/profile/update', [AdminController::class, 'updateProfile'])->name('profile.update');
-        Route::get('/requisitions', [GuestHouseRequisitionController::class, 'adminIndex'])->name('requisitions.index');
-        Route::patch('/requisitions/{requisition}/status', [GuestHouseRequisitionController::class, 'updateStatus'])->name('requisitions.update-status');
 
+        // Division
         Route::get('/divisions', [DivisionController::class, 'index'])->name('divisions.index');
         Route::get('/divisions/search', [DivisionController::class, 'search'])->name('divisions.search');
         Route::get('/divisions/create', [DivisionController::class, 'create'])->name('divisions.create');
@@ -34,6 +27,7 @@ Route::middleware('auth')
         Route::put('/divisions/{division}', [DivisionController::class, 'update'])->name('divisions.update');
         Route::delete('/divisions/{division}', [DivisionController::class, 'destroy'])->name('divisions.destroy');
 
+        // Sub Division
         Route::get('/sub-divisions', [SubDivisionController::class, 'index'])->name('sub-divisions.index');
         Route::get('/sub-divisions/search', [SubDivisionController::class, 'search'])->name('sub-divisions.search');
         Route::get('/sub-divisions/create', [SubDivisionController::class, 'create'])->name('sub-divisions.create');
@@ -42,6 +36,7 @@ Route::middleware('auth')
         Route::put('/sub-divisions/{subDivision}', [SubDivisionController::class, 'update'])->name('sub-divisions.update');
         Route::delete('/sub-divisions/{subDivision}', [SubDivisionController::class, 'destroy'])->name('sub-divisions.destroy');
 
+        // Property Category
         Route::get('/categories', [CategoriesController::class, 'index'])->name('categories.index');
         Route::get('/categories/search', [CategoriesController::class, 'search'])->name('categories.search');
         Route::get('/categories/create', [CategoriesController::class, 'create'])->name('categories.create');
@@ -50,59 +45,34 @@ Route::middleware('auth')
         Route::put('/categories/{categories}', [CategoriesController::class, 'update'])->name('categories.update');
         Route::delete('/categories/{categories}', [CategoriesController::class, 'destroy'])->name('categories.destroy');
 
+        // Scheme
         Route::get('/schemes', [SchemeController::class, 'index'])->name('schemes.index');
         Route::get('/schemes/search', [SchemeController::class, 'search'])->name('schemes.search');
         Route::get('/schemes/create', [SchemeController::class, 'create'])->name('schemes.create');
         Route::post('/schemes', [SchemeController::class, 'store'])->name('schemes.store');
-        Route::get('/schemes/{schemes}/edit', [SchemeController::class, 'edit'])->name('schemes.edit');
-        Route::put('/schemes/{schemes}', [SchemeController::class, 'update'])->name('schemes.update');
-        Route::delete('/schemes/{schemes}', [SchemeController::class, 'destroy'])->name('schemes.destroy');
+        Route::get('/schemes/{scheme}/edit', [SchemeController::class, 'edit'])->name('schemes.edit');
+        Route::put('/schemes/{scheme}', [SchemeController::class, 'update'])->name('schemes.update');
+        Route::delete('/schemes/{scheme}', [SchemeController::class, 'destroy'])->name('schemes.destroy');
 
-        Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations.index');
-        Route::get('/organizations/search', [OrganizationController::class, 'search'])->name('organizations.search');
-        Route::get('/organizations/create', [OrganizationController::class, 'create'])->name('organizations.create');
-        Route::post('/organizations', [OrganizationController::class, 'store'])->name('organizations.store');
-        Route::get('/organizations/{organization}/edit', [OrganizationController::class, 'edit'])->name('organizations.edit');
-        Route::put('/organizations/{organization}', [OrganizationController::class, 'update'])->name('organizations.update');
-        Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])->name('organizations.destroy');
+        // scheme blocks
+        Route::get('/schemes/blocks/{scheme}', [SchemeController::class, 'blocksIndex'])->name('schemes.blocks.index');
+        Route::get('/schemes/blocks/search/{scheme}', [SchemeController::class, 'blocksSearch'])->name('schemes.blocks.search');
+        Route::get('/schemes/blocks/create/{scheme}', [SchemeController::class, 'blocksCreate'])->name('schemes.blocks.create');
+        Route::post('/schemes/blocks/{scheme}', [SchemeController::class, 'blocksStore'])->name('schemes.blocks.store');
+        Route::get('/schemes/blocks/{scheme}/{block}/edit', [SchemeController::class, 'blocksEdit'])->name('schemes.blocks.edit');
+        Route::post('/schemes/blocks/{scheme}/{block}', [SchemeController::class, 'blocksUpdate'])->name('schemes.blocks.update');
+        Route::post('/schemes/blocks/{scheme}/{block}', [SchemeController::class, 'blocksDestroy'])->name('schemes.blocks.destroy');
 
-        Route::get('/parent-organizations', [ParentOrganizationController::class, 'index'])->name('parent-organizations.index');
-        Route::get('/parent-organizations/search', [ParentOrganizationController::class, 'search'])->name('parent-organizations.search');
-        Route::get('/parent-organizations/create', [ParentOrganizationController::class, 'create'])->name('parent-organizations.create');
-        Route::post('/parent-organizations', [ParentOrganizationController::class, 'store'])->name('parent-organizations.store');
-        Route::get('/parent-organizations/{parentOrganization}/edit', [ParentOrganizationController::class, 'edit'])->name('parent-organizations.edit');
-        Route::put('/parent-organizations/{parentOrganization}', [ParentOrganizationController::class, 'update'])->name('parent-organizations.update');
-        Route::delete('/parent-organizations/{parentOrganization}', [ParentOrganizationController::class, 'destroy'])->name('parent-organizations.destroy');
+        // Scheme Quota
+        Route::get('/schemes/{scheme}/quotas', [SchemeController::class, 'quotasIndex'])->name('schemes.quotas.index');
+        Route::put('/schemes/{scheme}/quotas/bulk-update', [SchemeController::class, 'quotasBulkUpdate'])->name('schemes.quotas.bulk-update');
 
-        Route::get('/post-types', [PostTypeController::class, 'index'])->name('post-types.index');
-        Route::get('/post-types/search', [PostTypeController::class, 'search'])->name('post-types.search');
-        Route::get('/post-types/create', [PostTypeController::class, 'create'])->name('post-types.create');
-        Route::post('/post-types', [PostTypeController::class, 'store'])->name('post-types.store');
-        Route::get('/post-types/{postType}/edit', [PostTypeController::class, 'edit'])->name('post-types.edit');
-        Route::put('/post-types/{postType}', [PostTypeController::class, 'update'])->name('post-types.update');
-        Route::delete('/post-types/{postType}', [PostTypeController::class, 'destroy'])->name('post-types.destroy');
+        // Allottee
+        Route::get('/allottees/list', [AllotteeController::class, 'index'])->name('allottees.index');
+        Route::get('/allottees/process/start', [AllotteeController::class, 'indexStart'])->name('apply.index');
+        Route::get('/allottees/step/{step}/{applicantId?}', [AllotteeController::class, 'getStep'])->name('apply.step');
+        Route::post('/apply/step1/save', [AllotteeController::class, 'saveStep1'])->name('apply.step1.save');
+        Route::post('/apply/step2/save', [AllotteeController::class, 'saveStep2'])->name('apply.step2.save');
+        Route::post('/apply/step3/save', [AllotteeController::class, 'saveStep3'])->name('apply.step3.save');
 
-        Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
-        Route::get('/departments/search', [DepartmentController::class, 'search'])->name('departments.search');
-        Route::get('/departments/create', [DepartmentController::class, 'create'])->name('departments.create');
-        Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
-        Route::get('/departments/{department}/edit', [DepartmentController::class, 'edit'])->name('departments.edit');
-        Route::put('/departments/{department}', [DepartmentController::class, 'update'])->name('departments.update');
-        Route::delete('/departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
-
-        Route::get('/blocks', [BlockListController::class, 'index'])->name('blocks.index');
-        Route::get('/blocks/search', [BlockListController::class, 'search'])->name('blocks.search');
-        Route::get('/blocks/create', [BlockListController::class, 'create'])->name('blocks.create');
-        Route::post('/blocks', [BlockListController::class, 'store'])->name('blocks.store');
-        Route::get('/blocks/{block}/edit', [BlockListController::class, 'edit'])->name('blocks.edit');
-        Route::put('/blocks/{block}', [BlockListController::class, 'update'])->name('blocks.update');
-        Route::delete('/blocks/{block}', [BlockListController::class, 'destroy'])->name('blocks.destroy');
-
-        Route::get('/engineers', [EngineerController::class, 'index'])->name('engineers.index');
-        Route::get('/engineers/search', [EngineerController::class, 'search'])->name('engineers.search');
-        Route::get('/engineers/create', [EngineerController::class, 'create'])->name('engineers.create');
-        Route::post('/engineers', [EngineerController::class, 'store'])->name('engineers.store');
-        Route::post('/engineers/{engineer}/verify-sensitive', [EngineerController::class, 'verifySensitive'])->name('engineers.verify-sensitive');
-        Route::get('/engineers/{engineer}/edit', [EngineerController::class, 'edit'])->name('engineers.edit');
-        Route::put('/engineers/{engineer}', [EngineerController::class, 'update'])->name('engineers.update');
     });

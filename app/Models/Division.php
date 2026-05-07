@@ -16,10 +16,15 @@ class Division extends Model
         'status',
     ];
 
-    protected function casts(): array
+    
+    protected $casts = [
+        'status' => 'boolean',
+    ];
+
+    protected $appends = ['dv_en_id'];
+
+    public function getDvEnIdAttribute()
     {
-        return [
-            'status' => 'boolean',
-        ];
+        return encryptId($this->id);
     }
 }
