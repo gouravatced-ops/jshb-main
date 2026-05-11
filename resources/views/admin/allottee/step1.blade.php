@@ -28,28 +28,117 @@
         color: #dc3545;
         font-size: 12px;
     }
+
+    .custom-select-wrapper {
+        position: relative;
+    }
+
+    #schemeSearch:focus {
+        border-color: #0c9a78;
+        box-shadow: 0 0 0 0.2rem #066a5334;
+    }
+
+    .custom-options {
+        border: 1px solid #dee2e6;
+        border-top: none;
+        max-height: 300px;
+        overflow-y: auto;
+        background: white;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: none;
+        position: absolute;
+        width: 100%;
+        z-index: 1000;
+    }
+
+    .custom-options.show {
+        display: block;
+    }
+
+    .custom-option {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.2s ease;
+    }
+
+    .custom-option:last-child {
+        border-bottom: none;
+    }
+
+    .custom-option:hover {
+        background-color: #0c9a78;
+        color: #ffffff !important;
+    }
+
+    .custom-option.selected {
+        background-color: #0c9a78;
+        color: white;
+    }
+
+    .custom-option.selected .badge.bg-secondary {
+        background-color: #fff !important;
+        color: #0c9a78 !important;
+        font-size: 14px;
+    }
+
+    .custom-option.selected .badge.bg-info {
+        background-color: #fff !important;
+        color: #0c9a78 !important;
+    }
+
+    .block-item:not(:last-child) {
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header .btn-light {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    .card-header .btn-light:hover {
+        background-color: #fff;
+    }
+
+    #searchResultCount {
+        font-size: 0.85rem;
+        padding-left: 5px;
+    }
+
+    /* Add to your existing styles */
+    .badge.bg-info {
+        transition: all 0.3s ease;
+    }
+
+    .badge.bg-warning {
+        background-color: #ffc107 !important;
+        color: #000 !important;
+        transition: all 0.3s ease;
+    }
+    .badge.bg-secondary {
+        font-size: 14px !important;
+    }
 </style>
 @php
-    $divisions = getDivisions();
-    $propertyCategory = getPropertyCategory();
-    $quaterType = getQuarterType();
+$divisions = getDivisions();
+$propertyCategory = getPropertyCategory();
+$quaterType = getQuarterType();
 @endphp
 <form id="step1Form" method="POST">
     @csrf
-    <input type="hidden" name="allottee_id">
-    <input type="hidden" name="register_id">
+    <input type="hidden" name="allottee_id" value="{{$applicant->id ?? ''}}">
 
     {{-- ── Allottee Details ── --}}
     <div class="form-section" style="margin-top:10px;">
         <div class="form-grid3">
             <div class="field">
                 <label class="field-label">
-                    Division
+                    Division <span class="req-star">*</span>
                 </label>
                 <select name="division_id" id="divisionId" class="custom-input division-select">
                     <option value="">— Select Division —</option>
                     @foreach($divisions as $division)
-                    <option value="{{ $division->id }}">
+                    <option value="{{ $division->dv_en_id }}" {{ isset($applicant) && $applicant->division_id == $division->id ? 'selected' : '' }}>
                         {{ $division->name }}
                     </option>
                     @endforeach
@@ -57,7 +146,7 @@
             </div>
             <div class="field">
                 <label class="field-label">
-                    Sub Division
+                    Sub Division <span class="req-star">*</span>
                 </label>
                 <select name="subdivision_id" id="subdivisionSelect" class="custom-input">
                     <option value="">— Select Sub Division —</option>
@@ -65,12 +154,12 @@
             </div>
             <div class="field">
                 <label class="field-label">
-                    Property Category
+                    Property Category <span class="req-star">*</span>
                 </label>
                 <select name="pcategory_id" id="pCategory" class="custom-input property-category-select">
                     <option value="">— Select Property Category —</option>
                     @foreach($propertyCategory as $Category)
-                    <option value="{{ $Category->id }}">
+                    <option value="{{ $Category->pct_en_id }}">
                         {{ $Category->name }}
                     </option>
                     @endforeach
@@ -78,10 +167,10 @@
             </div>
         </div>
 
-        <div class="form-grid">
+        <div class="form-grid3">
             <div class="field">
                 <label class="field-label">
-                    Property Type
+                    Property Type <span class="req-star">*</span>
                 </label>
                 <select name="property_type_id" id="PropertyCatType" class="custom-input property-cat-type-select">
                     <option value="">— Select Property Type —</option>
@@ -90,32 +179,47 @@
 
             <div class="field">
                 <label class="field-label">
-                    Quarter Type
+                    Property Sub Type
+                </label>
+                <select name="p_sub_type_id" id="property_sub_type" class="custom-input property-sub-type-select">
+                    <option value="">— Select Property Sub Type —</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label class="field-label">
+                    Quarter Type <span class="req-star">*</span>
                 </label>
                 <select name="quarter_id" id="quaterTypeOption" class="custom-input quater-type-option">
                     <option value="">— Select Quarter Type —</option>
                     @foreach($quaterType as $quat)
-                    <option value="{{ $quat->quarter_id }}">
+                    <option value="{{ $quat->qt_en_id }}">
                         {{ $quat->quarter_code }} - {{ $quat->quarter_name }}
                     </option>
                     @endforeach
                 </select>
             </div>
         </div>
+        
+        <!-- Hidden input for selected scheme ID -->
+        <input type="hidden" name="scheme_id" id="selected_scheme_id" value="{{$applicant->scheme_id ?? ''}}">
 
         <div class="form-grid" style="grid-template-columns: repeat(1, 1fr) !important;">
             <div class="field">
                 <label class="field-label">
-                    Schemes
+                    Schemes <span class="req-star">*</span>
                 </label>
-                <select name="scheme_id" class="custom-input">
-                    <option value="">— Select scheme —</option>
-                    </option>
-                </select>
+                <div class="custom-select-wrapper">
+                    <input type="text" class="custom-input mb-2" id="schemeSearch" placeholder="Type to search scheme by name" value="{{ $getSchemeList->scheme_code ?? 'Type to search scheme by name'}} {{$getSchemeList->scheme_name ?? ''}}" autocomplete="off" autofocus="" required>
+                    <div class="custom-options" id="customOptions">
+                    </div>
+                    <small class="text-muted mt-1" id="searchResultCount">0 schemes
+                        available</small>
+                </div>
             </div>
         </div>
 
-        <div class="form-grid" style="grid-template-columns: repeat(4, 1fr) !important;">
+        <div class="form-grid4">
             <div class="field">
                 <label class="field-label">
                     Application No. <span class="req-star">*</span>
@@ -175,7 +279,7 @@
                 </label>
 
                 <div class="input-group allotment-group">
-                    <input type="text" name="allotment_no" class="only-number"
+                    <input type="text" name="allotment_no" class="custom-input only-number"
                         style="width: 100%;
                             padding: 8px 10px;
                             border: 1px solid #ccc;
@@ -186,7 +290,7 @@
 
                     <span class="slash">/</span>
 
-                    <input type="text" name="year" id="allotmentYear" class="year-input only-number"
+                    <input type="text" name="year" id="allotmentYear" class="custom-input year-input only-number"
                         value="" placeholder="YYYY" maxlength="4" />
                 </div>
 
@@ -247,7 +351,7 @@
                 </label>
                 <div class="input-group">
                     @php $prefixes = ['Shri', 'Smt.', 'Miss', 'Dr.', 'Md.', 'Late', 'M/S' , 'Maj.' , 'Capt.']; @endphp
-                    <select name="prefix" class="prefix-select" disabled>
+                    <select name="prefix" class="prefix-select">
                         @foreach ($prefixes as $prefix)
                         <option value="{{ $prefix }}">
                             {{ $prefix }}
@@ -275,7 +379,7 @@
 
             <div class="field">
                 <label class="field-label">
-                    First Name (Hindi) <span class="req-star">*</span>
+                    First Name (Hindi)
                 </label>
                 <div class="input-group">
                     @php $prefixes = ['श्री', 'श्रीमती', 'सुश्री', 'डॉ.', 'मो.', 'स्व०', 'मेसर्स' , 'मेजर', 'कैप्टन']; @endphp
@@ -299,7 +403,7 @@
 
             <div class="field">
                 <label class="field-label">
-                    Last Name (Hindi) <span class="req-star">*</span>
+                    Last Name (Hindi)
                 </label>
                 <input type="text" name="allottee_surname_hindi" class="custom-input only-hindi"
                     value="" placeholder="e.g. कुमार">
@@ -307,7 +411,7 @@
 
             <div class="field">
                 <label class="field-label">
-                    Relation Name <span class="req-star">*</span>
+                    Relation of allottee <span class="req-star">*</span>
                 </label>
                 <div class="input-group">
                     @php $prefixes = ['Father', 'Mother', 'Husband', 'Wife']; @endphp

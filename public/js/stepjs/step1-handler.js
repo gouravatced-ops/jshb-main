@@ -27,10 +27,93 @@ const Step1Handler = {
             select.addEventListener('change', this.quaterTypeFilter);
         });
 
+        // Property Sub Type cascading
+        document.querySelectorAll('.property-cat-type-select').forEach(select => {
+            select.addEventListener('change', this.loadPropertySubType);
+        });
+
         // SchemeList cascading
         document.querySelectorAll('.quater-type-option').forEach(select => {
             select.addEventListener('change', this.schemeListOption);
         });
+
+        // Show dropdown on focus
+        const searchInput =
+            document.getElementById('schemeSearch');
+
+        const customOptions =
+            document.getElementById('customOptions');
+
+        if (searchInput && customOptions) {
+
+            // Open dropdown
+            searchInput.addEventListener('focus', () => {
+                customOptions.classList.add('show');
+            });
+
+            // Close dropdown outside click
+            document.addEventListener('click', (e) => {
+
+                const isInside =
+                    searchInput.contains(e.target) ||
+                    customOptions.contains(e.target);
+
+                if (!isInside) {
+                    customOptions.classList.remove('show');
+                }
+            });
+
+            // Dynamic option click
+            document.addEventListener('click', (e) => {
+
+                const option =
+                    e.target.closest('.custom-option');
+
+                if (option) {
+                    this.selectScheme(option);
+                }
+            });
+        }
+
+        if (searchInput && customOptions) {
+
+            // Live search
+            searchInput.addEventListener('input', function () {
+
+                const search =
+                    this.value.toLowerCase();
+
+                let visibleCount = 0;
+
+                document.querySelectorAll('.custom-option')
+                    .forEach(option => {
+
+                        const text =
+                            option.dataset.search || '';
+
+                        const matched =
+                            text.includes(search);
+
+                        option.style.display =
+                            matched ? 'block' : 'none';
+
+                        if (matched) visibleCount++;
+                    });
+
+                // Auto open dropdown
+                customOptions.classList.add('show');
+
+                // No result
+                if (visibleCount === 0) {
+
+                    customOptions.innerHTML = `
+                <div class="custom-option text-danger text-center">
+                    No scheme found
+                </div>
+            `;
+                }
+            });
+        }
 
         // Year validation
         const yearInput = document.getElementById("allotmentYear");
@@ -86,7 +169,7 @@ const Step1Handler = {
                 subDivisionSelect.innerHTML = '<option value="">Select Sub Division</option>';
                 data.forEach(item => {
                     const option = document.createElement('option');
-                    option.value = item.id;
+                    option.value = item.sub_dv_en_id;
                     option.textContent = item.subdivision_code + ' - ' + item.name;
 
                     if (currentSelectedValue == item.id) {
@@ -113,10 +196,33 @@ const Step1Handler = {
                 propertyTypeSelect.innerHTML = '<option> -- Select Property Type -- </option>';
                 data.forEach(item => {
                     const option = document.createElement('option');
-                    option.value = item.id;
+                    option.value = item.pt_en_id;
                     option.dataset.target = (item.name).toLowerCase();
                     option.textContent = item.name;
                     propertyTypeSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error Loading Property Type:', error));
+    },
+
+    loadPropertySubType: function () {
+        const pTypeId = this.value;
+        const propertySubTypeSelect = document.getElementById('property_sub_type');
+        // console.log('FORAPI: ' + pTypeId);
+
+        if (!pTypeId) return;
+        if (!propertySubTypeSelect) return;
+
+        propertySubTypeSelect.innerHTML = '<option> Loading ... </option>';
+        fetch(`/get-property-sub-types/${pTypeId}`)
+            .then(res => res.json())
+            .then(data => {
+                propertySubTypeSelect.innerHTML = '<option> -- Select Sub Property Type -- </option>';
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.pctm_en_id;
+                    option.textContent = item.name;
+                    propertySubTypeSelect.appendChild(option);
                 });
             })
             .catch(error => console.error('Error Loading Property Type:', error));
@@ -144,58 +250,183 @@ const Step1Handler = {
         })
     },
 
-schemeListOption: async function () {
+    schemeListOption: async function () {
 
-    const fields = {
-        division_id: document.getElementById('divisionId'),
-        subdivision_id: document.getElementById('subdivisionSelect'),
-        pcategory_id: document.getElementById('pCategory'),
-        property_type_id: document.getElementById('PropertyCatType'),
-        quarter_id: document.getElementById('quaterTypeOption')
-    };
+        const fields = {
+            division_id: document.getElementById('divisionId'),
+            subdivision_id: document.getElementById('subdivisionSelect'),
+            pcategory_id: document.getElementById('pCategory'),
+            property_type_id: document.getElementById('PropertyCatType'),
+            property_sub_type_id: document.getElementById('property_sub_type'),
+            quarter_id: document.getElementById('quaterTypeOption')
+        };
 
-    const formData = new FormData();
+        const formData = new FormData();
 
-    Object.entries(fields).forEach(([key, el]) => {
+        Object.entries(fields).forEach(([key, el]) => {
 
-        const value = el?.value || '';
+            const value = el?.value || '';
 
-        // encode value
-        formData.append(key, btoa(value));
-    });
+            // encode value
+            formData.append(key, value);
+        });
 
-    try {
+        const csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content');
 
-        const response = await fetch('/scheme-list', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+        try {
+
+            const response = await fetch('/scheme-list', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+            });
+            const data = await response.json();
+
+            const schemeSelect =
+                document.getElementById('customOptions');
+
+            // Remove previous selected option
+            document.querySelectorAll('.custom-option')
+                .forEach(option => {
+                    option.classList.remove('selected');
+                });
+
+            // Reset selected scheme input
+            const selectedSchemeId =
+                document.getElementById('selected_scheme_id');
+
+            if (selectedSchemeId) {
+                selectedSchemeId.value = '';
             }
-        });
 
-        const data = await response.json();
+            // Clear search input
+            const searchInput =
+                document.getElementById('schemeSearch');
 
-        const schemeSelect =
-            document.querySelector('select[name="scheme_id"]');
+            if (searchInput) {
+                searchInput.value = '';
+            }
 
-        if (!schemeSelect) return;
+            schemeSelect.innerHTML = `
+                <div class="custom-option text-center text-muted">
+                    Loading schemes...
+                </div>
+            `;
 
-        schemeSelect.innerHTML =
-            '<option value="">— Select Scheme —</option>';
+            if (!schemeSelect) return;
+            console.log(data);
+            schemeSelect.innerHTML = '';
 
-        data.forEach(({ id, name }) => {
+            // If no scheme found
+            if (data.length === 0) {
 
-            schemeSelect.appendChild(
-                new Option(name, id)
-            );
-        });
+                schemeSelect.innerHTML = `
+                    <div class="custom-option text-center text-danger fw-semibold">
+                        No scheme found
+                    </div>
+                `;
+                // Close dropdown
+                schemeSelect.classList.add('show');
 
-    } catch (error) {
+                return;
+            }
 
-        console.error('Scheme load error:', error);
-    }
-},
+            // If schemes found → open dropdown
+            schemeSelect.classList.add('show');
+
+            // Show scheme count
+            document.getElementById('searchResultCount').innerText =
+                `${data.length} schemes available`;
+
+            data.forEach(item => {
+
+                // Main option div
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'custom-option';
+
+                // Dataset attributes
+                optionDiv.dataset.value = item.id;
+                optionDiv.dataset.propertyType = item.p_type_id;
+                optionDiv.dataset.schemeCode = item.scheme_code;
+                optionDiv.dataset.schemeName = item.scheme_name;
+                optionDiv.dataset.schemeHindi = item.scheme_name_hindi;
+                optionDiv.dataset.schemeValue = item.total_units;
+                optionDiv.dataset.search = `
+                    ${item.scheme_name}
+                    ${item.scheme_name_hindi}
+                    ${item.scheme_code}
+                `.toLowerCase();
+
+                // Inner HTML
+                optionDiv.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-secondary me-2">
+                            ${item.scheme_code}
+                        </span>
+
+                        <div>
+                            <strong>${item.scheme_name}</strong>
+
+                            <span class="ms-2" style="font-size:16px;">
+                                (${item.scheme_name_hindi})
+                            </span>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('schemeSearch').innerHTML = '--select scheme---';
+                // Append to container
+                schemeSelect.appendChild(optionDiv);
+            });
+
+        } catch (error) {
+
+            console.error('Scheme load error:', error);
+        }
+    },
+
+    selectScheme: function (option) {
+        const searchInput =
+            document.getElementById('schemeSearch');
+
+        const customOptions =
+            document.getElementById('customOptions');
+
+        const selectedSchemeId =
+            document.getElementById('selected_scheme_id');
+
+        // Remove old selected option
+        document.querySelectorAll('.custom-option')
+            .forEach(el => el.classList.remove('selected'));
+
+        // Add selected class
+        option.classList.add('selected');
+
+        // Get dataset values
+        const schemeId = option.dataset.value;
+        const schemeCode = option.dataset.schemeCode;
+        const schemeName = option.dataset.schemeName;
+
+        // Set hidden scheme id
+        selectedSchemeId.value = schemeId;
+
+        // searchInput.value =
+        //     `Code : ${schemeCode} Scheme :${schemeName}`;
+
+        searchInput.value = `${schemeName}`;
+
+        selectedSchemeId.dispatchEvent(
+            new Event('change')
+        );
+
+        customOptions.classList.remove('show');
+    },
 
     validateYear: function (e, applicationYearSelect, errorText) {
         let value = e.target.value.trim().replace(/[^0-9]/g, '');
@@ -329,37 +560,102 @@ schemeListOption: async function () {
     validate: function () {
         const form = document.querySelector('#step1Form');
         if (!form) return true;
-
         let valid = true;
         let firstInvalid = null;
-
-        // Required fields validation
-        const requiredFields = ['allotment_month', 'allotment_year',
-            'allottee_name', 'allotmentYear', 'allottee_category', 'allottee_religion',
-            //, 'allottee_name_hindi', 'allottee_surname_hindi',
-            // 'relation_name', 'marital_status', 'allottee_gender',
+        // Remove old validation classes
+        form.querySelectorAll('.is-invalid')
+            .forEach(field => {
+                field.classList.remove('is-invalid');
+            });
+        // Required fields
+        const requiredFields = [
+            'application_no',
+            'allotment_no',
+            'allotment_day',
+            'allotment_month',
+            'allotment_year',
+            'allottee_name',
+            'application_day',
+            'application_month',
+            'application_year',
+            'allotmentYear',
+            'allottee_category',
+            'allottee_religion',
+            'division_id',
+            'subdivision_id',
+            'pcategory_id',
+            'property_type_id',
+            'quarter_id',
+            'scheme_id',
+            'date_of_birth_day',
+            'date_of_birth_month',
+            'date_of_birth_year',
+            'relation_prefix',
+            'relation_name',
+            'year'
         ];
-
+        // Common required validation
         requiredFields.forEach(fieldName => {
-            const field = form.querySelector(`[name="${fieldName}"]`);
-            if (field && !field.value.trim()) {
+            const field =
+                form.querySelector(`[name="${fieldName}"]`);
+
+            if (!field) return;
+            const value =
+                field.value?.trim();
+            if (!value) {
                 field.classList.add('is-invalid');
                 valid = false;
-                if (!firstInvalid) firstInvalid = field;
+                if (!firstInvalid) {
+                    firstInvalid = field;
+                }
             }
         });
+        // PAN & Aadhar validation only for 2009+
+        const allotmentYear =
+            parseInt(
+                form.querySelector('[name="allotment_year"]')
+                    ?.value || 0
+            );
+        if (allotmentYear >= 2009) {
+            ['pan_card_number', 'aadhar_card_number']
+                .forEach(fieldName => {
+                    const field =
+                        form.querySelector(
+                            `[name="${fieldName}"]`
+                        );
+                    if (!field) return;
+                    const value =
+                        field.value?.trim();
+                    if (!value) {
+                        field.classList.add('is-invalid');
+                        valid = false;
+                        if (!firstInvalid) {
+                            firstInvalid = field;
+                        }
+                    }
+                });
+        }
 
-        // Check year validation
-        const yearField = document.getElementById('allotmentYear');
+        // Invalid year check
+        const yearField =
+            document.getElementById('allotmentYear');
+
         if (yearField && yearField.classList.contains('invalid-year')) {
+            yearField.classList.add('is-invalid');
             valid = false;
-            if (!firstInvalid) firstInvalid = yearField;
+            if (!firstInvalid) {
+                firstInvalid = yearField;
+            }
         }
 
+        // Scroll to first invalid field
         if (firstInvalid) {
-            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstInvalid.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            firstInvalid.focus();
         }
-
         return valid;
     },
 

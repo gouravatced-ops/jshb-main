@@ -351,32 +351,20 @@
         color: rgba(255, 255, 255, 0.85);
     }
 
-    .form-grid {
-        display: grid;
-        gap: 12px;
-        margin-bottom: 10px;
-    }
-
-    .form-grid-3 {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-    }
-
     .col-span-2 {
         grid-column: span 2;
     }
 
     @media (max-width: 960px) {
-        .form-grid-3 {
+        .form-grid3 {
             grid-template-columns: repeat(2, 1fr);
         }
     }
 
     @media (max-width: 680px) {
-
         .form-grid,
-        .form-grid-3 {
+        .form-grid3,
+        .form-grid4 {
             grid-template-columns: 1fr;
         }
 
@@ -1159,7 +1147,7 @@
     const StepManager = {
         config: {
             currentStep: 1,
-            applicantId: null,
+            applicantId: {{ isset($applicant) ? $applicant->id : 'null' }},
             steps: {
                 1: '{{ route("admin.apply.step1.save") }}',
                 2: '{{ route("admin.apply.step2.save") }}',
@@ -1183,7 +1171,16 @@
             }
             this._initialized = true;
 
-            this.loadStep(1);
+            @if (isset($applicant) && $applicant->current_step > 1)
+                this.config.currentStep = {{ $applicant->current_step }};
+                this.loadStep(this.config.currentStep);
+            @else
+                // Load handler for step 1
+                setTimeout(() => {
+                    this.loadStepHandler(1);
+                }, 100);
+            @endif
+            this.updateStepper(this.config.currentStep);
             this.bindEvents();
         },
 

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\CommonController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -29,20 +30,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/password/check-expiry', [PasswordController::class, 'checkPasswordExpiry'])->name('password.check-expiry');
     Route::post('/password/update', [PasswordController::class, 'update'])->name('password.update');
     Route::post('/password/generate-captcha', [PasswordController::class, 'generateCaptcha'])->name('password.captcha');
-    Route::get('/get-sub-divisions/{division}', function ($division) {
-        return response()->json(getSubDivisions($division));
-    });
-    Route::get('/get-property-types/{category}', function ($category) {
-        return response()->json(getPropertyType($category));
-    });
 
-    Route::get('/get-property-sub-types/{typeId}', function ($typeId) {
-        return response()->json(getPropertySubType($typeId));
-    });
-
-    Route::get('/districts/{stateId}', function ($stateId) {
-        return response()->json(getDistrict($stateId));
-    });
+    // common Routes for retrive condition response of data
+    Route::get('/get-sub-divisions/{division}', [CommonController::class, 'getDivision']);
+    Route::get('/get-property-types/{category}', [CommonController::class, 'getPropertyType']);
+    Route::get('/get-property-sub-types/{typeId}', [CommonController::class, 'getPropertySubType']);
+    Route::get('/districts/{stateId}', [CommonController::class, 'getDistrict']);
+    Route::post('/scheme-list', [CommonController::class, 'getSchemeList']);
 });
 
 require __DIR__ . '/user-routes.php';

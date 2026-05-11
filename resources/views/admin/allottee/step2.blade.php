@@ -1,4 +1,3 @@
-{{-- resources/views/applicant/components/stepper-form/step2.blade.php --}}
 @php
     $states = getStates();
     $relationDistricts = getDistrict(15);

@@ -2360,18 +2360,21 @@ textarea.form-control-ep {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
+    margin-bottom: 5px;
 }
 
 .form-grid3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 18px;
+    margin-bottom: 5px;
 }
 
 .form-grid4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 18px;
+    margin-bottom: 5px;
 }
 
 .form-group {
@@ -2398,7 +2401,7 @@ select.form-control {
     padding: 11px 13px;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm-custom);
-    font-size: 1.25rem;
+    font-size: 1rem;
     background: var(--bg-card);
     color: var(--text-primary);
     transition: var(--transition);
@@ -3425,6 +3428,13 @@ p {
     .form-grid {
         grid-template-columns: 1fr;
         gap: 14px;
+        margin-bottom: 5px;
+    }
+
+    .form-grid,
+    .form-grid3,
+    .form-grid4 {
+        grid-template-columns: 1fr;
     }
 
     .photo-section {

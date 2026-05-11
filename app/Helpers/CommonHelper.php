@@ -31,8 +31,9 @@ if (!function_exists('getPropertyCategory')) {
 
 if (!function_exists('getSubDivisions')) {
     function getSubDivisions($divisionId)
-    {
-        return SubDivision::where('division_id', $divisionId)
+    {   
+        $id = decryptId($divisionId);
+        return SubDivision::where('division_id', $id)
             ->where('status', 1)
             ->orderBy('name', 'asc')
             ->get();
@@ -65,8 +66,9 @@ if (!function_exists('getSchemeName')) {
 
 if (!function_exists('getPropertyType')) {
     function getPropertyType($category_id)
-    {
-        return PropertyType::where('category_id', $category_id)
+    {   
+        $id = decryptId($category_id);
+        return PropertyType::where('category_id', $id)
             ->where('status', 1)
             ->orderBy('name', 'asc')
             ->get();
@@ -75,8 +77,9 @@ if (!function_exists('getPropertyType')) {
 
 if (!function_exists('getPropertySubType')) {
     function getPropertySubType($typeId)
-    {
-        return PropertyMainType::where('ptype_id', $typeId)
+    {   
+        $id = decryptId($typeId);
+        return PropertyMainType::where('ptype_id', $id)
             ->where('status', 1)
             ->orderBy('name', 'asc')
             ->get();
@@ -132,34 +135,24 @@ if (!function_exists('getDebugIndex')) {
     }
 }
 
-/**
- * Encrypt an ID for use in URLs
- * @param int|string $id
- * @return string
- */
 if (!function_exists('encryptId')) {
     function encryptId($id)
     {
         try {
-            $encrypted = Crypt::encrypt($id);
-            return base64_encode($encrypted);
+            // $encrypted = base64_decode($encryptedId);
+            return Crypt::encryptString((string) $id);
         } catch (\Exception $e) {
             return $id;
         }
     }
 }
 
-/**
- * Decrypt an ID from URL
- * @param string $encryptedId
- * @return int|string|null
- */
 if (!function_exists('decryptId')) {
     function decryptId($encryptedId)
     {
         try {
-            $encrypted = base64_decode($encryptedId);
-            return Crypt::decrypt($encrypted);
+            return Crypt::decryptString($encryptedId);
+            // return base64_encode($encrypted);
         } catch (\Exception $e) {
             return null;
         }
