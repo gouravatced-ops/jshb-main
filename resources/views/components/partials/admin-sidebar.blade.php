@@ -20,8 +20,8 @@
 
     <div class="submenu" id="allottee">
         <!-- Allottee List -->
-        <a class="submenu-item"
-            href="#">
+        <a class="submenu-item {{ request()->routeIs('admin.allottees.index') ? 'active' : '' }}"
+            href="{{ route('admin.allottees.index') }}">
             <i class="fa-solid fa-list"></i> Allottee List
         </a>
 

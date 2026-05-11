@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\EncryptedRouteKey;
 
 class Allottee extends Model
 {
-    use HasFactory;
+    use HasFactory, EncryptedRouteKey;
     protected $table = 'allottees';
     public $timestamps = true;
 
@@ -61,6 +62,18 @@ class Allottee extends Model
         'updated_by',
         'created_by',
         'deleted_at',
+        'payment_amount',
+        'payment_date',
+        'payment_mode',
+        'payment_reference',
+        'payment_receipt_path',
+        'payment_option',
+        'payment_option_selected_at',
+        'remaining_amount',
+        'emi_months',
+        'emi_monthly_amount',
+        'final_calculation_generated',
+        'recalculation_allowed',
     ];
 
     // Parent relationship (the parent of this allottee)
@@ -138,5 +151,10 @@ class Allottee extends Model
     public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function processSteps()
+    {
+        return $this->hasMany(AllotteeProcessStep::class, 'allottee_id', 'id');
     }
 }

@@ -210,7 +210,7 @@ $quaterType = getQuarterType();
                     Schemes <span class="req-star">*</span>
                 </label>
                 <div class="custom-select-wrapper">
-                    <input type="text" class="custom-input mb-2" id="schemeSearch" placeholder="Type to search scheme by name" value="{{ $getSchemeList->scheme_code ?? 'Type to search scheme by name'}} {{$getSchemeList->scheme_name ?? ''}}" autocomplete="off" autofocus="" required>
+                    <input type="text" class="custom-input mb-2" id="schemeSearch" placeholder="Type to search scheme by name" value="{{ optional($getSchemeList)->scheme_code ? optional($getSchemeList)->scheme_code . ' ' . optional($getSchemeList)->scheme_name : '' }}" autocomplete="off" autofocus="" required>
                     <div class="custom-options" id="customOptions">
                     </div>
                     <small class="text-muted mt-1" id="searchResultCount">0 schemes

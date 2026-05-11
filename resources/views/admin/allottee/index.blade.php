@@ -1094,11 +1094,11 @@
     <div class="stepper-wrapper">
         <div class="stepper" id="stepper">
             <div class="stepper-track" id="stepperTrack"></div>
-            @foreach ([1 => 'Allottee Details', 2 => 'Address Details', 3 => 'Review & Submit'] as $step => $label)
-            <div class="step-item {{ $step === 1 ? 'active' : '' }}" data-step="{{ $step }}"
+            @foreach ([0 => 'Payment', 1 => 'Allottee Details', 2 => 'Address Details', 3 => 'Review & Submit'] as $step => $label)
+            <div class="step-item {{ $step === 0 ? 'active' : '' }}" data-step="{{ $step }}"
                 onclick="StepManager.goToStep({{ $step }})">
                 <div class="step-bubble">
-                    <span>{{ $step }}</span>
+                    <span>{{ $loop->iteration }}</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
@@ -1114,13 +1114,13 @@
     <div class="app-body">
         {{-- Step Content --}}
         <div id="stepContent" class="step-content-area">
-            @include('admin.allottee.step1')
+            @include('admin.allottee.step0')
         </div>
 
         {{-- Navigation --}}
         <div class="nav-bar">
             <div class="nav-info">
-                Step <strong id="stepNum">1</strong> of <strong>3</strong>
+                Step <strong id="stepNum">1</strong> of <strong id="stepTotal">4</strong>
             </div>
             <div style="display:flex; gap:12px; align-items:center;">
                 <button type="button" class="btn btn-ghost" id="prevBtn" onclick="StepManager.prevStep()"
@@ -1146,9 +1146,10 @@
 <script>
     const StepManager = {
         config: {
-            currentStep: 1,
+            currentStep: 0,
             applicantId: {{ isset($applicant) ? $applicant->id : 'null' }},
             steps: {
+                0: '{{ route("admin.apply.step0.save") }}',
                 1: '{{ route("admin.apply.step1.save") }}',
                 2: '{{ route("admin.apply.step2.save") }}',
                 3: '{{ route("admin.apply.step3.save") }}'
@@ -1171,13 +1172,18 @@
             }
             this._initialized = true;
 
-            @if (isset($applicant) && $applicant->current_step > 1)
+            @if (isset($applicant) && $applicant->current_step >= 2)
                 this.config.currentStep = {{ $applicant->current_step }};
+                this.config.applicantId = {{ $applicant->id }};
                 this.loadStep(this.config.currentStep);
+            @elseif (isset($applicant) && $applicant->current_step == 1)
+                this.config.applicantId = {{ $applicant->id }};
+                this.config.currentStep = 1;
+                this.loadStep(1);
             @else
-                // Load handler for step 1
+                this.config.currentStep = 0;
                 setTimeout(() => {
-                    this.loadStepHandler(1);
+                    this.loadStepHandler(0);
                 }, 100);
             @endif
             this.updateStepper(this.config.currentStep);
@@ -1194,20 +1200,23 @@
 
         updateStepper: function(step) {
             const items = document.querySelectorAll('.step-item');
-            items.forEach((item, i) => {
+            items.forEach((item) => {
+                const s = parseInt(item.dataset.step, 10);
                 item.classList.remove('active', 'completed');
-                if (i + 1 < step) item.classList.add('completed');
-                if (i + 1 === step) item.classList.add('active');
+                if (Number.isNaN(s)) return;
+                if (s < step) item.classList.add('completed');
+                if (s === step) item.classList.add('active');
             });
 
-            const pct = step === 1 ? 0 : ((step - 1) / (items.length - 1)) * 100;
+            const maxStep = Math.max(0, items.length - 1);
+            const pct = maxStep > 0 ? (step / maxStep) * 100 : 0;
             const track = document.getElementById('stepperTrack');
             if (track) track.style.width = pct + '%';
 
             this.config.currentStep = step;
 
             const stepNum = document.getElementById('stepNum');
-            if (stepNum) stepNum.textContent = step;
+            if (stepNum) stepNum.textContent = step + 1;
 
             console.log('Step updated to:', step);
         },
@@ -1226,9 +1235,9 @@
                 return;
             }
 
-            // Check if applicantId exists for steps > 1
-            if (!this.config.applicantId && step > 1) {
-                this.showAlert('Please complete Step 1 first.', 'error');
+            // Steps after payment require an applicant id
+            if (!this.config.applicantId && step > 0) {
+                this.showAlert('Please complete payment details first.', 'error');
                 return;
             }
 
@@ -1307,7 +1316,7 @@
             const btnLabel = document.getElementById('btnLabel');
 
             if (prevBtn) {
-                prevBtn.style.display = this.config.currentStep === 1 ? 'none' : 'inline-flex';
+                prevBtn.style.display = this.config.currentStep === 0 ? 'none' : 'inline-flex';
             }
 
             if (btnLabel) {
@@ -1457,7 +1466,7 @@
             if (this.isProcessing) return;
 
             console.log('prevStep called, current step:', this.config.currentStep);
-            if (this.config.currentStep > 1) {
+            if (this.config.currentStep > 0) {
                 this.loadStep(this.config.currentStep - 1);
             }
         },
@@ -1545,6 +1554,7 @@
 </script>
 
 {{-- Load Step Handlers --}}
+<script src="{{ asset('js/stepjs/step0-handler.js') }}"></script>
 <script src="{{ asset('js/stepjs/step1-handler.js') }}"></script>
 <script src="{{ asset('js/stepjs/step2-handler.js') }}"></script>
 <script src="{{ asset('js/stepjs/step3-handler.js') }}"></script>

@@ -71,8 +71,19 @@ Route::middleware('auth')
         Route::get('/allottees/list', [AllotteeController::class, 'index'])->name('allottees.index');
         Route::get('/allottees/process/start', [AllotteeController::class, 'indexStart'])->name('apply.index');
         Route::get('/allottees/step/{step}/{applicantId?}', [AllotteeController::class, 'getStep'])->name('apply.step');
+        Route::post('/apply/step0/save', [AllotteeController::class, 'saveStep0'])->name('apply.step0.save');
         Route::post('/apply/step1/save', [AllotteeController::class, 'saveStep1'])->name('apply.step1.save');
         Route::post('/apply/step2/save', [AllotteeController::class, 'saveStep2'])->name('apply.step2.save');
         Route::post('/apply/step3/save', [AllotteeController::class, 'saveStep3'])->name('apply.step3.save');
+        Route::get('/allottees/{allottee}/section/{section}', [AllotteeController::class, 'section'])->name('allottees.section');
+        Route::get('/allottees/{allottee}/process/{stepNo}', [AllotteeController::class, 'processStep'])->name('allottees.process.step');
+        Route::post('/allottees/{allottee}/process/{stepNo}/complete', [AllotteeController::class, 'completeProcessStep'])->name('allottees.process.complete');
+        Route::post('/allottees/{allottee}/payment-plan', [AllotteeController::class, 'choosePaymentPlan'])->name('allottees.payment-plan');
+        Route::post('/allottees/{allottee}/payment-option', [AllotteeController::class, 'updatePaymentOption'])->name('allottees.payment-option');
+        Route::get('/allottees/{allottee}/letters/allotment', [AllotteeController::class, 'allotmentLetter'])->name('allottees.letters.allotment');
+        Route::get('/allottees/{allottee}/letters/allotment/pdf', [AllotteeController::class, 'allotmentLetterPdf'])->name('allottees.letters.allotment.pdf');
+        Route::get('/allottees/{allottee}/letters/possession', [AllotteeController::class, 'possessionLetter'])->name('allottees.letters.possession');
+        Route::get('/allottees/{allottee}/letters/possession/pdf', [AllotteeController::class, 'possessionLetterPdf'])->name('allottees.letters.possession.pdf');
+        Route::get('/allottees/{allottee}', [AllotteeController::class, 'show'])->name('allottees.show');
 
     });
