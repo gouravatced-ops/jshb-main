@@ -14,6 +14,7 @@ class AllotteeProcessStep extends Model
         'step_no',
         'title',
         'description',
+        'blade',
         'status',
         'completed_at',
         'completed_by',

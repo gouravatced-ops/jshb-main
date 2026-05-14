@@ -31,7 +31,7 @@ if (!function_exists('getPropertyCategory')) {
 
 if (!function_exists('getSubDivisions')) {
     function getSubDivisions($divisionId)
-    {   
+    {
         $id = decryptId($divisionId);
         return SubDivision::where('division_id', $id)
             ->where('status', 1)
@@ -66,7 +66,7 @@ if (!function_exists('getSchemeName')) {
 
 if (!function_exists('getPropertyType')) {
     function getPropertyType($category_id)
-    {   
+    {
         $id = decryptId($category_id);
         return PropertyType::where('category_id', $id)
             ->where('status', 1)
@@ -77,7 +77,7 @@ if (!function_exists('getPropertyType')) {
 
 if (!function_exists('getPropertySubType')) {
     function getPropertySubType($typeId)
-    {   
+    {
         $id = decryptId($typeId);
         return PropertyMainType::where('ptype_id', $id)
             ->where('status', 1)
@@ -122,6 +122,75 @@ if (!function_exists('getStates')) {
             ")
             ->orderBy('name_en', 'ASC') // optional: sort remaining states
             ->get();
+    }
+}
+
+if (!function_exists('getDivisionName')) {
+    function getDivisionName($divisionId)
+    {
+        return Division::where('id', $divisionId)->value('name');
+    }
+}
+
+if (!function_exists('getDistrict')) {
+    function getDistrict($stateId)
+    {
+        return DB::table('districts')->where('state_id', $stateId)->get();
+    }
+}
+
+if (!function_exists('getStateName')) {
+    function getStateName($stateId)
+    {
+        return DB::table('states')->where('id', $stateId)->value('name_en');
+    }
+}
+
+if (!function_exists('getAllotteeName')) {
+    function getAllotteeName($allotteeId)
+    {
+        $allottee = DB::table('allottees')->select('prefix', 'allottee_name', 'allottee_middle_name', 'allottee_surname')->where('id', $allotteeId)->first();
+        if ($allottee) {
+            return trim($allottee->prefix . ' ' . $allottee->allottee_name . ' ' . $allottee->allottee_middle_name . ' ' . $allottee->allottee_surname);
+        }
+        return null;
+    }
+}
+
+if (!function_exists('getDistrictName')) {
+    function getDistrictName($distId)
+    {
+        return DB::table('districts')->where('id', $distId)->value('name_en');
+    }
+}
+
+if (!function_exists('formatDateTime')) {
+    function formatDateTime($date, $format = 'd/m/Y H:i A')
+    {
+        if (!$date) {
+            return '-';
+        }
+
+        try {
+            return \Carbon\Carbon::parse($date)->format($format);
+        } catch (\Exception $e) {
+            return '-';
+        }
+    }
+}
+
+if (!function_exists('formatDate')) {
+    function formatDate($date, $format = 'd/m/Y')
+    {
+        if (!$date) {
+            return '-';
+        }
+
+        try {
+            return \Carbon\Carbon::parse($date)->format($format);
+        } catch (\Exception $e) {
+            return '-';
+        }
     }
 }
 

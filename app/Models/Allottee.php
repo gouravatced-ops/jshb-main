@@ -63,9 +63,11 @@ class Allottee extends Model
         'created_by',
         'deleted_at',
         'payment_amount',
-        'payment_date',
+        'payment_day',
+        'payment_month',
+        'payment_year',
         'payment_mode',
-        'payment_reference',
+        'payment_utr_no',
         'payment_receipt_path',
         'payment_option',
         'payment_option_selected_at',
@@ -86,6 +88,11 @@ class Allottee extends Model
     public function children()
     {
         return $this->hasMany(Allottee::class, 'parent_id');
+    }
+
+    public function scheme()
+    {
+        return $this->belongsTo(Scheme::class, 'scheme_id');
     }
 
     public function division()

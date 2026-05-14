@@ -10,10 +10,29 @@ const Step0Handler = {
 
     bindEvents: function () {
         const fileInput = document.getElementById('payment_receipt');
-        if (fileInput) {
-            fileInput.addEventListener('change', function () {
-                this.classList.remove('is-invalid');
-            });
+
+        if (!fileInput) return;
+
+        fileInput.addEventListener('change', (event) => {
+            fileInput.classList.remove('is-invalid');
+            this.previewReceipt(event);
+        });
+    },
+
+    previewReceipt: function (event) {
+        const image = document.getElementById('receiptPreview');
+        const placeholder = document.getElementById('receiptPlaceholder');
+
+        const file = event.target.files[0];
+
+        if (file) {
+            image.src = URL.createObjectURL(file);
+            image.style.display = 'block';
+            placeholder.style.display = 'none';
+        } else {
+            image.src = '';
+            image.style.display = 'none';
+            placeholder.style.display = 'block';
         }
     },
 
@@ -62,7 +81,7 @@ const Step0Handler = {
         return valid;
     },
 
-    destroy: function () {},
+    destroy: function () { },
 };
 
 StepManager.registerHandler(0, Step0Handler);

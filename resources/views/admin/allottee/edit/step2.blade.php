@@ -45,7 +45,7 @@
 
             <div class="field">
                 <label class="field-label">पता</label>
-                <textarea name="present_address_hindi" class="krutidev custom-input" rows="2"
+                <textarea name="present_address_hindi" class="custom-input only-hindi-address" rows="2"
                     placeholder="Enter address in Hindi">{{ $applicant->present_address_hindi ?? '' }}</textarea>
             </div>
 
@@ -134,7 +134,7 @@
             </div>
             <div class="field">
                 <label class="field-label">पोस्ट ऑफ़िस</label>
-                <input type="text" name="present_post_office_hindi" class="custom-input krutidev"
+                <input type="text" name="present_post_office_hindi" class="custom-input only-hindi"
                     value="{{ $applicant->present_post_office_hindi ?? '' }}"
                     placeholder="Enter post office name in Hindi">
             </div>
@@ -147,7 +147,7 @@
 
             <div class="field">
                 <label class="field-label">पुलिस स्टेशन</label>
-                <input type="text" name="present_police_station_hindi" class="custom-input krutidev"
+                <input type="text" name="present_police_station_hindi" class="custom-input only-hindi"
                     value="{{ $applicant->present_police_station_hindi ?? '' }}"
                     placeholder="Enter police station name in Hindi">
             </div>
@@ -208,7 +208,7 @@
 
             <div class="field">
                 <label class="field-label">पता </label>
-                <textarea name="permanent_address_hindi" class="krutidev custom-input" rows="2"
+                <textarea name="permanent_address_hindi" class="custom-input only-hindi-address" rows="2"
                     placeholder="Enter address in Hindi">{{ $applicant->permanent_address_hindi ?? '' }}</textarea>
             </div>
 
@@ -296,7 +296,7 @@
 
             <div class="field">
                 <label class="field-label">पोस्ट ऑफ़िस</label>
-                <input type="text" name="permanent_post_office_hindi" class="custom-input krutidev"
+                <input type="text" name="permanent_post_office_hindi" class="custom-input only-hindi"
                     value="{{ $applicant->permanent_post_office_hindi ?? '' }}"
                     placeholder="Enter post office name in Hindi">
             </div>
@@ -309,7 +309,7 @@
 
             <div class="field">
                 <label class="field-label">पुलिस स्टेशन</label>
-                <input type="text" name="permanent_police_station_hindi" class="custom-input krutidev"
+                <input type="text" name="permanent_police_station_hindi" class="custom-input only-hindi"
                     value="{{ $applicant->permanent_police_station_hindi ?? '' }}"
                     placeholder="Enter police station name in Hindi">
             </div>

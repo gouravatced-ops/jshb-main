@@ -69,7 +69,11 @@ Route::middleware('auth')
 
         // Allottee
         Route::get('/allottees/list', [AllotteeController::class, 'index'])->name('allottees.index');
+        //create
         Route::get('/allottees/process/start', [AllotteeController::class, 'indexStart'])->name('apply.index');
+        // edit
+        Route::get('/allottees/edit/start/{allottee}', [AllotteeController::class, 'indexEditStart'])->name('edit.apply.index');
+        
         Route::get('/allottees/step/{step}/{applicantId?}', [AllotteeController::class, 'getStep'])->name('apply.step');
         Route::post('/apply/step0/save', [AllotteeController::class, 'saveStep0'])->name('apply.step0.save');
         Route::post('/apply/step1/save', [AllotteeController::class, 'saveStep1'])->name('apply.step1.save');

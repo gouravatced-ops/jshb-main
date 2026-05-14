@@ -999,7 +999,7 @@ a {
     gap: 10px;
     border-radius: var(--radius-sm);
     color: rgba(255, 255, 255, 0.842);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     padding: 9px 12px;
@@ -1769,7 +1769,7 @@ a {
 
 .card-title {
     font-family: var(--font-display);
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
     line-height: 1.2;
     text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
@@ -1778,7 +1778,7 @@ a {
 }
 
 .card-subtitle {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--text-light);
     margin-top: 2px;
     font-weight: 600;
@@ -1797,6 +1797,7 @@ a {
 .btn-green,
 .btn-warning,
 .btn-secondary,
+.btn-primary,
 .btn-danger {
     color: #fff;
     border: none;
@@ -1826,6 +1827,7 @@ a {
 .btn-green:hover,
 .btn-warning:hover,
 .btn-secondary:hover,
+.btn-primary:hover,
 .btn-danger:hover {
     opacity: .92;
     transform: translateY(-1px);
@@ -1838,6 +1840,18 @@ a {
 
 .btn-pink:hover {
     box-shadow: 0 4px 14px rgba(8, 189, 2, 0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
 }
 
 .btn-warning {
@@ -1947,7 +1961,7 @@ a {
 table.ep-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 16px;
 }
 
 table.ep-table thead tr {
@@ -2024,13 +2038,13 @@ table.ep-table tbody td {
 }
 
 .table-name {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-dark);
 }
 
 .table-email {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-primary);
 }
 
@@ -2040,7 +2054,7 @@ table.ep-table tbody td {
     gap: 5px;
     padding: 3px 9px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -2138,10 +2152,11 @@ table.ep-table tbody td {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px;
+    padding: 10px 20px;
     border-top: 1px solid var(--border);
-    font-size: 12.5px;
-    color: var(--text-mid);
+    font-size: 14px;
+    color: var(--text-dark);
+    letter-spacing: 1px;
 }
 
 .pagination-btns {

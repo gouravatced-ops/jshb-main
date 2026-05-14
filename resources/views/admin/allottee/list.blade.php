@@ -15,7 +15,7 @@
             <div class="card-subtitle">Search, filter, and manage all allottees</div>
         </div>
         <div class="card-actions">
-            <button class="btn-pink" type="button" id="toggleFilterBtn">
+            <button class="btn-primary" type="button" id="toggleFilterBtn">
                 <i class="fa-solid fa-filter"></i> Filter
             </button>
             <a class="btn-pink" href="{{ route('admin.apply.index') }}">
@@ -184,7 +184,11 @@
                                 href="{{ route('admin.allottees.show', $allottee) }}"
                                 target="_blank"
                                 title="View Allottee">
-                                <i class="fa-solid fa-eye"></i>
+                                <i class="fa-solid fa-file-lines"></i>
+                            </a>
+
+                            <a class="action-btn edit" href="{{ route('admin.edit.apply.index', $allottee) }}" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
                             </a>
 
                             <!-- <a class="action-btn edit"
@@ -192,9 +196,9 @@
                                 target="_blank"
                                 title="Generate Allotment Letter">
                                 <i class="fa-solid fa-file-signature"></i>
-                            </a>
+                            </a> -->
 
-                            <a class="action-btn success"
+                            <!-- <a class="action-btn success"
                                 href="{{ route('admin.allottees.letters.possession', $allottee) }}"
                                 target="_blank"
                                 title="Generate Possession Letter">

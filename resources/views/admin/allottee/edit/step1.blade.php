@@ -337,14 +337,14 @@
                         </option>
                         @endforeach
                     </select>
-                    <input type="text" name="allottee_name_hindi" class="krutidev custom-input"
+                    <input type="text" name="allottee_name_hindi" class="custom-input only-hindi"
                         value="{{ old('allottee_name_hindi', $applicant->allottee_name_hindi ?? '') }}" placeholder="e.g. राजेश">
                 </div>
             </div>
 
             <div class="field">
                 <label class="field-label">Middle Name (Hindi)</label>
-                <input type="text" name="allottee_middle_hindi" class="krutidev custom-input"
+                <input type="text" name="allottee_middle_hindi" class="custom-input only-hindi"
                     value="{{ old('allottee_middle_hindi', $applicant->allottee_middle_hindi ?? '') }}" placeholder="e.g. कुमार">
             </div>
 
@@ -352,7 +352,7 @@
                 <label class="field-label">
                     Last Name (Hindi)
                 </label>
-                <input type="text" name="allottee_surname_hindi" class="krutidev custom-input"
+                <input type="text" name="allottee_surname_hindi" class="custom-input only-hindi"
                     value="{{ old('allottee_surname_hindi', $applicant->allottee_surname_hindi ?? '') }}" placeholder="e.g. कुमार">
             </div>
 

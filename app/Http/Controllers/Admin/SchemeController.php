@@ -160,12 +160,10 @@ class SchemeController extends Controller
 
             $validated['created_by'] = Auth::id();
 
-            // ✅ Scheme
             $scheme = Scheme::create($validated);
 
             Log::info('Scheme Created', ['scheme_id' => $scheme->id]);
 
-            // ✅ Financial
             $scheme->financial()->create([
                 'property_total_cost'     => $request->property_total_cost,
                 'down_payment_percentage' => $request->down_payment_percentage,
@@ -181,7 +179,6 @@ class SchemeController extends Controller
 
             Log::info('Financial Data Saved');
 
-            // ✅ Quarter Fees
             foreach ($request->quarter_fees as $fee) {
 
                 $scheme->quarterFees()->create([

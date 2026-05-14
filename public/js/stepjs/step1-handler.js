@@ -130,10 +130,11 @@ const Step1Handler = {
         }
 
         // Allotment year change (for PAN/Aadhar toggle)
-        const allotmentYear = document.getElementById('allotment_year');
-        if (allotmentYear) {
-            allotmentYear.addEventListener('change', () => this.togglePanAadhar());
-        }
+        // const allotmentYear = document.getElementById('allotment_year');
+        // if (allotmentYear) {
+        //     allotmentYear.addEventListener('change', () => this.togglePanAadhar());
+        // }
+        this.togglePanAadhar();
 
         // DOB calculation
         ['date_of_birth_day', 'date_of_birth_month', 'date_of_birth_year'].forEach(fieldName => {
@@ -490,8 +491,8 @@ const Step1Handler = {
         const year = yearInput.value ? parseInt(yearInput.value) : null;
         const show = year && year >= 2009;
 
-        panField.style.display = show ? 'block' : 'none';
-        aadharField.style.display = show ? 'block' : 'none';
+        panField.style.display = show ? 'none' : 'block';
+        aadharField.style.display = show ? 'none' : 'block';
     },
 
     calculateAge: function () {
@@ -611,30 +612,30 @@ const Step1Handler = {
             }
         });
         // PAN & Aadhar validation only for 2009+
-        const allotmentYear =
-            parseInt(
-                form.querySelector('[name="allotment_year"]')
-                    ?.value || 0
-            );
-        if (allotmentYear >= 2009) {
-            ['pan_card_number', 'aadhar_card_number']
-                .forEach(fieldName => {
-                    const field =
-                        form.querySelector(
-                            `[name="${fieldName}"]`
-                        );
-                    if (!field) return;
-                    const value =
-                        field.value?.trim();
-                    if (!value) {
-                        field.classList.add('is-invalid');
-                        valid = false;
-                        if (!firstInvalid) {
-                            firstInvalid = field;
-                        }
-                    }
-                });
-        }
+        // const allotmentYear =
+        //     parseInt(
+        //         form.querySelector('[name="allotment_year"]')
+        //             ?.value || 0
+        //     );
+        // if (allotmentYear >= 2009) {
+        //     ['pan_card_number', 'aadhar_card_number']
+        //         .forEach(fieldName => {
+        //             const field =
+        //                 form.querySelector(
+        //                     `[name="${fieldName}"]`
+        //                 );
+        //             if (!field) return;
+        //             const value =
+        //                 field.value?.trim();
+        //             if (!value) {
+        //                 field.classList.add('is-invalid');
+        //                 valid = false;
+        //                 if (!firstInvalid) {
+        //                     firstInvalid = field;
+        //                 }
+        //             }
+        //         });
+        // }
 
         // Invalid year check
         const yearField =

@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('title', 'Add Allottee | JSHB')
+@section('title', 'Edit Allottee | JSHB')
 @section('content')
 <style>
     :root {
@@ -1077,8 +1077,8 @@
     <div class="modern-card-header">
         <div class="header-flex">
             <div>
-                <h1 class="header-title">Create Allottee Record</h1>
-                <p class="header-subtitle">Enter allottee and property details</p>
+                <h1 class="header-title">Edit Allottee Record</h1>
+                <p class="header-subtitle">Update allottee and property details</p>
             </div>
             <div class="flex items-center">
                 <a href="#">
@@ -1174,20 +1174,10 @@
             }
             this._initialized = true;
 
-            @if (isset($applicant) && $applicant->current_step >= 2)
-                this.config.currentStep = {{ $applicant->current_step }};
-                this.config.applicantId = {{ $applicant->id }};
-                this.loadStep(this.config.currentStep);
-            @elseif (isset($applicant) && $applicant->current_step == 1)
-                this.config.applicantId = {{ $applicant->id }};
-                this.config.currentStep = 1;
-                this.loadStep(1);
-            @else
-                this.config.currentStep = 0;
-                setTimeout(() => {
-                    this.loadStepHandler(0);
-                }, 100);
-            @endif
+            this.config.currentStep = 0;
+            setTimeout(() => {
+                this.loadStepHandler(0);
+            }, 100);
             this.updateStepper(this.config.currentStep);
             this.bindEvents();
         },
