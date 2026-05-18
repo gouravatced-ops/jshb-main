@@ -17,23 +17,28 @@ use App\Models\Scheme;
 
 class CommonController extends Controller
 {
-    public function getDivision($division) {
+    public function getDivision($division)
+    {
         return response()->json(getSubDivisions($division));
     }
 
-    public function getPropertyType($category) {
+    public function getPropertyType($category)
+    {
         return response()->json(getPropertyType($category));
     }
 
-    public function getPropertySubType($typeId) {
+    public function getPropertySubType($typeId)
+    {
         return response()->json(getPropertySubType($typeId));
     }
 
-    public function getDistrict($stateId) {
+    public function getDistrict($stateId)
+    {
         return response()->json(getDistrict($stateId));
     }
 
-    public function getSchemeList(Request $request){
+    public function getSchemeList(Request $request)
+    {
         $divisionId = decryptId($request->division_id);
         $subDivisionId = decryptId($request->subdivision_id);
         $pcategoryId = decryptId($request->pcategory_id);
@@ -52,15 +57,37 @@ class CommonController extends Controller
             ])
             ->when(
                 !empty($propertySubTypeId),
-                fn ($query) =>
-                    $query->where(
-                        'p_sub_type_id',
-                        $propertySubTypeId
-                    )
+                fn($query) =>
+                $query->where(
+                    'p_sub_type_id',
+                    $propertySubTypeId
+                )
             )
             ->orderBy('scheme_name')
             ->get();
 
         return response()->json($schemeList);
+    }
+
+    public function getSchemeDetails($id)
+    {
+        $scheme = Scheme::with('financial')->find($id);
+
+        if (!$scheme) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Scheme not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'id' => $scheme->id,
+                'scheme_name' => $scheme->scheme_name,
+                'scheme_code' => $scheme->scheme_code,
+                'property_value' => $scheme->financial->property_total_cost,
+            ]
+        ]);
     }
 }

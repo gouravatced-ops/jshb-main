@@ -37,6 +37,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/get-property-sub-types/{typeId}', [CommonController::class, 'getPropertySubType']);
     Route::get('/districts/{stateId}', [CommonController::class, 'getDistrict']);
     Route::post('/scheme-list', [CommonController::class, 'getSchemeList']);
+    Route::get('/get-scheme-details/{id}',[CommonController::class, 'getSchemeDetails']
+);
 });
 
 require __DIR__ . '/user-routes.php';

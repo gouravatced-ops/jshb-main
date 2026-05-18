@@ -65,7 +65,7 @@ class Scheme extends Model
 
     public function quarterType()
     {
-        return $this->belongsTo(QuarterType::class , 'quarter_type_id');
+        return $this->belongsTo(QuarterType::class, 'quarter_type_id');
     }
 
     public function creator()
@@ -97,5 +97,13 @@ class Scheme extends Model
     public function quarterFees()
     {
         return $this->hasMany(SchemeQuarterFee::class, 'scheme_id');
+    }
+
+    public function schemeFinance()
+    {
+        return $this->hasOne(
+            SchemeFinancial::class,
+            'scheme_id'
+        );
     }
 }

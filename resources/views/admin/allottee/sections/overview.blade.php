@@ -1,343 +1,187 @@
-{{-- overview.blade.php --}}
+{{-- resources/views/admin/allottee/sections/overview.blade.php --}}
 <div>
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+    <div class="page-header">
         <div>
-            <h5 class="fw-semibold mb-0" style="color: #1C3B4F;">Dashboard overview</h5>
-            <p class="text-muted small">Key information at a glance</p>
+            <h1 class="page-title">Dashboard Overview</h1>
+            <p class="page-subtitle">Key information at a glance · Application {{ $allottee->application_no ?? 'JSHBA-24928374' }}</p>
         </div>
-        <!-- <span class="badge-status" style="background: #EFF6FF; color: #2563EB;">Active allottee</span> -->
+        <button class="btn-ghost" onclick="window.close();">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </button>
     </div>
-
-    <div class="row g-3">
-        @if (isset($allottee->property_number))
-        <!-- property number -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Property No.</div>
-                <div class="stat-value">{{ $allottee->property_number ?: '—' }}</div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label"><i class="fa-solid fa-layer-group me-1"></i>Scheme</p>
+                <p class="info-card-value">{{ $allottee->scheme->scheme_name ?? '—' }}</p>
             </div>
         </div>
-        @endif
-        <!-- Scheme -->
-        <div class="col-6">
-            <div class="stat-chip">
-                <div class="stat-label">Scheme</div>
-                <div class="stat-value text-truncate">{{ $allottee->scheme->scheme_name ?? '—' }}</div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label"><i class="fa-solid fa-map-pin me-1"></i>Division</p>
+                <p class="info-card-value">{{ $allottee->division->name ?? '—' }}</p>
             </div>
         </div>
-        <!-- division -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Division</div>
-                <div class="stat-value text-truncate">{{ $allottee->division->name ?? '—' }}</div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label"><i class="fa-solid fa-map me-1"></i>Sub Division</p>
+                <p class="info-card-value">{{ $allottee->subDivision->name ?? '—' }}</p>
             </div>
         </div>
-        <!-- sub division -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Sub division</div>
-                <div class="stat-value text-truncate">{{ $allottee->subDivision->name ?? '—' }}</div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label"><i class="fa-solid fa-tag me-1"></i>Category</p>
+                <p class="info-card-value">{{ $allottee->propertyCategory->name ?? '—' }}</p>
             </div>
         </div>
-        <!-- category -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Category</div>
-                <div class="stat-value">{{ $allottee->propertyCategory->name ?? '—' }}</div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label"><i class="fa-solid fa-house me-1"></i>Property Type</p>
+                <p class="info-card-value">{{ $allottee->propertyType->name ?? '—' }}</p>
             </div>
         </div>
-        <!-- property type -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Property type</div>
-                <div class="stat-value">{{ $allottee->propertyType->name ?? '—' }}</div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label"><i class="fa-solid fa-people-group me-1"></i>Quarter Type</p>
+                <p class="info-card-value">{{ ($allottee->quarterType->quarter_code ?? '') ?: '—' }}-{{ $allottee->quarterType->quarter_name ?? '' }}</p>
             </div>
         </div>
-        <!-- quarter type -->
-        <div class="col-6">
-            <div class="stat-chip">
-                <div class="stat-label">Quarter type</div>
-                <div class="stat-value">{{ ($allottee->quarterType->quarter_code ?? '') ?: '—' }}-{{ $allottee->quarterType->quarter_name ?? '' }}</div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label"><i class="fa-solid fa-hashtag me-1"></i>Application No.</p>
+                <p class="info-card-value" style="font-family:'DM Mono',monospace;">{{ $allottee->application_no ?? '—' }}</p>
             </div>
         </div>
-
-        @if (isset($allottee->payment_option) || isset($allottee->remaining_amount) || isset($allottee->emi_monthly_amount))
-        <!-- payment option -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Payment option</div>
-                <div class="stat-value text-uppercase">{{ $allottee->payment_option ?? '—' }}</div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label"><i class="fa-regular fa-calendar me-1"></i>Application Date</p>
+                <p class="info-card-value">{{ $allottee->application_day ?? '' }}/{{ $allottee->application_month ?? '' }}/{{ $allottee->application_year ?? '' }}</p>
             </div>
         </div>
-        <!-- remaining amount -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Remaining amount</div>
-                <div class="stat-value">₹ {{ $allottee->remaining_amount ? number_format((float)$allottee->remaining_amount,2) : '—' }}</div>
-            </div>
-        </div>
-        <!-- emi monthly -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">EMI monthly</div>
-                <div class="stat-value">₹ {{ $allottee->emi_monthly_amount ? number_format((float)$allottee->emi_monthly_amount,2) : '—' }}</div>
-            </div>
-        </div>
-        @endif
-
-        <!-- application_no type -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Application No.</div>
-                <div class="stat-value">{{ $allottee->application_no ?? '' }}</div>
-            </div>
-        </div>
-
-        <!-- application date -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Application Date</div>
-                <div class="stat-value">{{ $allottee->application_day ?? '' }}/{{ $allottee->application_month ?? '' }}/{{$allottee->application_year ?? ''}}</div>
-            </div>
-        </div>
-
-        <!-- quarter type -->
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="stat-chip">
-                <div class="stat-label">Applicant Name</div>
-                <div class="stat-value">{{ ($allottee->prefix ?? '') }} {{ $allottee->allottee_name ?? '' }} {{ $allottee->allottee_middle_name ?? '' }} {{ $allottee->allottee_surname ?? '' }}</div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label"><i class="fa-solid fa-user me-1"></i>Applicant Name</p>
+                <p class="info-card-value">{{ trim(($allottee->prefix ?? '') . ' ' . ($allottee->allottee_name ?? '') . ' ' . ($allottee->allottee_middle_name ?? '') . ' ' . ($allottee->allottee_surname ?? '')) }}</p>
             </div>
         </div>
     </div>
-</div>
-<br>
-<div>
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-        <div>
-            <h6 class="fw-semibold mb-0" style="color: #1C3B4F;">Letter overview</h6>
-        </div>
-        <!-- <span class="badge-status" style="background: #EFF6FF; color: #2563EB;">Active allottee</span> -->
-    </div>
-
-    <div class="row g-3">
-        <!-- Allotment Letter -->
-<!-- Allotment Letter Card -->
-<div class="col-12 col-md-6 col-lg-4">
-
-    @php
-        $allotmentLetter = \App\Models\AllotteeGeneratedDocument::where([
-            'allottee_id'   => $allottee->id,
-            'document_type' => 'allotment-letter',
-        ])->latest()->first();
-    @endphp
-
-    <div style="
-        border:1px solid #e5e7eb;
-        border-radius:16px;
-        padding:18px;
-        background:#ffffff;
-        box-shadow:0 2px 10px rgba(0,0,0,0.04);
-        height:100%;
-        transition:0.3s;
-    ">
-
-        <!-- TOP -->
-
-        <div style="
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            margin-bottom:14px;
-        ">
-
+    <hr class="divider-thin" />
+    <div class="letter-grid">
+        @foreach($documents as $document)
+        <div class="letter-hero">
+            <p class="letter-hero-title">
+                <i class="fa-solid fa-envelope-open-text me-2"></i>
+                {{ ucwords(str_replace('-', ' ', $document->document_type)) }}
+            </p>
+            <p class="letter-hero-sub">
+                Your document has been generated by system
+            </p>
+            <div class="app-no">
+                {{ $allottee->application_no ?? 'JSHBA-24928374' }}
+            </div>
             <div style="
-                display:flex;
-                align-items:center;
-                gap:12px;
-            ">
-
-                <!-- ICON -->
-
-                <div style="
-                    width:52px;
-                    height:52px;
-                    border-radius:14px;
-                    background:linear-gradient(135deg,#dbeafe,#bfdbfe);
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    color:#2563eb;
-                    font-size:22px;
-                ">
-
-                    <i class="fa-solid fa-file-pdf"></i>
-
-                </div>
-
-                <!-- TITLE -->
-
-                <div>
-
-                    <div style="
-                        font-size:16px;
-                        font-weight:700;
-                        color:#111827;
-                        line-height:1.2;
-                    ">
-                        Allotment Letter
-                    </div>
-
-                    <div style="
-                        font-size:13px;
-                        color:#6b7280;
-                        margin-top:3px;
-                    ">
-                        Generated PDF Document
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- STATUS -->
-
-            @if($allotmentLetter)
-
-                <div style="
-                    background:#dcfce7;
-                    color:#166534;
-                    padding:4px 10px;
-                    border-radius:999px;
-                    font-size:11px;
-                    font-weight:600;
-                ">
-                    Generated
-                </div>
-
-            @else
-
-                <div style="
-                    background:#fee2e2;
-                    color:#991b1b;
-                    padding:4px 10px;
-                    border-radius:999px;
-                    font-size:11px;
-                    font-weight:600;
-                ">
-                    Pending
-                </div>
-
-            @endif
-
-        </div>
-
-
-        <!-- FILE INFO -->
-
-        @if($allotmentLetter)
-
-            <!-- <div style="
-                font-size:13px;
-                color:#6b7280;
-                margin-bottom:16px;
-                word-break:break-word;
-            ">
-                {{ $allotmentLetter->file_name }}
-            </div> -->
-
-        @else
-
-            <div style="
-                font-size:13px;
-                color:#9ca3af;
-                margin-bottom:16px;
-            ">
-                Letter not generated yet.
-            </div>
-
-        @endif
-
-
-        <!-- ACTIONS -->
-
-        <div style="
             display:flex;
             gap:10px;
+            margin-top:18px;
+            flex-wrap:nowrap;
         ">
-
-            @if($allotmentLetter)
-
                 <!-- VIEW -->
-
                 <a
-                    href="{{ asset($allotmentLetter->file_path) }}"
+                    href="{{ asset($document->file_path) }}"
                     target="_blank"
+                    class="btn-brand"
                     style="
-                        flex:1;
-                        text-align:center;
-                        padding:10px 14px;
-                        border-radius:10px;
-                        background:#eff6ff;
-                        color:#2563eb;
-                        font-size:13px;
-                        font-weight:600;
-                        text-decoration:none;
-                        border:1px solid #bfdbfe;
-                    "
-                >
+                    background:rgba(255,255,255,.2);
+                    border:1.5px solid rgba(255,255,255,.4)
+                ">
                     <i class="fa-solid fa-eye"></i>
                     View
                 </a>
-
-
                 <!-- DOWNLOAD -->
-
                 <a
-                    href="{{ route('admin.allottees.letters.allotment.pdf', ['allottee' => $allottee, 'download' => 1]) }}"
+                    href="{{ asset($document->file_path) }}"
+                    download
+                    class="btn-brand"
                     style="
-                        flex:1;
-                        text-align:center;
-                        padding:10px 14px;
-                        border-radius:10px;
-                        background:linear-gradient(135deg,#2563eb,#1d4ed8);
-                        color:#fff;
-                        font-size:13px;
-                        font-weight:600;
-                        text-decoration:none;
-                    "
-                >
+                    background:rgba(255,255,255,.95);
+                    color:var(--brand)
+                ">
                     <i class="fa-solid fa-download"></i>
                     Download
                 </a>
-
-            @else
-
-                <button
-                    type="button"
-                    disabled
-                    style="
-                        width:100%;
-                        padding:10px;
-                        border:none;
-                        border-radius:10px;
-                        background:#f3f4f6;
-                        color:#9ca3af;
-                        font-size:13px;
-                        font-weight:600;
-                        cursor:not-allowed;
-                    "
-                >
-                    <i class="fa-solid fa-clock"></i>
-                    Waiting For Generation
-                </button>
-
-            @endif
-
+            </div>
         </div>
-
+        @endforeach
     </div>
-
-</div>
+    <!-- @php
+    $allotmentLetter = \App\Models\AllotteeGeneratedDocument::where([
+    'allottee_id' => $allottee->id,
+    'document_type' => 'allotment-letter',
+    ])->latest()->first();
+    @endphp
+    <div class="section-title"><i class="fa-solid fa-folder-open text-success me-2"></i>Required Documents</div>
+    <div class="doc-row">
+        <div class="doc-icon gen"><i class="fa-solid fa-file-pdf"></i></div>
+        <div class="doc-info">
+            <p class="doc-name">Allotment Letter</p>
+            <p class="doc-meta">Generated PDF Document · {{ $allotmentLetter ? $allotmentLetter->created_at->format('d M Y') : 'Not generated' }}</p>
+        </div>
+        <span class="badge-status badge-generated">{{ $allotmentLetter ? 'Generated' : 'Pending' }}</span>
+        <div class="d-flex gap-2">
+            @if($allotmentLetter)
+            <a href="{{ asset($allotmentLetter->file_path) }}" target="_blank" class="btn-ghost"><i class="fa-solid fa-eye"></i> View</a>
+            <a href="{{ route('admin.allottees.letters.allotment.pdf', ['allottee' => $allottee, 'download' => 1]) }}" class="btn-brand"><i class="fa-solid fa-download"></i></a>
+            @else
+            <button class="btn-ghost" disabled>Not Available</button>
+            @endif
+        </div>
+    </div> -->
+    <!-- @php
+    $documents = [
+    ['name' => 'Aadhaar Card (ID Proof)', 'icon' => 'fa-solid fa-id-card', 'icon_class' => 'img', 'status' => 'uploaded', 'meta' => 'Identity Document · JPG / PNG / PDF · Max 2MB'],
+    ['name' => 'Income Certificate', 'icon' => 'fa-solid fa-file-lines', 'icon_class' => 'doc', 'status' => 'pending', 'meta' => 'Issued by competent authority · PDF only · Max 2MB'],
+    ['name' => 'Address Proof', 'icon' => 'fa-solid fa-location-dot', 'icon_class' => 'img', 'status' => 'required', 'meta' => 'Electricity bill / Rent agreement / Bank passbook'],
+    ['name' => 'Caste Certificate (if applicable)', 'icon' => 'fa-solid fa-certificate', 'icon_class' => 'doc', 'status' => 'pending', 'meta' => 'SC / ST / OBC certificate from competent authority'],
+    ['name' => 'Passport Size Photograph', 'icon' => 'fa-solid fa-user-circle', 'icon_class' => 'img', 'status' => 'uploaded', 'meta' => 'Recent photo · JPG / PNG · Max 500KB'],
+    ];
+    $statusStyles = ['uploaded' => 'badge-uploaded', 'pending' => 'badge-pending', 'required' => 'badge-required'];
+    $statusText = ['uploaded' => 'Uploaded', 'pending' => 'Pending', 'required' => 'Required'];
+    @endphp
+    @foreach($documents as $doc)
+    <div class="doc-row">
+        <div class="doc-icon {{ $doc['icon_class'] }}"><i class="{{ $doc['icon'] }}"></i></div>
+        <div class="doc-info">
+            <p class="doc-name">{{ $doc['name'] }}</p>
+            <p class="doc-meta">{{ $doc['meta'] }}</p>
+        </div>
+        <span class="badge-status {{ $statusStyles[$doc['status']] }}">{{ $statusText[$doc['status']] }}</span>
+        <div class="d-flex gap-2">
+            @if($doc['status'] == 'uploaded')
+            <button class="btn-ghost" onclick="viewDocument('{{ $doc['name'] }}')"><i class="fa-solid fa-eye"></i> View</button>
+            <button class="btn-outline-brand" onclick="openReupload('{{ $doc['name'] }}')"><i class="fa-solid fa-arrow-upload"></i> Re-upload</button>
+            @else
+            <button class="btn-brand" onclick="openReupload('{{ $doc['name'] }}')"><i class="fa-solid fa-cloud-arrow-up"></i> Upload</button>
+            @endif
+        </div>
     </div>
+    @endforeach
+    <div class="d-flex gap-2 mt-4 flex-wrap align-items-center">
+        <span class="stat-chip"><span class="dot" style="background:var(--success)"></span> 2 Uploaded</span>
+        <span class="stat-chip"><span class="dot" style="background:var(--accent)"></span> 2 Pending</span>
+        <span class="stat-chip"><span class="dot" style="background:var(--danger)"></span> 1 Required</span>
+        <span class="stat-chip"><span class="dot" style="background:var(--brand)"></span> {{ $allotmentLetter ? '1' : '0' }} Generated</span>
+        <span class="ms-auto"></span>
+        <button class="btn-brand" style="background:var(--accent);gap:8px" onclick="submitAllDocuments()">
+            <i class="fa-solid fa-paper-plane"></i> Submit Documents
+        </button>
+    </div> -->
 </div>
+<script>
+    function viewDocument(docName) {
+        alert('Viewing: ' + docName);
+    }
+
+    function submitAllDocuments() {
+        alert('Submitting all documents for verification');
+    }
+</script>

@@ -7,6 +7,7 @@ use App\Http\Controllers\SubDivisionController;
 use App\Http\Controllers\Admin\CategoriesController;
 use App\Http\Controllers\Admin\SchemeController;
 use App\Http\Controllers\Admin\AllotteeController;
+use App\Http\Controllers\Admin\AllotteePaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -89,5 +90,10 @@ Route::middleware('auth')
         Route::get('/allottees/{allottee}/letters/possession', [AllotteeController::class, 'possessionLetter'])->name('allottees.letters.possession');
         Route::get('/allottees/{allottee}/letters/possession/pdf', [AllotteeController::class, 'possessionLetterPdf'])->name('allottees.letters.possession.pdf');
         Route::get('/allottees/{allottee}', [AllotteeController::class, 'show'])->name('allottees.show');
+        Route::post('/allottees/signed/document/uploads', [AllotteeController::class, 'signedDocumentUploads'])->name('allottees.signed.document.uploads');
+
+        // Initial Payment
+        Route::post('/allottees/initial-payment/pay',[AllotteePaymentController::class, 'payInitialPayment'])->name('allottees.initial.payment.pay');
+        Route::get('/allottees/payment-success/{payment}',[AllotteePaymentController::class, 'paymentSuccess'])->name('allottees.payment.success');
 
     });

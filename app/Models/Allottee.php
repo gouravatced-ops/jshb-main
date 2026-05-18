@@ -95,6 +95,11 @@ class Allottee extends Model
         return $this->belongsTo(Scheme::class, 'scheme_id');
     }
 
+    public function schemeFinance()
+    {
+        return $this->belongsTo(SchemeFinancial::class, 'scheme_id');
+    }
+
     public function division()
     {
         return $this->belongsTo(Division::class, 'division_id');
@@ -163,5 +168,10 @@ class Allottee extends Model
     public function processSteps()
     {
         return $this->hasMany(AllotteeProcessStep::class, 'allottee_id', 'id');
+    }
+
+    public function generatedDocument()
+    {
+        return $this->hasMany(AllotteeGeneratedDocument::class, 'allottee_id', 'id');
     }
 }
