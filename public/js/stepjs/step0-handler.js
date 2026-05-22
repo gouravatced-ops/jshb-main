@@ -284,7 +284,7 @@ const Step0Handler = {
             console.error('Scheme load error:', error);
         }
     },
-    
+
     selectScheme: async function (option) {
         const searchInput =
             document.getElementById('schemeSearch');
@@ -319,11 +319,10 @@ const Step0Handler = {
             const data = await response.json();
             // Property value from API
             const propertyValue = parseFloat(
-                data.data.property_value || 0
+                data.data.lottery_amount || 0
             );
             // Calculate 10%
-            const paymentAmount =
-                (propertyValue * 10) / 100;
+            const paymentAmount = propertyValue;
             // Set values
             paymentDisplay.value =
                 paymentAmount.toFixed(2);

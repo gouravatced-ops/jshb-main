@@ -12,7 +12,7 @@ class AllotteeGeneratedDocument extends Model
 
     protected $fillable = [
         'allottee_id',
-        'domument_name',
+        'document_name',
         'document_type',
         'file_name',
         'file_path',

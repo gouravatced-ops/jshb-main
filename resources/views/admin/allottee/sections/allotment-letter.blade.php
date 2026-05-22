@@ -108,7 +108,8 @@
                     <a
                         href="javascript:void(0)"
                         onclick="openReupload(
-                            '{{ $allotmentLetter->domument_name }}',
+                            '{{ $allotmentLetter->document_name }}',
+                            '{{ $allotmentLetter->document_type }}',
                             '{{ $allotmentLetter->id }}',
                             '{{ $allotmentLetter->allottee_id }}',
                             '{{ $step->step_no }}'

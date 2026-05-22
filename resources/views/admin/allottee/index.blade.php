@@ -1507,7 +1507,7 @@
                     if (data.success) {
                         this.showAlert('Application submitted successfully!', 'success');
                         setTimeout(() => {
-                            window.location.href = data.redirect_url || '{{ route("admin.dashboard") }}';
+                            window.location.href = data.redirect_url || '{{ route("admin.allottees.index") }}';
                         }, 2000);
                     } else {
                         this.showAlert(data.message || 'Submission failed.', 'error');

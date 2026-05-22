@@ -86,7 +86,7 @@ class CommonController extends Controller
                 'id' => $scheme->id,
                 'scheme_name' => $scheme->scheme_name,
                 'scheme_code' => $scheme->scheme_code,
-                'property_value' => $scheme->financial->property_total_cost,
+                'lottery_amount' => $scheme->financial->lottery_amount,
             ]
         ]);
     }

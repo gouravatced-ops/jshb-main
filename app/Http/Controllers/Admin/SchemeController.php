@@ -166,8 +166,10 @@ class SchemeController extends Controller
 
             $scheme->financial()->create([
                 'property_total_cost'     => $request->property_total_cost,
-                'down_payment_percentage' => $request->down_payment_percentage,
-                'down_payment_amount'     => $request->down_payment_amount,
+                'lottery_percentage'      => $request->lottery_percentage,
+                'lottery_amount'          => $request->lottery_amount,
+                'allotment_percentage'    => $request->allotment_percentage,
+                'allotement_amount'       => $request->allotement_amount,
                 'balance_amount'          => $request->balance_amount,
                 'emi_count'               => $request->emi_count,
                 'normal_interest_rate'    => $request->normal_interest_rate,
@@ -291,8 +293,10 @@ class SchemeController extends Controller
                 ['scheme_id' => $scheme->id],
                 [
                     'property_total_cost'     => $request->property_total_cost,
-                    'down_payment_percentage' => $request->down_payment_percentage,
-                    'down_payment_amount'     => $request->down_payment_amount,
+                    'lottery_percentage'      => $request->lottery_percentage,
+                    'lottery_amount'          => $request->lottery_amount,
+                    'allotment_percentage'    => $request->allotment_percentage,
+                    'allotement_amount'       => $request->allotement_amount,
                     'balance_amount'          => $request->balance_amount,
                     'emi_count'               => $request->emi_count,
                     'normal_interest_rate'    => $request->normal_interest_rate,

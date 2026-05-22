@@ -1,11 +1,13 @@
 {{-- resources/views/admin/allottee/sections/initial-payment.blade.php --}}
 @php
-$payment = \App\Models\AllotteeInitialPayment::where(
-'allottee_id',
-$allottee->id
-)->latest()->first();
+use App\Models\AllotteePaymentOrder;
+$payment = AllotteePaymentOrder::where([
+    'allottee_id' => $allottee->id,
+    'order_type'  => 'allotment',
+])->latest()->first();
 if ($payment) {
-$payment->refreshPenalty();
+    // REFRESH PENALTY FROM MODEL
+    $payment->refreshPenalty();
 }
 @endphp
 <div>
@@ -13,10 +15,10 @@ $payment->refreshPenalty();
     <div class="page-header">
         <div>
             <h1 class="page-title">
-                Initial Payment
+                Allotment Payment
             </h1>
             <p class="page-subtitle">
-                25% Initial Payment Collection
+                15% Allotment Payment Collection
             </p>
         </div>
         <button
@@ -28,6 +30,7 @@ $payment->refreshPenalty();
     </div>
     @if($payment)
     <div class="row g-3">
+        <!-- PROPERTY AMOUNT -->
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label">
@@ -38,75 +41,159 @@ $payment->refreshPenalty();
                 </p>
             </div>
         </div>
+        <!-- PAYMENT PERCENTAGE -->
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label">
-                    Initial Payment
+                    Payment Percentage
                 </p>
                 <p class="info-card-value">
-                    {{ $payment->initial_percentage }}%
+                    {{ number_format($payment->percentage, 2) }}%
                 </p>
             </div>
         </div>
+        <!-- BASE AMOUNT -->
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label">
-                    Initial Amount
+                    Base Amount
                 </p>
                 <p class="info-card-value">
-                    ₹ {{ number_format($payment->initial_amount, 2) }}
+                    ₹ {{ number_format($payment->base_amount, 2) }}
                 </p>
             </div>
         </div>
+        <!-- DELAY DAYS -->
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label">
-                    Penalty %
+                    Delay Days
                 </p>
                 <p class="info-card-value text-danger">
-                    {{ $payment->penalty_percentage }}%
+                    {{ $payment->delay_days ?? 0 }} Days
                 </p>
             </div>
         </div>
+        <!-- PENALTY PERCENTAGE -->
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label">
+                    Penalty Percentage
+                </p>
+                <p class="info-card-value text-danger">
+                    {{ number_format($payment->penalty_percentage ?? 0, 2) }}%
+                </p>
+            </div>
+        </div>
+        <!-- PENALTY AMOUNT -->
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label">
                     Penalty Amount
                 </p>
                 <p class="info-card-value text-danger">
-                    ₹ {{ number_format($payment->penalty_amount, 2) }}
+                    ₹ {{ number_format($payment->penalty_amount ?? 0, 2) }}
                 </p>
             </div>
         </div>
+        <!-- ADMIN CHARGE -->
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label">
-                    Total Payable
+                    Administrative Charge
                 </p>
-                <p class="info-card-value text-success">
-                    ₹ {{ number_format($payment->total_payable_amount, 2) }}
+                <p class="info-card-value">
+                    ₹ {{ number_format($payment->admin_charge ?? 0, 2) }}
                 </p>
             </div>
         </div>
-        <div class="col-md-6">
+        <!-- TOTAL PAYABLE -->
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label">
+                    Total Payable Amount
+                </p>
+                <p class="info-card-value text-success">
+                    ₹ {{ number_format($payment->total_payable, 2) }}
+                </p>
+            </div>
+        </div>
+        <!-- REMAINING -->
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label">
+                    Remaining Amount
+                </p>
+                <p class="info-card-value text-warning">
+                    ₹ {{ number_format($payment->remaining_amount, 2) }}
+                </p>
+            </div>
+        </div>
+        <!-- ISSUE DATE -->
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label">
+                    Issue Date
+                </p>
+                <p class="info-card-value">
+                    {{ optional($payment->issued_at)->format('d-m-Y h:i A') }}
+                </p>
+            </div>
+        </div>
+        <!-- DUE DATE -->
+        <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label">
                     Due Date
                 </p>
                 <p class="info-card-value">
-                    {{ $payment->due_date->format('d-m-Y') }}
+                    {{ optional($payment->due_date)->format('d-m-Y') }}
                 </p>
             </div>
         </div>
-        <div class="col-md-6">
+
+        @php
+            $transaction = \App\Models\AllotteeTransaction::where([
+                'allottee_id'      => $allottee->id,
+                'transaction_type' => 'allotment_payment',
+                'payment_status'   => 'success',
+            ])
+            ->latest('paid_at')
+            ->first();
+        @endphp
+
+        @if($transaction)
+            <!-- PAYMENT DATE -->
+            <div class="col-md-4">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        Payment Date
+                    </p>
+                    <p class="info-card-value">
+                        {{ optional($transaction->paid_at)->format('d-m-Y') }}
+                    </p>
+                </div>
+            </div>
+        @endif
+        
+        <!-- STATUS -->
+        <div class="col-md-12">
             <div class="info-card">
                 <p class="info-card-label">
-                    Payment Status
+                    Order Status
                 </p>
                 <p class="info-card-value">
-                    @if($payment->payment_status === 'paid')
+                    @if($payment->order_status === 'paid')
                     <span class="badge bg-success">
                         Paid
+                    </span>
+                    @elseif($payment->order_status === 'partial')
+                    <span class="badge bg-info">
+                        Partial Paid
+                    </span>
+                    @elseif($payment->order_status === 'overdue')
+                    <span class="badge bg-danger">
+                        Overdue
                     </span>
                     @else
                     <span class="badge bg-warning text-dark">
@@ -117,6 +204,7 @@ $payment->refreshPenalty();
             </div>
         </div>
     </div>
+    <!-- ACTION BUTTONS -->
     <div
         style="
             margin-top:25px;
@@ -124,13 +212,13 @@ $payment->refreshPenalty();
             gap:12px;
             flex-wrap:wrap;
         ">
-        @if($payment->payment_status !== 'paid')
+        @if($payment->order_status !== 'paid')
         <button
             type="button"
             class="btn-brand"
             onclick="payInitialPayment('{{ $payment->id }}')">
             <i class="fa-solid fa-credit-card"></i>
-            Pay ₹ {{ number_format($payment->total_payable_amount, 2) }}
+            Pay ₹ {{ number_format($payment->remaining_amount, 2) }}
         </button>
         @else
         <button
@@ -139,23 +227,26 @@ $payment->refreshPenalty();
             <i class="fa-solid fa-circle-check"></i>
             Payment Completed
         </button>
+        @endif
+        @if($transaction)
         <a
-            href="{{ asset($payment->receipt_path) }}"
+            href="{{ asset($transaction->receipt_path) }}"
             download
+            target="_blank"
             class="btn-brand"
             style="
-                    background:#fff;
-                    color:var(--brand);
-                    border:1px solid #dbeafe;
-                ">
+                background:#fff;
+                color:var(--brand);
+                border:1px solid #dbeafe;
+            ">
             <i class="fa-solid fa-file-pdf"></i>
-            Download Payment Slip
+            Download Payment Receipt
         </a>
         @endif
     </div>
     @else
     <div class="alert alert-warning">
-        Initial payment not generated yet.
+        Payment order not generated yet.
     </div>
     @endif
 </div>

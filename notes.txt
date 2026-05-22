@@ -1,0 +1,118 @@
+1. Application
+2. Lottery Payment
+3. Allotment Letter
+4. Signed Upload
+5. 15% Payment
+6. Payment Verification
+7. Payment Option Select
+8. Agreement Draft
+9. Agreement Signed Upload
+10. Agreement Verification
+11. EMI/Final Payment Start
+12. Due Clearance
+13. Possession Eligibility
+14. Possession Letter
+15. Site Handover
+16. Possession Accepted
+17. NOC
+18. Registry Apply
+19. Registry Schedule
+20. Registry Deed Upload
+21. Ownership Completed
+
+
+────────────────────────────────────────
+🏠 JHARKHAND STATE HOUSING BOARD
+────────────────────────────────────────
+
+👤 Dashboard
+│
+├── 🏡 My Application
+│   ├── Application Details
+│   ├── Personal Information
+│   ├── Contact Details
+│   ├── Uploaded Documents
+│   └── Application Status
+│
+├── 🎲 Lottery
+│   ├── Lottery Payment Receipt
+│   ├── Lottery Status
+│   └── Refund Status (If Not Allotted)
+│
+├── 📄 Allotment
+│   ├── Allotment Letter
+│   ├── Download Allotment PDF
+│   ├── Upload Signed Copy
+│   └── Allotment Status
+│
+├── 💰 Allotment Payment
+│   ├── 15% Payment Order
+│   ├── Pay Allotment Amount
+│   ├── Payment Receipt
+│   └── Payment History
+│
+├── ⚙️ Payment Option
+│   ├── Choose Payment Mode
+│   │     ├── EMI
+│   │     └── One Time Payment
+│   └── Payment Summary
+│
+├── 💳 EMI Management
+│   │   (Visible Only If EMI Selected)
+│   │
+│   ├── EMI Dashboard
+│   ├── EMI Schedule
+│   ├── Pay EMI
+│   ├── EMI History
+│   ├── Penalty Charges
+│   ├── Outstanding Amount
+│   ├── Foreclosure / Prepayment
+│   └── EMI Account Statement
+│
+├── 💵 One Time Payment
+│   │   (Visible Only If One Time Selected)
+│   │
+│   ├── Remaining Amount
+│   ├── Make Full Payment
+│   ├── Payment Receipt
+│   └── Transaction History
+│
+├── 📝 Agreement
+│   ├── Download Agreement
+│   ├── Upload Signed Agreement
+│   ├── Agreement Verification
+│   └── Agreement Status
+│
+├── 🔑 Possession
+│   ├── Possession Letter
+│   ├── Possession Status
+│   ├── Unit Inspection
+│   └── Key Handover
+│
+├── 📜 No Due & Registry
+│   ├── No Due Certificate
+│   ├── Registry Payment
+│   ├── Upload Registry Copy
+│   ├── Registry Details
+│   └── Ownership Transfer
+│
+├── 📂 Documents Vault
+│   ├── All Uploaded Files
+│   ├── Generated Documents
+│   ├── Receipts
+│   ├── Agreements
+│   └── Registry Documents
+│
+├── 🔔 Notifications
+│   ├── Due Alerts
+│   ├── EMI Reminders
+│   ├── Penalty Notices
+│   └── System Notifications
+│
+├── 👤 Profile Settings
+│   ├── Change Password
+│   ├── Update Mobile
+│   ├── Update Email
+│   └── Security Settings
+│
+└── 🚪 Logout

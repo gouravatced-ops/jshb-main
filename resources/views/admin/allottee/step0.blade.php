@@ -431,7 +431,7 @@ $getSchemeList = $getSchemeList ?? [];
                     Receipt Preview
                 </div>
                 <img id="receiptPreview"
-                    class="preview-image"
+                    class="preview-image imagePopupModal"
                     src="{{ !empty($applicant->payment_receipt_path) ? asset($applicant->payment_receipt_path) : '' }}"
                     alt="Receipt Preview"
                     style="{{ !empty($applicant->payment_receipt_path) ? 'display:block' : 'display:none' }}">

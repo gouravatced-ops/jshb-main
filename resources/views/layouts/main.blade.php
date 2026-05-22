@@ -19,7 +19,7 @@
 
     <!-- TOASTER -->
     <div class="toaster-wrap" id="toasterWrap"></div>
-    
+
     <!-- LOADER -->
     <div id="loader-overlay">
         <!-- House Scene -->
@@ -127,8 +127,59 @@
     <!-- Password Reset Modal -->
     <x-password-reset-modal></x-password-reset-modal>
 
+    <!-- GLOBAL IMAGE POPUP MODAL -->
+    <div id="globalImageModal" class="image-modal">
+        <span class="image-modal-close">&times;</span>
+        <img class="image-modal-content" id="globalImageModalImg">
+        <div class="image-modal-caption" id="globalImageCaption"></div>
+    </div>
+
     <script src="{{ asset('js/dashboard.js') }}"></script>
     <script src="{{ asset('js/fieldvalidation.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const modal = document.getElementById('globalImageModal');
+            const modalImg = document.getElementById('globalImageModalImg');
+            const caption = document.getElementById('globalImageCaption');
+            const closeBtn = document.querySelector('.image-modal-close');
+
+            // ALL IMAGE POPUP CLASS
+            document.querySelectorAll('.imagePopupModal').forEach(function(img) {
+
+                img.addEventListener('click', function() {
+
+                    if (!this.src) return;
+
+                    modal.style.display = 'block';
+                    modalImg.src = this.src;
+                    caption.innerText = this.alt || '';
+                });
+            });
+
+            // CLOSE BUTTON
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            // OUTSIDE CLICK CLOSE
+            modal.addEventListener('click', function(e) {
+
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // ESC CLOSE
+            document.addEventListener('keydown', function(e) {
+
+                if (e.key === 'Escape') {
+                    modal.style.display = 'none';
+                }
+            });
+
+        });
+    </script>
     <script>
         setTimeout(() => {
             document.querySelectorAll('.alert').forEach(el => el.remove());

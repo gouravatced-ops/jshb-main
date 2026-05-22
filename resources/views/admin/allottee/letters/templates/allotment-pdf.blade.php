@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>झारखण्ड राज्य आवास बोर्ड - आवंटन आदेश (A4 प्रिंट टेम्पलेट)</title>
+    <title>आवंटन आदेश - झारखण्ड राज्य आवास बोर्ड</title>
     <style>
         @font-face {
             font-family: 'KrutiDev';

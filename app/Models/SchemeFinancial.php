@@ -14,8 +14,10 @@ class SchemeFinancial extends Model
     protected $fillable = [
         'scheme_id',
         'property_total_cost',
-        'down_payment_percentage',
-        'down_payment_amount',
+        'lottery_percentage',
+        'lottery_amount',
+        'allotment_percentage',
+        'allotement_amount',
         'balance_amount',
         'emi_count',
         'normal_interest_rate',

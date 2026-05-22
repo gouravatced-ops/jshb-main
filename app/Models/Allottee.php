@@ -62,20 +62,6 @@ class Allottee extends Model
         'updated_by',
         'created_by',
         'deleted_at',
-        'payment_amount',
-        'payment_day',
-        'payment_month',
-        'payment_year',
-        'payment_mode',
-        'payment_utr_no',
-        'payment_receipt_path',
-        'payment_option',
-        'payment_option_selected_at',
-        'remaining_amount',
-        'emi_months',
-        'emi_monthly_amount',
-        'final_calculation_generated',
-        'recalculation_allowed',
     ];
 
     // Parent relationship (the parent of this allottee)
@@ -173,5 +159,20 @@ class Allottee extends Model
     public function generatedDocument()
     {
         return $this->hasMany(AllotteeGeneratedDocument::class, 'allottee_id', 'id');
+    }
+
+    public function emiAccount()
+    {
+        return $this->hasMany(AllotteeEmiLedger::class, 'allottee_id', 'id');
+    }
+
+    public function allotteeOrders()
+    {
+        return $this->hasMany(AllotteePaymentOrder::class, 'allottee_id', 'id');
+    }
+
+    public function allotteeTransaction()
+    {
+        return $this->hasMany(AllotteeTransaction::class, 'allottee_id', 'id');
     }
 }
