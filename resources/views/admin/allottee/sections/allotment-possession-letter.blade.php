@@ -112,7 +112,11 @@
                 Waiting For Generation
             </button> --}}
 
-            <a href="{{ route('admin.allottees.letters.possession', $allottee) }}" target="_blank" class="btn-brand"
+            <a href="{{ route('admin.allottees.letters.possession.pdf', [
+                'allottee' => $allottee,
+                'download' => 1,
+            ]) }}"
+                target="_blank" class="btn-brand"
                 style="
                         background:rgba(255,255,255,.95);
                         color:var(--brand);

@@ -111,15 +111,12 @@ class AllotteePaymentOrder extends Model
             return 0;
         }
 
-        $rule = PaymentPenaltyRule::where(
-                'status',
-                1
-            )
+        $rule = PaymentPenaltyRule::where('status', 1)
             ->where('from_day', '<=', $delayDays)
             ->where('to_day', '>=', $delayDays)
             ->first();
 
-        return $rule?->penalty_percentage ?? 0;
+        return (int) ($rule?->penalty_percentage ?? 0);
     }
 
     public function getCalculatedPenaltyAmountAttribute()
@@ -144,8 +141,8 @@ class AllotteePaymentOrder extends Model
     {
         return round(
             $this->base_amount +
-            $this->calculated_penalty_amount +
-            $this->calculated_admin_charge,
+                $this->calculated_penalty_amount +
+                $this->calculated_admin_charge,
             2
         );
     }
@@ -184,7 +181,7 @@ class AllotteePaymentOrder extends Model
             . '-'
             . now()->format('Ymd')
             . '-'
-            . rand(1000, 9999);
+            . rand(100000, 999999);
     }
 
     /*
@@ -202,9 +199,9 @@ class AllotteePaymentOrder extends Model
         if ($delayDays > 0) {
 
             $rule = PaymentPenaltyRule::where(
-                    'status',
-                    1
-                )
+                'status',
+                1
+            )
                 ->where('from_day', '<=', $delayDays)
                 ->where('to_day', '>=', $delayDays)
                 ->first();
@@ -228,8 +225,8 @@ class AllotteePaymentOrder extends Model
 
         $totalPayable = round(
             $this->base_amount +
-            $penaltyAmount +
-            $adminCharge,
+                $penaltyAmount +
+                $adminCharge,
             2
         );
 
@@ -275,11 +272,9 @@ class AllotteePaymentOrder extends Model
         if ($remaining <= 0) {
 
             $status = 'paid';
-
         } elseif ($paid > 0) {
 
             $status = 'partial';
-
         } elseif (
             $this->due_date &&
             now()->gt($this->due_date)

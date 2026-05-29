@@ -155,7 +155,7 @@ class AllotteePaymentController extends Controller
             AllotteeProcessStep::where([
                 'allottee_id' =>
                 $payment->allottee_id,
-                'step_no'     => 3,
+                'step_no'     => 5,
             ])->update([
                 'status'       => 'completed',
                 'completed_at' => now(),
@@ -166,7 +166,7 @@ class AllotteePaymentController extends Controller
             AllotteeProcessStep::where([
                 'allottee_id' =>
                 $payment->allottee_id,
-                'step_no'     => 5,
+                'step_no'     => 6,
             ])->update([
                 'status' => 'pending',
             ]);

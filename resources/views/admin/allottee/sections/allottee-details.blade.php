@@ -11,9 +11,7 @@
                 {{ $allottee->application_no ?? 'JSHBA-24928374' }}
             </p>
         </div>
-        <button
-            class="btn-ghost"
-            onclick="window.close();">
+        <button class="btn-ghost" onclick="window.close();">
             <i class="fa-solid fa-arrow-left"></i>
             Back to List
         </button>
@@ -27,9 +25,7 @@
                     <i class="fa-solid fa-hashtag me-1"></i>
                     Application No.
                 </p>
-                <p
-                    class="info-card-value"
-                    style="font-family:'DM Mono',monospace;">
+                <p class="info-card-value" style="font-family:'DM Mono',monospace;">
                     {{ $allottee->application_no ?? '—' }}
                 </p>
             </div>
@@ -69,6 +65,10 @@
                 </p>
                 <p class="info-card-value">
                     {{ $allottee->pan_card_number ?? '—' }}
+                    {{-- &nbsp;<span id="copytheValue"
+                        data-value="{{ $allottee->pan_card_number }}" style="cursor:pointer;">
+                        <i class="fa-regular fa-copy me-1"></i>
+                    </span> --}}
                 </p>
             </div>
         </div>
@@ -157,19 +157,19 @@
                 </p>
             </div>
         </div>
-        @if(isset($allottee->alloteeAdresses->stdCode) && isset($allottee->alloteeAdresses->landline))
-        <!-- LANDLINE -->
-        <div class="col-md-4">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-phone me-1"></i>
-                    Landline Number
-                </p>
-                <p class="info-card-value">
-                    {{ $allottee->alloteeAdresses->stdCode ?? '—' }}-{{ $allottee->alloteeAdresses->landline ?? '—' }}
-                </p>
+        @if (isset($allottee->alloteeAdresses->stdCode) && isset($allottee->alloteeAdresses->landline))
+            <!-- LANDLINE -->
+            <div class="col-md-4">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-phone me-1"></i>
+                        Landline Number
+                    </p>
+                    <p class="info-card-value">
+                        {{ $allottee->alloteeAdresses->stdCode ?? '—' }}-{{ $allottee->alloteeAdresses->landline ?? '—' }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- EMAIL -->
         <div class="col-md-6">
@@ -189,88 +189,88 @@
     <!-- ADDRESS DETAILS -->
     <div class="row g-3 mb-4">
         <!-- Present Address -->
-        @if($allottee->alloteeAdresses->present_address)
-        <div class="col-md-6">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-location-dot me-1"></i>
-                    Present Address
-                </p>
-                <p class="info-card-value">
-                    {{ $allottee->alloteeAdresses->present_address }}
-                </p>
+        @if ($allottee->alloteeAdresses->present_address)
+            <div class="col-md-6">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-location-dot me-1"></i>
+                        Present Address
+                    </p>
+                    <p class="info-card-value">
+                        {{ $allottee->alloteeAdresses->present_address }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present Post Office -->
-        @if($allottee->alloteeAdresses->present_post_office)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-building me-1"></i>
-                    Post Office
-                </p>
-                <p class="info-card-value">
-                    {{ $allottee->alloteeAdresses->present_post_office }}
-                </p>
+        @if ($allottee->alloteeAdresses->present_post_office)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-building me-1"></i>
+                        Post Office
+                    </p>
+                    <p class="info-card-value">
+                        {{ $allottee->alloteeAdresses->present_post_office }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present Police Station -->
-        @if($allottee->alloteeAdresses->present_police_station)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-shield-halved me-1"></i>
-                    Police Station
-                </p>
-                <p class="info-card-value">
-                    {{ $allottee->alloteeAdresses->present_police_station }}
-                </p>
+        @if ($allottee->alloteeAdresses->present_police_station)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-shield-halved me-1"></i>
+                        Police Station
+                    </p>
+                    <p class="info-card-value">
+                        {{ $allottee->alloteeAdresses->present_police_station }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present Pincode -->
-        @if($allottee->alloteeAdresses->present_pincode)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-map-pin me-1"></i>
-                    Pincode
-                </p>
-                <p class="info-card-value">
-                    {{ $allottee->alloteeAdresses->present_pincode }}
-                </p>
+        @if ($allottee->alloteeAdresses->present_pincode)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-map-pin me-1"></i>
+                        Pincode
+                    </p>
+                    <p class="info-card-value">
+                        {{ $allottee->alloteeAdresses->present_pincode }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present District -->
-        @if($allottee->alloteeAdresses->present_district)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-location-dot me-1"></i>
-                    District
-                </p>
-                <p class="info-card-value">
-                    {{ getdistrictNameById($allottee->alloteeAdresses->present_district) }}
-                </p>
+        @if ($allottee->alloteeAdresses->present_district)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-location-dot me-1"></i>
+                        District
+                    </p>
+                    <p class="info-card-value">
+                        {{ getdistrictNameById($allottee->alloteeAdresses->present_district) }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present State -->
-        @if($allottee->alloteeAdresses->present_state)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-location-dot me-1"></i>
-                    State
-                </p>
-                <p class="info-card-value">
-                    {{ getStateName($allottee->alloteeAdresses->present_state) }}
-                </p>
+        @if ($allottee->alloteeAdresses->present_state)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-location-dot me-1"></i>
+                        State
+                    </p>
+                    <p class="info-card-value">
+                        {{ getStateName($allottee->alloteeAdresses->present_state) }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
     </div>
     {{-- Permanent Address Section --}}
@@ -278,88 +278,88 @@
     <!-- ADDRESS DETAILS -->
     <div class="row g-3 mb-4">
         <!-- Present Address -->
-        @if($allottee->alloteeAdresses->permanent_address)
-        <div class="col-md-6">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-location-dot me-1"></i>
-                    Permanent Address
-                </p>
-                <p class="info-card-value">
-                    {{ $allottee->alloteeAdresses->permanent_address }}
-                </p>
+        @if ($allottee->alloteeAdresses->permanent_address)
+            <div class="col-md-6">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-location-dot me-1"></i>
+                        Permanent Address
+                    </p>
+                    <p class="info-card-value">
+                        {{ $allottee->alloteeAdresses->permanent_address }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present Post Office -->
-        @if($allottee->alloteeAdresses->permanent_post_office)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-building me-1"></i>
-                    Post Office
-                </p>
-                <p class="info-card-value">
-                    {{ $allottee->alloteeAdresses->permanent_post_office }}
-                </p>
+        @if ($allottee->alloteeAdresses->permanent_post_office)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-building me-1"></i>
+                        Post Office
+                    </p>
+                    <p class="info-card-value">
+                        {{ $allottee->alloteeAdresses->permanent_post_office }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present Police Station -->
-        @if($allottee->alloteeAdresses->permanent_police_station)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-shield-halved me-1"></i>
-                    Police Station
-                </p>
-                <p class="info-card-value">
-                    {{ $allottee->alloteeAdresses->permanent_police_station }}
-                </p>
+        @if ($allottee->alloteeAdresses->permanent_police_station)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-shield-halved me-1"></i>
+                        Police Station
+                    </p>
+                    <p class="info-card-value">
+                        {{ $allottee->alloteeAdresses->permanent_police_station }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present Pincode -->
-        @if($allottee->alloteeAdresses->permanent_pincode)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-map-pin me-1"></i>
-                    Pincode
-                </p>
-                <p class="info-card-value">
-                    {{ $allottee->alloteeAdresses->permanent_pincode }}
-                </p>
+        @if ($allottee->alloteeAdresses->permanent_pincode)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-map-pin me-1"></i>
+                        Pincode
+                    </p>
+                    <p class="info-card-value">
+                        {{ $allottee->alloteeAdresses->permanent_pincode }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present District -->
-        @if($allottee->alloteeAdresses->permanent_district)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-location-dot me-1"></i>
-                    District
-                </p>
-                <p class="info-card-value">
-                    {{ getdistrictNameById($allottee->alloteeAdresses->permanent_district) }}
-                </p>
+        @if ($allottee->alloteeAdresses->permanent_district)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-location-dot me-1"></i>
+                        District
+                    </p>
+                    <p class="info-card-value">
+                        {{ getdistrictNameById($allottee->alloteeAdresses->permanent_district) }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
         <!-- Present State -->
-        @if($allottee->alloteeAdresses->permanent_state)
-        <div class="col-md-3">
-            <div class="info-card">
-                <p class="info-card-label">
-                    <i class="fa-solid fa-location-dot me-1"></i>
-                    State
-                </p>
-                <p class="info-card-value">
-                    {{ getStateName($allottee->alloteeAdresses->permanent_state) }}
-                </p>
+        @if ($allottee->alloteeAdresses->permanent_state)
+            <div class="col-md-3">
+                <div class="info-card">
+                    <p class="info-card-label">
+                        <i class="fa-solid fa-location-dot me-1"></i>
+                        State
+                    </p>
+                    <p class="info-card-value">
+                        {{ getStateName($allottee->alloteeAdresses->permanent_state) }}
+                    </p>
+                </div>
             </div>
-        </div>
         @endif
     </div>
 </div>

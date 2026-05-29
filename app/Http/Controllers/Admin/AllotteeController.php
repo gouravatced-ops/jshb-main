@@ -397,11 +397,7 @@ class AllotteeController extends Controller
 
     private function ensureProcessSteps(Allottee $allottee): void
     {
-        /*
-    |--------------------------------------------------------------------------
-    | ALREADY EXISTS
-    |--------------------------------------------------------------------------
-    */
+        // ALREADY EXISTS
 
         if (
             AllotteeProcessStep::where(
@@ -413,7 +409,7 @@ class AllotteeController extends Controller
         }
 
         $now    = now();
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         $rows   = [];
         $stepNo = 1;
@@ -596,6 +592,17 @@ class AllotteeController extends Controller
 
     private function saveGeneratedPdf(Allottee $allottee, string $docName, string $type, string $content): string
     {
+
+        // CHECK EXISTING DOCUMENT
+        $exists = $allottee->generatedDocument()
+            ->where('document_type', $type)
+            ->exists();
+
+        // ALREADY GENERATE
+        if ($exists) {
+            return 'Document already exists.';
+        }
+
         if ($type == 'allotment-letter') {
             $year  = $allottee->allotment_year;
             $month = $allottee->allotment_month;
@@ -739,7 +746,7 @@ class AllotteeController extends Controller
                 'signed-%s-%s-%s.%s',
                 Str::slug($validated['document_type']),
                 now()->format('YmdHis'),
-                Str::random(6),
+                rand(1000, 9999),
                 $extension
             );
 
@@ -765,9 +772,9 @@ class AllotteeController extends Controller
                 $finance = $allottee->scheme->schemeFinance;
 
                 $propertyAmount = (float) ($finance->property_total_cost ?? 0);
-                $percentage     = (float) ($finance->down_payment_percentage ?? 15);
+                $percentage     = (float) ($finance->allotment_percentage ?? 15);
 
-                $allotmentAmount = ($propertyAmount * $percentage) / 100;
+                $allotmentAmount = (float) ($finance->allotement_amount);
 
                 $paymentOrder = AllotteePaymentOrder::updateOrCreate(
                     [
@@ -775,7 +782,7 @@ class AllotteeController extends Controller
                         'order_type'  => 'allotment',
                     ],
                     [
-                        'order_no'         => AllotteePaymentOrder::generateOrderNo('ALT'),
+                        'order_no'         => AllotteePaymentOrder::generateOrderNo('ODR-ALT'),
                         'title'            => "{$percentage}% Allotment Payment Order",
                         'property_amount'  => $propertyAmount,
                         'percentage'       => $percentage,
@@ -1023,6 +1030,58 @@ class AllotteeController extends Controller
         $allottee->updated_by = Auth::id();
         $allottee->update_ip_address = $request->ip();
         $allottee->save();
+
+        $finance = $allottee->scheme->schemeFinance;
+
+        $propertyAmount = (float) ($finance->property_total_cost ?? 0);
+        $percentage     = (float) 100 - ($finance->allotment_percentage + $finance->lottery_percentage);
+
+        $balanaceAmount = (float) ($finance->balance_amount);
+        $adminCharges   = (float) ($finance->admin_charges) ?? 0;
+
+        $paymentOrder = AllotteePaymentOrder::updateOrCreate(
+            [
+                'allottee_id' => $allottee->id,
+                'order_type'  => 'final',
+            ],
+            [
+                'order_no'         => AllotteePaymentOrder::generateOrderNo('ORD-FINAL'),
+                'title'            => "{$percentage}% Final One Time Settlement Payment Order",
+                'property_amount'  => $propertyAmount,
+                'percentage'       => $percentage,
+                'base_amount'      => $balanaceAmount,
+                'penalty_amount'   => 0,
+                'admin_charge'     => $adminCharges ?? 0,
+                'total_payable'    => ($balanaceAmount + $adminCharges),
+                'paid_amount'      => 0,
+                'remaining_amount' => ($balanaceAmount + $adminCharges),
+                'payment_option'   => 'one_time',
+                'due_date'         => now()->addDays(30),
+                'issued_at'        => now(),
+                'order_status'     => 'issued',
+                'remarks'          => 'Auto generated Final one time payment order',
+                'created_by'       => Auth::id(),
+            ]
+        );
+
+        $step7 = AllotteeProcessStep::where('allottee_id', $allottee->id)->where('step_no', 7)->first();
+        if ($step7 && $step7->status !== 'completed') {
+            $step7->status = 'completed';
+            $step7->completed_at = now();
+            $step7->completed_by = Auth::id();
+            $step7->save();
+        }
+
+        $steps = $validated['payment_option'] === 'one_time'
+            ? [8, 9]
+            : [10, 11, 12, 13];
+
+        AllotteeProcessStep::where('allottee_id', $allottee->id)
+            ->whereIn('step_no', $steps)
+            ->update([
+                'status' => 'pending',
+            ]);
+
         return back()->with('success', 'Payment option updated successfully.');
     }
 
@@ -1103,7 +1162,11 @@ class AllotteeController extends Controller
         if ($request->boolean('download')) {
             $fileName = $this->saveGeneratedPdf($allottee, 'Possession Letter', 'possession-letter', $pdf->output());
         }
-        return $request->boolean('download') ? $pdf->download($fileName) : $pdf->stream($fileName);
+        if (!$request->boolean('download')) {
+            return $pdf->stream($fileName);
+        } else {
+            return back()->with('success', 'PDF generated successfully.');
+        }
     }
 
     public function saveStep0(Request $request)
