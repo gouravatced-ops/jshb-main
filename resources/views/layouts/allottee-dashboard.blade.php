@@ -12,12 +12,8 @@
     <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/font/font.css') }}">
     <link rel="stylesheet" href="{{ asset('css/icons/all.css') }}">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
-        rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('css/allottee/dashboard.css') }}">
     <style>
-        /* Critical inline styles for better perceived performance */
         .toast-container {
             z-index: 1100;
         }
@@ -78,10 +74,19 @@
     <header class="topbar">
         <div class="topbar-logo">
             <img src="{{ asset(config('panel.logo')) }}" alt="JESA Logo" loading="lazy">
-            {{ config('panel.app_name') }}
+
+            <div class="topbar-title">
+                <span class="app-name">{{ config('panel.app_name') }}</span>
+                <span class="app-subtitle">Applicant Portal Dashboard</span>
+            </div>
         </div>
+
         <span class="topbar-spacer"></span>
-        <span class="topbar-badge"><i class="fa-solid fa-circle-check me-1"></i>Applicant Account</span>
+
+        <span class="topbar-badge">
+            <i class="fa-solid fa-circle-check me-1"></i>Applicant Account
+        </span>
+
         <div class="topbar-avatar" title="{{ $allottee->allottee_name ?? 'User' }}">
             {{ strtoupper(substr($allottee->allottee_name ?? 'U', 0, 2)) }}
         </div>
@@ -90,7 +95,7 @@
     <div class="page-wrap">
         {{-- SIDEBAR --}}
         <aside class="sidebar">
-            <div class="sidebar-title">JSHB Menu</div>
+            {{-- <div class="sidebar-title">JSHB Menu</div> --}}
 
             @php
                 $paymentOption = $allottee->payment_option;
@@ -102,10 +107,10 @@
                     $menu = $menuSteps->first();
 
                     /*
-            |--------------------------------------------------------------------------
-            | MENU VISIBILITY CONDITIONS
-            |--------------------------------------------------------------------------
-            */
+                    |--------------------------------------------------------------------------
+                    | MENU VISIBILITY CONDITIONS
+                    |--------------------------------------------------------------------------
+                    */
 
                     // Hide Choose Payment Option if payment option already selected
                     if ($menuKey === 'choose-payment-option' && !is_null($paymentOption)) {
@@ -123,10 +128,10 @@
                     }
 
                     /*
-            |--------------------------------------------------------------------------
-            | SIDEBAR STATES
-            |--------------------------------------------------------------------------
-            */
+                    |--------------------------------------------------------------------------
+                    | SIDEBAR STATES
+                    |--------------------------------------------------------------------------
+                    */
 
                     $hasSubmenus = $menuSteps->whereNotNull('sub_menu_key')->count() > 0;
 
@@ -163,7 +168,7 @@
                                 @elseif($menuPending)
                                     <i class="fa-solid fa-clock text-warning"></i>
                                 @elseif($menuLocked)
-                                    <i class="fa-solid fa-lock text-muted"></i>
+                                    <i class="fa-solid fa-lock"></i>
                                 @endif
 
                                 <i class="fa-solid fa-chevron-down menu-arrow"></i>
@@ -194,7 +199,7 @@
                                             @elseif($isPending)
                                                 <i class="fa-solid fa-clock text-warning"></i>
                                             @elseif($isLocked)
-                                                <i class="fa-solid fa-lock text-muted"></i>
+                                                <i class="fa-solid fa-lock"></i>
                                             @endif
 
                                         </span>
@@ -243,7 +248,7 @@
                             @elseif($isPending)
                                 <i class="fa-solid fa-clock text-warning"></i>
                             @elseif($isLocked)
-                                <i class="fa-solid fa-lock text-muted"></i>
+                                <i class="fa-solid fa-lock"></i>
                             @endif
 
                         </span>
@@ -379,7 +384,8 @@
                 overview: @json(route('admin.allottees.section', ['allottee' => $allottee, 'section' => 'overview'])),
                 process: @json(route('admin.allottees.process.step', ['allottee' => $allottee, 'stepNo' => '__STEP__'])),
                 uploadSigned: @json(route('admin.allottees.signed.document.uploads')),
-                initialPayment: @json(route('admin.allottees.initial.payment.pay'))
+                initialPayment: @json(route('admin.allottees.initial.payment.pay')),
+                OneTimePayment: @json(route('admin.allottees.one-time-payment.pay')),
             };
 
             // Helper: Get step URL
@@ -441,7 +447,7 @@
             function showError(message = 'Failed to load section.') {
                 if (elements.dynamicContent) {
                     elements.dynamicContent.innerHTML = `
-                    <div class="alert alert-danger m-3">
+                    <div class="alert alert-danger">
                         <i class="fa-solid fa-circle-exclamation me-2"></i> ${message}
                     </div>
                 `;
@@ -648,9 +654,7 @@
                     showToast('success', 'Document uploaded successfully!');
 
                     // Refresh current step
-                    if (currentStepNo !== null) {
-                        loadStep(currentStepNo);
-                    }
+                    window.location.reload();
                 } catch (error) {
                     console.error('Upload error:', error);
                     showToast('error', error.message || 'Upload failed. Please try again.');
@@ -659,13 +663,26 @@
 
             // ========== PAYMENT FUNCTION ==========
             async function payInitialPayment(paymentId) {
+
+                const button = document.querySelector('.btn-brand');
+                const originalHtml = button.innerHTML;
+
+                // Disable button + show loader
+                button.disabled = true;
+                button.innerHTML = `
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Processing...
+                `;
+
                 try {
+
                     const response = await fetch(routes.initialPayment, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                ?.content || '',
+                            'X-CSRF-TOKEN': document.querySelector(
+                                'meta[name="csrf-token"]'
+                            )?.content || '',
                             'X-Requested-With': 'XMLHttpRequest'
                         },
                         body: JSON.stringify({
@@ -674,13 +691,89 @@
                     });
 
                     const data = await response.json();
-                    if (!data.success) throw new Error(data.message || 'Payment failed');
 
-                    if (data.receipt_url) window.open(data.receipt_url, '_blank');
-                    loadStep(3);
+                    if (!response.ok || !data.success) {
+                        throw new Error(
+                            data.message || 'Payment failed'
+                        );
+                    }
+
+                    if (data.receipt_url) {
+                        window.open(data.receipt_url, '_blank');
+                    }
+
+                    window.location.reload();
+
                 } catch (error) {
+
                     console.error('Payment error:', error);
-                    showToast('error', error.message || 'Payment failed. Please try again.');
+
+                    showToast(
+                        'error',
+                        error.message || 'Payment failed. Please try again.'
+                    );
+
+                    // Restore button on error
+                    button.disabled = false;
+                    button.innerHTML = originalHtml;
+                }
+            }
+
+            // ========== ONE TIME PAYMENT FUNCTION ==========
+            async function oneTimePayment(paymentId) {
+
+                const button = document.querySelector('.btn-brand');
+                const originalHtml = button.innerHTML;
+
+                // Disable + Loader
+                button.disabled = true;
+                button.innerHTML = `
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Processing...
+                `;
+
+                try {
+
+                    const response = await fetch(routes.OneTimePayment, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector(
+                                'meta[name="csrf-token"]'
+                            )?.content || '',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            payment_id: paymentId
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(
+                            data.message || 'Payment failed'
+                        );
+                    }
+
+                    if (data.receipt_url) {
+                        window.open(data.receipt_url, '_blank');
+                    }
+
+                    window.location.reload();
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    showToast(
+                        'error',
+                        error.message || 'Payment failed. Please try again.'
+                    );
+
+                    // Re-enable button
+                    button.disabled = false;
+                    button.innerHTML = originalHtml;
                 }
             }
 
@@ -770,6 +863,7 @@
                 clearFile,
                 submitDocumentUpload,
                 payInitialPayment,
+                oneTimePayment,
                 init
             };
         })();
@@ -811,6 +905,15 @@
         window.payInitialPayment = function(paymentId) {
             if (window.App) {
                 window.App.payInitialPayment(paymentId);
+            } else {
+                console.error('App not ready yet');
+            }
+        };
+
+        window.oneTimePayment = function(paymentId) {
+            if (window.App) {
+                window.App.oneTimePayment(paymentId);
+                console.log('Green');
             } else {
                 console.error('App not ready yet');
             }

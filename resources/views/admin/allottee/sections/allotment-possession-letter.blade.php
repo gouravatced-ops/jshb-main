@@ -116,7 +116,7 @@
                 'allottee' => $allottee,
                 'download' => 1,
             ]) }}"
-                target="_blank" class="btn-brand"
+                class="btn-brand"
                 style="
                         background:rgba(255,255,255,.95);
                         color:var(--brand);

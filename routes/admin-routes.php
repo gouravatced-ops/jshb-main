@@ -75,6 +75,7 @@ Route::middleware('auth')
         // edit
         Route::get('/allottees/edit/start/{allottee}', [AllotteeController::class, 'indexEditStart'])->name('edit.apply.index');
         
+
         Route::get('/allottees/step/{step}/{applicantId?}', [AllotteeController::class, 'getStep'])->name('apply.step');
         Route::post('/apply/step0/save', [AllotteeController::class, 'saveStep0'])->name('apply.step0.save');
         Route::post('/apply/step1/save', [AllotteeController::class, 'saveStep1'])->name('apply.step1.save');
@@ -93,7 +94,9 @@ Route::middleware('auth')
         Route::post('/allottees/signed/document/uploads', [AllotteeController::class, 'signedDocumentUploads'])->name('allottees.signed.document.uploads');
 
         // Initial Payment
-        Route::post('/allottees/initial-payment/pay',[AllotteePaymentController::class, 'payInitialPayment'])->name('allottees.initial.payment.pay');
-        Route::get('/allottees/payment-success/{payment}',[AllotteePaymentController::class, 'paymentSuccess'])->name('allottees.payment.success');
+        Route::post('/allottees/initial-payment/pay', [AllotteePaymentController::class, 'payInitialPayment'])->name('allottees.initial.payment.pay');
+        Route::get('/allottees/payment-success/{payment}', [AllotteePaymentController::class, 'paymentSuccess'])->name('allottees.payment.success');
 
+        // One Time Payment
+        Route::post('/allottees/one-time-pay', [AllotteePaymentController::class, 'payOnetimePayment'])->name('allottees.one-time-payment.pay');
     });

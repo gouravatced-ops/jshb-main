@@ -534,7 +534,7 @@ class AllotteeController extends Controller
 
         // ALLOTMENT
 
-        if ($menuOrder === 4) {
+        if ($menuOrder === 3) {
 
             return match ($subMenuIndex) {
 
@@ -564,7 +564,7 @@ class AllotteeController extends Controller
             return;
         }
         $sequence = $allottee->payment_option === 'one_time'
-            ? [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+            ? [1, 2, 3, 4, 5, 6, 7, 9, 8, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
             : range(1, 23);
         $nextPending = null;
         foreach ($sequence as $stepNo) {
@@ -873,7 +873,7 @@ class AllotteeController extends Controller
 
         $this->ensureProcessSteps($allottee);
 
-        $this->refreshStepFlow($allottee);
+        // $this->refreshStepFlow($allottee);
 
         // DOCUMENTS
 

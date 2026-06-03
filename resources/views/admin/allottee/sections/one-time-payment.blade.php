@@ -11,6 +11,8 @@
         // REFRESH PENALTY FROM MODEL
         $payment->refreshPenalty();
     }
+
+    $paymentId = base64_encode($payment->id);
 @endphp
 <div>
     <!-- HEADER -->
@@ -223,9 +225,9 @@
             flex-wrap:wrap;
         ">
             @if ($payment->order_status !== 'paid')
-                <button type="button" class="btn-brand" onclick="payInitialPayment('{{ $payment->id }}')">
+                <button type="button" class="btn-brand" onclick="oneTimePayment('{{ $paymentId }}')">
                     <i class="fa-solid fa-credit-card"></i>
-                    Pay ₹ {{ number_format($payment->remaining_amount, 2) }}
+                    ₹ {{ number_format($payment->remaining_amount, 2) }}
                 </button>
             @else
                 <button class="btn-brand" disabled>

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ class AllotteeTransaction extends Model
 
     protected $fillable = [
         'allottee_id',
+        'order_id',
         'transaction_type',
         'payment_stage',
         'amount',
@@ -42,7 +44,7 @@ class AllotteeTransaction extends Model
         'total_amount'       => 'decimal:2',
         'paid_at'            => 'datetime',
     ];
-    
+
     // Relations
     public function allottee()
     {
@@ -51,7 +53,7 @@ class AllotteeTransaction extends Model
             'allottee_id'
         );
     }
-    
+
     // Helpers
     public function isSuccess()
     {
@@ -73,7 +75,7 @@ class AllotteeTransaction extends Model
     {
         return $this->transaction_type === 'extra_payment';
     }
-    
+
     // Scopes
     public function scopeSuccess($query)
     {
@@ -96,7 +98,7 @@ class AllotteeTransaction extends Model
             'extra_payment'
         );
     }
-    
+
     // AUTO GENERATE TRANSACTION NO
     protected static function booted()
     {
