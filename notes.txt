@@ -1,0 +1,799 @@
+1. Application
+2. Lottery Payment
+3. Allotment Letter
+4. Signed Upload
+5. 15% Payment
+6. Payment Verification
+7. Payment Option Select
+8. Agreement Draft
+9. Agreement Signed Upload
+10. Agreement Verification
+11. EMI/Final Payment Start
+12. Due Clearance
+13. Possession Eligibility
+14. Possession Letter
+15. Site Handover
+16. Possession Accepted
+17. NOC
+18. Registry Apply
+19. Registry Schedule
+20. Registry Deed Upload
+21. Ownership Completed
+
+
+────────────────────────────────────────
+🏠 JHARKHAND STATE HOUSING BOARD
+────────────────────────────────────────
+
+👤 Dashboard
+│
+├── 🏡 My Application
+│   ├── Application Details
+│   ├── Personal Information
+│   ├── Contact Details
+│   ├── Uploaded Documents
+│   └── Application Status
+│
+├── 🎲 Lottery
+│   ├── Lottery Payment Receipt
+│   ├── Lottery Status
+│   └── Refund Status (If Not Allotted)
+│
+├── 📄 Allotment
+│   ├── Allotment Letter
+│   ├── Download Allotment PDF
+│   ├── Upload Signed Copy
+│   └── Allotment Status
+│
+├── 💰 Allotment Payment
+│   ├── 15% Payment Order
+│   ├── Pay Allotment Amount
+│   ├── Payment Receipt
+│   └── Payment History
+│
+├── ⚙️ Payment Option
+│   ├── Choose Payment Mode
+│   │     ├── EMI
+│   │     └── One Time Payment
+│   └── Payment Summary
+│
+├── 💳 EMI Management
+│   │   (Visible Only If EMI Selected)
+│   │
+│   ├── EMI Dashboard
+│   ├── EMI Schedule
+│   ├── Pay EMI
+│   ├── EMI History
+│   ├── Penalty Charges
+│   ├── Outstanding Amount
+│   ├── Foreclosure / Prepayment
+│   └── EMI Account Statement
+│
+├── 💵 One Time Payment
+│   │   (Visible Only If One Time Selected)
+│   │
+│   ├── Remaining Amount
+│   ├── Make Full Payment
+│   ├── Payment Receipt
+│   └── Transaction History
+│
+├── 📝 Agreement
+│   ├── Download Agreement
+│   ├── Upload Signed Agreement
+│   ├── Agreement Verification
+│   └── Agreement Status
+│
+├── 🔑 Possession
+│   ├── Possession Letter
+│   ├── Possession Status
+│   ├── Unit Inspection
+│   └── Key Handover
+│
+├── 📜 No Due & Registry
+│   ├── No Due Certificate
+│   ├── Registry Payment
+│   ├── Upload Registry Copy
+│   ├── Registry Details
+│   └── Ownership Transfer
+│
+├── 📂 Documents Vault
+│   ├── All Uploaded Files
+│   ├── Generated Documents
+│   ├── Receipts
+│   ├── Agreements
+│   └── Registry Documents
+│
+├── 🔔 Notifications
+│   ├── Due Alerts
+│   ├── EMI Reminders
+│   ├── Penalty Notices
+│   └── System Notifications
+│
+├── 👮‍♀️ Profile Settings
+│   ├── Change Password
+│   ├── Update Mobile
+│   ├── Update Email
+│   └── Security Settings
+│
+└── 🚪 Logout
+
+
+
+/*
+|--------------------------------------------------------------------------
+| 1. CREATE ALLOTTEE
+|--------------------------------------------------------------------------
+*/
+
+INSERT INTO allottees (
+
+    division_id,
+    subdivision_id,
+    pcategory_id,
+    property_type_id,
+    p_sub_type_id,
+    quarter_id,
+
+    username,
+    password,
+
+    scheme_id,
+
+    application_no,
+    application_day,
+    application_month,
+    application_year,
+
+    allotment_no,
+    allotment_day,
+    allotment_month,
+    allotment_year,
+
+    prefix,
+    allottee_name,
+    allottee_middle_name,
+    allottee_surname,
+
+    allottee_relation_type,
+    relation_name,
+
+    marital_status,
+    allottee_gender,
+
+    pan_card_number,
+    aadhar_card_number,
+
+    allottee_category,
+    allottee_religion,
+    allottee_nationality,
+
+    date_of_birth_day,
+    date_of_birth_month,
+    date_of_birth_year,
+
+    payment_option,
+
+    current_step,
+    is_step_completed,
+
+    allottee_create_date,
+
+    created_by,
+    create_ip_address,
+
+    created_at,
+    updated_at
+
+) VALUES (
+
+    2,
+    15,
+    1,
+    2,
+    6,
+    4,
+
+    'JSRHRM49873',
+    '$2y$12$XXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+
+    6,
+
+    'JSHBA-24928374',
+    16,
+    '09',
+    2021,
+
+    '003/WAB/360/2026',
+    15,
+    '05',
+    2026,
+
+    'Shri',
+    'Shivam',
+    'Kumar',
+    'Yadav',
+
+    'Father',
+    'Surya Kumar Yadav',
+
+    'Married',
+    'Male',
+
+    'ABCD9822DF',
+    '983475698345',
+
+    'General',
+    'Hindu',
+    'Indian',
+
+    3,
+    '05',
+    1994,
+
+    'one_time',
+
+    1,
+    0,
+
+    '2026-05-15',
+
+    1,
+    '127.0.0.1',
+
+    NOW(),
+    NOW()
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| 2. CONTACT DETAILS
+|--------------------------------------------------------------------------
+*/
+
+INSERT INTO allottees_contact_details (
+
+    allottee_id,
+
+    mobile_number,
+    alternate_mobile,
+    whatsapp_number,
+    email,
+
+    present_address,
+    present_state,
+    present_district,
+    present_pincode,
+    present_post_office,
+    present_police_station,
+
+    permanent_address,
+    permanent_state,
+    permanent_district,
+    permanent_pincode,
+    permanent_post_office,
+    permanent_police_station,
+
+    created_by,
+    create_ip_address,
+
+    created_at,
+    updated_at
+
+) VALUES (
+
+    1,
+
+    '8267582364',
+    '8987394587',
+    '8973458746',
+    'shivam@example.com',
+
+    'TEST GREEN CITY',
+    15,
+    281,
+    '534535',
+    'Green City',
+    'Green City',
+
+    'TEST GREEN CITY',
+    15,
+    281,
+    '534535',
+    'Green City',
+    'Green City',
+
+    1,
+    '127.0.0.1',
+
+    NOW(),
+    NOW()
+);
+
+
+
+/*
+|--------------------------------------------------------------------------
+| PROPERTY VALUE
+|--------------------------------------------------------------------------
+|
+| PROPERTY VALUE = 20,88,000
+| LOTTERY 10%   = 2,08,800
+| ALLOTMENT 15% = 3,13,200
+| PRINCIPAL     = 15,66,000
+|
+*/
+
+
+
+/*
+|--------------------------------------------------------------------------
+| 3. LOTTERY PAYMENT TRANSACTION (10%)
+|--------------------------------------------------------------------------
+|
+| Offline already paid before allottee creation
+|
+*/
+
+INSERT INTO allottee_transactions (
+
+    allottee_id,
+    order_id,
+
+    transaction_type,
+    payment_stage,
+
+    amount,
+    principal_amount,
+
+    total_amount,
+
+    payment_mode,
+    payment_status,
+
+    transaction_no,
+    utr_no,
+
+    receipt_file,
+    receipt_path,
+
+    remarks,
+
+    payment_day,
+    payment_month,
+    payment_year,
+
+    paid_at,
+
+    created_by,
+
+    created_at,
+    updated_at
+
+) VALUES (
+
+    1,
+    NULL,
+
+    'lottery_payment',
+    'application',
+
+    208800.00,
+    208800.00,
+
+    208800.00,
+
+    'upi',
+    'success',
+
+    'TXN-LOTTERY-2026001',
+    'UTR982379284',
+
+    'lottery-receipt.pdf',
+    'documents/lottery/2026/05/receipt.pdf',
+
+    'Lottery amount received before allotment process',
+
+    10,
+    5,
+    2026,
+
+    '2026-05-10 11:20:00',
+
+    1,
+
+    NOW(),
+    NOW()
+);
+
+
+
+/*
+|--------------------------------------------------------------------------
+| 4. ALLOTMENT ORDER (15%)
+|--------------------------------------------------------------------------
+|
+| Must be paid within 30 days
+|
+*/
+
+INSERT INTO allottee_payment_orders (
+
+    allottee_id,
+
+    order_type,
+    order_no,
+    title,
+
+    property_amount,
+    percentage,
+
+    base_amount,
+
+    penalty_amount,
+    admin_charge,
+
+    total_payable,
+
+    paid_amount,
+    remaining_amount,
+
+    payment_option,
+
+    due_date,
+    issued_at,
+
+    order_status,
+
+    remarks,
+
+    created_by,
+
+    created_at,
+    updated_at
+
+) VALUES (
+
+    1,
+
+    'allotment',
+    'ALLOT-2026-0001',
+    '15% Allotment Payment',
+
+    2088000.00,
+    15.00,
+
+    313200.00,
+
+    0.00,
+    0.00,
+
+    313200.00,
+
+    0.00,
+    313200.00,
+
+    NULL,
+
+    '2026-06-15',
+    '2026-05-15 10:00:00',
+
+    'issued',
+
+    'Allotment order issued for 15% property payment',
+
+    1,
+
+    NOW(),
+    NOW()
+);
+
+
+
+/*
+|--------------------------------------------------------------------------
+| 5. ALLOTMENT PAYMENT TRANSACTION
+|--------------------------------------------------------------------------
+|
+| User paid 15%
+|
+*/
+
+INSERT INTO allottee_transactions (
+
+    allottee_id,
+    order_id,
+
+    transaction_type,
+    payment_stage,
+
+    amount,
+    principal_amount,
+
+    total_amount,
+
+    payment_mode,
+    payment_status,
+
+    transaction_no,
+    utr_no,
+
+    receipt_file,
+    receipt_path,
+
+    remarks,
+
+    payment_day,
+    payment_month,
+    payment_year,
+
+    paid_at,
+
+    created_by,
+
+    created_at,
+    updated_at
+
+) VALUES (
+
+    1,
+    1,
+
+    'allotment_payment',
+    'allotment',
+
+    313200.00,
+    313200.00,
+
+    313200.00,
+
+    'gateway',
+    'success',
+
+    'TXN-ALLOTMENT-2026001',
+    'UTR-ALLOT-98374',
+
+    'allotment-payment.pdf',
+    'documents/allotment/2026/05/payment.pdf',
+
+    '15% allotment payment paid successfully',
+
+    18,
+    5,
+    2026,
+
+    '2026-05-18 02:15:00',
+
+    1,
+
+    NOW(),
+    NOW()
+);
+
+
+
+/*
+|--------------------------------------------------------------------------
+| 6. UPDATE ALLOTMENT ORDER AFTER PAYMENT
+|--------------------------------------------------------------------------
+*/
+
+UPDATE allottee_payment_orders
+SET
+
+    paid_amount      = 313200.00,
+    remaining_amount = 0.00,
+
+    paid_at          = NOW(),
+
+    order_status     = 'paid',
+
+    updated_at       = NOW()
+
+WHERE id = 1;
+
+
+
+/*
+|--------------------------------------------------------------------------
+| 7. FINAL ONE TIME PAYMENT ORDER
+|--------------------------------------------------------------------------
+|
+| PRINCIPAL = 15,66,000
+|
+| User selected ONE TIME PAYMENT
+|
+*/
+
+INSERT INTO allottee_payment_orders (
+
+    allottee_id,
+
+    order_type,
+    order_no,
+    title,
+
+    property_amount,
+    percentage,
+
+    base_amount,
+
+    penalty_amount,
+    admin_charge,
+
+    total_payable,
+
+    paid_amount,
+    remaining_amount,
+
+    payment_option,
+
+    due_date,
+    issued_at,
+
+    order_status,
+
+    remarks,
+
+    created_by,
+
+    created_at,
+    updated_at
+
+) VALUES (
+
+    1,
+
+    'final',
+    'FINAL-2026-0001',
+    'Final One Time Settlement',
+
+    2088000.00,
+    75.00,
+
+    1566000.00,
+
+    0.00,
+    0.00,
+
+    1566000.00,
+
+    0.00,
+    1566000.00,
+
+    'one_time',
+
+    '2026-06-30',
+    '2026-05-20 11:00:00',
+
+    'issued',
+
+    'Final one time payment order generated',
+
+    1,
+
+    NOW(),
+    NOW()
+);
+
+
+
+/*
+|--------------------------------------------------------------------------
+| 8. FINAL ONE TIME PAYMENT TRANSACTION
+|--------------------------------------------------------------------------
+*/
+
+INSERT INTO allottee_transactions (
+
+    allottee_id,
+    order_id,
+
+    transaction_type,
+    payment_stage,
+
+    amount,
+    principal_amount,
+
+    total_amount,
+
+    payment_mode,
+    payment_status,
+
+    transaction_no,
+    utr_no,
+
+    receipt_file,
+    receipt_path,
+
+    remarks,
+
+    payment_day,
+    payment_month,
+    payment_year,
+
+    paid_at,
+
+    created_by,
+
+    created_at,
+    updated_at
+
+) VALUES (
+
+    1,
+    2,
+
+    'one_time_payment',
+    'closure',
+
+    1566000.00,
+    1566000.00,
+
+    1566000.00,
+
+    'gateway',
+    'success',
+
+    'TXN-FINAL-2026001',
+    'UTR-FINAL-87364',
+
+    'final-payment.pdf',
+    'documents/final/2026/05/final-payment.pdf',
+
+    'Final one time settlement completed',
+
+    25,
+    5,
+    2026,
+
+    '2026-05-25 01:00:00',
+
+    1,
+
+    NOW(),
+    NOW()
+);
+
+
+
+/*
+|--------------------------------------------------------------------------
+| 9. UPDATE FINAL ORDER
+|--------------------------------------------------------------------------
+*/
+
+UPDATE allottee_payment_orders
+SET
+
+    paid_amount      = 1566000.00,
+    remaining_amount = 0.00,
+
+    paid_at          = NOW(),
+
+    order_status     = 'paid',
+
+    updated_at       = NOW()
+
+WHERE id = 2;
+
+
+
+/*
+|--------------------------------------------------------------------------
+| 10. UPDATE ALLOTTEE STATUS
+|--------------------------------------------------------------------------
+|
+| Fully paid property
+|
+*/
+
+UPDATE allottees
+SET
+
+    current_step      = 20,
+    is_step_completed = 1,
+
+    updated_at        = NOW()
+
+WHERE id = 1;

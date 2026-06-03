@@ -1,0 +1,109 @@
+@if($sidebarUser?->role === 'admin')
+<div class="nav-item-wrap">
+    <a class="nav-link-custom {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+        <div class="nav-icon"><i class="fa-solid fa-house-chimney"></i></div>
+        <span class="nav-text">Dashboard</span>
+    </a>
+</div>
+
+<div class="sidebar-section-label">Management</div>
+
+<!-- Allottee -->
+<div class="nav-item-wrap">
+    <div class="nav-link-custom" onclick="toggleSubmenu('allottee',this)">
+        <div class="nav-icon">
+            <i class="fa-solid fa-user-check"></i> <!-- Main Allottee Icon -->
+        </div>
+        <span class="nav-text">Allottee</span>
+        <i class="fa-solid fa-chevron-right nav-chevron" id="allottee-chev"></i>
+    </div>
+
+    <div class="submenu" id="allottee">
+        <!-- Allottee List -->
+        <a class="submenu-item {{ request()->routeIs('admin.allottees.index') ? 'active' : '' }}"
+            href="{{ route('admin.allottees.index') }}">
+            <i class="fa-solid fa-list"></i> Allottee List
+        </a>
+
+        <!-- Create Allottee -->
+        <a class="submenu-item {{ request()->routeIs('admin.apply.index') ? 'active' : '' }}"
+            href="{{ route('admin.apply.index') }}">
+            <i class="fa-solid fa-user-plus"></i> Add Allottee
+        </a>
+    </div>
+</div>
+
+<div class="sidebar-section-label">Components Management</div>
+
+<!-- Division -->
+<div class="nav-item-wrap">
+    <div class="nav-link-custom {{ $isDivisionActive ? 'active' : '' }}" onclick="toggleSubmenu('divisionsub',this)">
+        <div class="nav-icon"><i class="fa-solid fa-diagram-project"></i></div>
+        <span class="nav-text">Division</span>
+        <i class="fa-solid fa-chevron-right nav-chevron" id="divisionsub-chev"></i>
+    </div>
+    <div class="submenu" id="divisionsub">
+        <a class="submenu-item {{ request()->routeIs('admin.divisions.index') ? 'active' : '' }}" href="{{ $divisionIndexRoute }}">
+            <i class="fa-solid fa-list"></i> Division List
+        </a>
+        <a class="submenu-item {{ request()->routeIs('admin.divisions.create') ? 'active' : '' }}" href="{{ $divisionCreateRoute }}">
+            <i class="fa-solid fa-plus"></i> Add Division
+        </a>
+    </div>
+</div>
+
+<!-- Sub Division -->
+<div class="nav-item-wrap">
+    <div class="nav-link-custom {{ $isSubDivisionActive ? 'active' : '' }}" onclick="toggleSubmenu('subdivisionsub',this)">
+        <div class="nav-icon"><i class="fa-solid fa-sitemap"></i></div>
+        <span class="nav-text">Sub Division</span>
+        <i class="fa-solid fa-chevron-right nav-chevron" id="subdivisionsub-chev"></i>
+    </div>
+    <div class="submenu" id="subdivisionsub">
+        <a class="submenu-item {{ request()->routeIs('admin.sub-divisions.index') ? 'active' : '' }}" href="{{ $subDivisionIndexRoute }}">
+            <i class="fa-solid fa-list-ul"></i> Sub Division List
+        </a>
+        <a class="submenu-item {{ request()->routeIs('admin.sub-divisions.create') ? 'active' : '' }}" href="{{ $subDivisionCreateRoute }}">
+            <i class="fa-solid fa-plus"></i> Add Sub Division
+        </a>
+    </div>
+</div>
+
+<!-- Categories -->
+<div class="nav-item-wrap">
+    <div class="nav-link-custom {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" onclick="toggleSubmenu('categories',this)">
+        <div class="nav-icon">
+            <i class="fa-solid fa-grip"></i>
+        </div>
+        <span class="nav-text">Categories</span>
+        <i class="fa-solid fa-chevron-right nav-chevron" id="categories-chev"></i>
+    </div>
+    <div class="submenu" id="categories">
+        <a class="submenu-item {{ request()->routeIs('admin.categories.index') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
+            <i class="fa-solid fa-tags"></i> Category List
+        </a>
+        <a class="submenu-item {{ request()->routeIs('admin.categories.create') ? 'active' : '' }}" href="{{ route('admin.categories.create') }}">
+            <i class="fa-solid fa-tag"></i> Add Category
+        </a>
+    </div>
+</div>
+
+<!-- Schemes -->
+<div class="nav-item-wrap">
+    <div class="nav-link-custom {{ request()->routeIs('admin.schemes.*') ? 'active' : '' }}" onclick="toggleSubmenu('schemes',this)">
+        <div class="nav-icon">
+            <i class="fa-solid fa-database"></i>
+        </div>
+        <span class="nav-text">Schemes</span>
+        <i class="fa-solid fa-chevron-right nav-chevron" id="schemes-chev"></i>
+    </div>
+    <div class="submenu" id="schemes">
+        <a class="submenu-item {{ request()->routeIs('admin.schemes.index') ? 'active' : '' }}" href="{{ route('admin.schemes.index') }}">
+            <i class="fa-solid fa-table"></i> Scheme List
+        </a>
+        <a class="submenu-item {{ request()->routeIs('admin.schemes.create') ? 'active' : '' }}" href="{{ route('admin.schemes.create') }}">
+            <i class="fa-solid fa-circle-plus"></i> Add Scheme
+        </a>
+    </div>
+</div>
+@endif
