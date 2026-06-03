@@ -1,5 +1,5 @@
 @php
-#return getDebugIndex($applicant);
+    #return debug($applicant);
 @endphp
 <div class="review-section">
     <!-- Header with Application Number -->
@@ -12,10 +12,10 @@
             Review Your Application
         </h3>
         @if ($applicant)
-        <div class="application-badge">
-            <span class="badge-label">Application No:</span>
-            <span class="badge-value">{{ $applicant->application_no }}</span>
-        </div>
+            <div class="application-badge">
+                <span class="badge-label">Application No:</span>
+                <span class="badge-value">{{ $applicant->application_no }}</span>
+            </div>
         @endif
     </div>
 
@@ -81,129 +81,129 @@
 
     <!-- Contact Details Table -->
     @if ($applicant->alloteeAdresses)
-    <div class="review-table-container">
-        <div class="table-header" style="background: linear-gradient(90deg, #00c6ff, #0072ff);">
-            <div class="header-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
-                    <path
-                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z">
-                    </path>
-                </svg>
+        <div class="review-table-container">
+            <div class="table-header" style="background: linear-gradient(90deg, #00c6ff, #0072ff);">
+                <div class="header-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path
+                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="header-content">
+                    <h4>Contact Details</h4>
+                    <p>Contact information verification</p>
+                </div>
             </div>
-            <div class="header-content">
-                <h4>Contact Details</h4>
-                <p>Contact information verification</p>
-            </div>
+            <table class="review-table">
+                <tr>
+                    <td class="label-cell">Mobile Number</td>
+                    <td class="value-cell mono">{{ $applicant->alloteeAdresses->mobile_number ?? '—' }}</td>
+                    <td class="label-cell">Alternate Mobile</td>
+                    <td class="value-cell mono">{{ $applicant->alloteeAdresses->alternate_mobile ?? '—' }}</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">WhatsApp Number</td>
+                    <td class="value-cell mono">{{ $applicant->alloteeAdresses->whatsapp_number ?? '—' }}</td>
+                    <td class="label-cell">Email</td>
+                    <td class="value-cell">{{ $applicant->alloteeAdresses->email ?? '—' }}</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Landline</td>
+                    <td class="value-cell">
+                        {{ $applicant->alloteeAdresses->stdCode ?? '' }}-{{ $applicant->alloteeAdresses->landline ?? '' }}
+                    </td>
+                </tr>
+            </table>
         </div>
-        <table class="review-table">
-            <tr>
-                <td class="label-cell">Mobile Number</td>
-                <td class="value-cell mono">{{ $applicant->alloteeAdresses->mobile_number ?? '—' }}</td>
-                <td class="label-cell">Alternate Mobile</td>
-                <td class="value-cell mono">{{ $applicant->alloteeAdresses->alternate_mobile ?? '—' }}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">WhatsApp Number</td>
-                <td class="value-cell mono">{{ $applicant->alloteeAdresses->whatsapp_number ?? '—' }}</td>
-                <td class="label-cell">Email</td>
-                <td class="value-cell">{{ $applicant->alloteeAdresses->email ?? '—' }}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Landline</td>
-                <td class="value-cell">
-                    {{ $applicant->alloteeAdresses->stdCode ?? '' }}-{{ $applicant->alloteeAdresses->landline ?? '' }}
-                </td>
-            </tr>
-        </table>
-    </div>
     @endif
 
     <!-- Present Address Table -->
     @if ($applicant->alloteeAdresses && $applicant->alloteeAdresses->present_address)
-    <div class="review-table-container">
-        <div class="table-header" style="background: linear-gradient(90deg, #fc466b, #3f5efb);">
-            <div class="header-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                </svg>
+        <div class="review-table-container">
+            <div class="table-header" style="background: linear-gradient(90deg, #fc466b, #3f5efb);">
+                <div class="header-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </div>
+                <div class="header-content">
+                    <h4>Present Address</h4>
+                    <p>Current residential address</p>
+                </div>
             </div>
-            <div class="header-content">
-                <h4>Present Address</h4>
-                <p>Current residential address</p>
-            </div>
+            <table class="review-table">
+                <tr>
+                    <td class="label-cell" style="width: 15%;">Address</td>
+                    <td class="value-cell" colspan="3">{{ $applicant->alloteeAdresses->present_address ?? '' }}</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Post Office</td>
+                    <td class="value-cell">{{ $applicant->alloteeAdresses->present_post_office ?? '' }}</td>
+                    <td class="label-cell">Police Station</td>
+                    <td class="value-cell">{{ $applicant->alloteeAdresses->present_police_station ?? '' }}</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">District</td>
+                    <td class="value-cell">{{ getDistrictName($applicant->alloteeAdresses->present_district) ?? '' }}
+                    </td>
+                    <td class="label-cell">State</td>
+                    <td class="value-cell">{{ getStateName($applicant->alloteeAdresses->present_state) ?? '' }}</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Pin Code</td>
+                    <td class="value-cell mono">{{ $applicant->alloteeAdresses->present_pincode ?? '' }}</td>
+                </tr>
+            </table>
         </div>
-        <table class="review-table">
-            <tr>
-                <td class="label-cell" style="width: 15%;">Address</td>
-                <td class="value-cell" colspan="3">{{ $applicant->alloteeAdresses->present_address ?? '' }}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Post Office</td>
-                <td class="value-cell">{{ $applicant->alloteeAdresses->present_post_office ?? '' }}</td>
-                <td class="label-cell">Police Station</td>
-                <td class="value-cell">{{ $applicant->alloteeAdresses->present_police_station ?? '' }}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">District</td>
-                <td class="value-cell">{{ getDistrictName($applicant->alloteeAdresses->present_district) ?? '' }}
-                </td>
-                <td class="label-cell">State</td>
-                <td class="value-cell">{{ getStateName($applicant->alloteeAdresses->present_state) ?? '' }}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Pin Code</td>
-                <td class="value-cell mono">{{ $applicant->alloteeAdresses->present_pincode ?? '' }}</td>
-            </tr>
-        </table>
-    </div>
     @endif
 
     <!-- Permanent Address Table -->
     @if ($applicant->alloteeAdresses && $applicant->alloteeAdresses->permanent_address)
-    <div class="review-table-container">
-        <div class="table-header" style="background: linear-gradient(90deg, #11998e, #38ef7d);">
-            <div class="header-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
-                    <path d="M3 12l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2"></path>
-                    <path d="M5 21v-7M19 21v-7"></path>
-                    <rect x="2" y="3" width="20" height="18" rx="2"></rect>
-                </svg>
+        <div class="review-table-container">
+            <div class="table-header" style="background: linear-gradient(90deg, #11998e, #38ef7d);">
+                <div class="header-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M3 12l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2"></path>
+                        <path d="M5 21v-7M19 21v-7"></path>
+                        <rect x="2" y="3" width="20" height="18" rx="2"></rect>
+                    </svg>
+                </div>
+                <div class="header-content">
+                    <h4>Permanent Address</h4>
+                    <p>Permanent residential address</p>
+                </div>
             </div>
-            <div class="header-content">
-                <h4>Permanent Address</h4>
-                <p>Permanent residential address</p>
-            </div>
+            <table class="review-table">
+                <tr>
+                    <td class="label-cell" style="width: 15%;">Address</td>
+                    <td class="value-cell" colspan="3">{{ $applicant->alloteeAdresses->permanent_address ?? '' }}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Post Office</td>
+                    <td class="value-cell">{{ $applicant->alloteeAdresses->permanent_post_office ?? '' }}</td>
+                    <td class="label-cell">Police Station</td>
+                    <td class="value-cell">{{ $applicant->alloteeAdresses->permanent_police_station ?? '' }}</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">District</td>
+                    <td class="value-cell">
+                        {{ getDistrictName($applicant->alloteeAdresses->permanent_district) ?? '' }}
+                    </td>
+                    <td class="label-cell">State</td>
+                    <td class="value-cell">{{ getStateName($applicant->alloteeAdresses->permanent_state) ?? '' }}</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Pin Code</td>
+                    <td class="value-cell mono">{{ $applicant->alloteeAdresses->permanent_pincode ?? '' }}</td>
+                </tr>
+            </table>
         </div>
-        <table class="review-table">
-            <tr>
-                <td class="label-cell" style="width: 15%;">Address</td>
-                <td class="value-cell" colspan="3">{{ $applicant->alloteeAdresses->permanent_address ?? '' }}
-                </td>
-            </tr>
-            <tr>
-                <td class="label-cell">Post Office</td>
-                <td class="value-cell">{{ $applicant->alloteeAdresses->permanent_post_office ?? '' }}</td>
-                <td class="label-cell">Police Station</td>
-                <td class="value-cell">{{ $applicant->alloteeAdresses->permanent_police_station ?? '' }}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">District</td>
-                <td class="value-cell">
-                    {{ getDistrictName($applicant->alloteeAdresses->permanent_district) ?? '' }}
-                </td>
-                <td class="label-cell">State</td>
-                <td class="value-cell">{{ getStateName($applicant->alloteeAdresses->permanent_state) ?? '' }}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Pin Code</td>
-                <td class="value-cell mono">{{ $applicant->alloteeAdresses->permanent_pincode ?? '' }}</td>
-            </tr>
-        </table>
-    </div>
     @endif
 
     <!-- Property Details Table -->
@@ -263,62 +263,62 @@
 
     <!-- Property Financial Details -->
     @if ($applicant->allotProFinDetail)
-    <div class="review-table-container">
-        <div class="table-header" style="background: linear-gradient(90deg, #1f4037, #99f2c8);">
-            <div class="header-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
-                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
+        <div class="review-table-container">
+            <div class="table-header" style="background: linear-gradient(90deg, #1f4037, #99f2c8);">
+                <div class="header-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+                <div class="header-content">
+                    <h4>Property Financial Details</h4>
+                    <p>Financial information</p>
+                </div>
             </div>
-            <div class="header-content">
-                <h4>Property Financial Details</h4>
-                <p>Financial information</p>
-            </div>
+            <table class="review-table">
+                <tr>
+                    <td class="label-cell">Tentative Price</td>
+                    <td class="value-cell">₹
+                        {{ number_format($applicant->allotProFinDetail->tentative_price ?? 0, 2) }}
+                    </td>
+                    <td class="label-cell">Deposited Amount</td>
+                    <td class="value-cell">₹
+                        {{ number_format($applicant->allotProFinDetail->deposited_amount ?? 0, 2) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Remaining Amount</td>
+                    <td class="value-cell">₹
+                        {{ number_format($applicant->allotProFinDetail->remaining_amount ?? 0, 2) }}
+                    </td>
+                    <td class="label-cell">Payment Months</td>
+                    <td class="value-cell">{{ $applicant->allotProFinDetail->payment_months ?? '' }}</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Payment Start</td>
+                    <td class="value-cell">
+                        {{ $applicant->allotProFinDetail->payment_start_month ?? '' }}/{{ $applicant->allotProFinDetail->payment_start_year ?? '' }}
+                    </td>
+                    <td class="label-cell">Last Payment Due</td>
+                    <td class="value-cell">{{ $applicant->allotProFinDetail->last_payment_due_date ?? '' }}</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Interest Type</td>
+                    <td class="value-cell">{{ ucfirst($applicant->allotProFinDetail->interest_type ?? '') }}</td>
+                    <td class="label-cell">Interest Amount</td>
+                    <td class="value-cell">{{ $applicant->allotProFinDetail->pre_interest_amount ?? '' }}
+                        ({{ $applicant->allotProFinDetail->pre_interest ?? '' }})%</td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Late Interest AMount</td>
+                    <td class="value-cell">{{ $applicant->allotProFinDetail->late_interest_amount ?? '' }}
+                        ({{ $applicant->allotProFinDetail->late_interest ?? '' }})%</td>
+                    </td>
+                </tr>
+            </table>
         </div>
-        <table class="review-table">
-            <tr>
-                <td class="label-cell">Tentative Price</td>
-                <td class="value-cell">₹
-                    {{ number_format($applicant->allotProFinDetail->tentative_price ?? 0, 2) }}
-                </td>
-                <td class="label-cell">Deposited Amount</td>
-                <td class="value-cell">₹
-                    {{ number_format($applicant->allotProFinDetail->deposited_amount ?? 0, 2) }}
-                </td>
-            </tr>
-            <tr>
-                <td class="label-cell">Remaining Amount</td>
-                <td class="value-cell">₹
-                    {{ number_format($applicant->allotProFinDetail->remaining_amount ?? 0, 2) }}
-                </td>
-                <td class="label-cell">Payment Months</td>
-                <td class="value-cell">{{ $applicant->allotProFinDetail->payment_months ?? '' }}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Payment Start</td>
-                <td class="value-cell">
-                    {{ $applicant->allotProFinDetail->payment_start_month ?? '' }}/{{ $applicant->allotProFinDetail->payment_start_year ?? '' }}
-                </td>
-                <td class="label-cell">Last Payment Due</td>
-                <td class="value-cell">{{ $applicant->allotProFinDetail->last_payment_due_date ?? '' }}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Interest Type</td>
-                <td class="value-cell">{{ ucfirst($applicant->allotProFinDetail->interest_type ?? '') }}</td>
-                <td class="label-cell">Interest Amount</td>
-                <td class="value-cell">{{ $applicant->allotProFinDetail->pre_interest_amount ?? '' }}
-                    ({{ $applicant->allotProFinDetail->pre_interest ?? '' }})%</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Late Interest AMount</td>
-                <td class="value-cell">{{ $applicant->allotProFinDetail->late_interest_amount ?? '' }}
-                    ({{ $applicant->allotProFinDetail->late_interest ?? '' }})%</td>
-                </td>
-            </tr>
-        </table>
-    </div>
     @endif
 
 </div>

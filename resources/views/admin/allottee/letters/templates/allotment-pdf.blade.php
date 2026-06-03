@@ -40,8 +40,7 @@
         <tr>
 
             <td style="width:15%;">
-                <img src="{{ public_path('img/jshb_logo.png') }}"
-                    style="width:70px;">
+                <img src="{{ public_path('img/jshb_logo.png') }}" style="width:70px;">
             </td>
 
             <td style="width:70%; text-align:center;">
@@ -58,7 +57,8 @@
                     ¼uxj fodkl ,oa vkokl foHkkx½
                 </div>
 
-                <div style="
+                <div
+                    style="
                     font-size:14px;
                     font-family: Arial, sans-serif;
                 ">
@@ -68,8 +68,7 @@
             </td>
 
             <td style="width:15%; text-align:right;">
-                <img src="{{ public_path('img/logo.png') }}"
-                    style="width:72px;">
+                <img src="{{ public_path('img/logo.png') }}" style="width:72px;">
             </td>
 
         </tr>
@@ -84,7 +83,8 @@
         <tr>
 
             <td style="font-size:17px;">
-                vkoaVu vkns’k la[;k % <span style="
+                vkoaVu vkns’k la[;k % <span
+                    style="
                     font-size:12px;
                     font-family: Arial, sans-serif;
                 ">
@@ -93,7 +93,8 @@
             </td>
 
             <td style="text-align:right; font-size:17px;">
-                fnukad %& <span style="
+                fnukad %& <span
+                    style="
                     font-size:12px;
                     font-family: Arial, sans-serif;
                 ">
@@ -113,11 +114,12 @@
         <tr>
 
             <td style="font-size:17px;">
-                e/;e vk; oxhZ; ¶ySV la[;k %& <span style="
+                e/;e vk; oxhZ; ¶ySV la[;k %& <span
+                    style="
                     font-size:12px;
                     font-family: Arial, sans-serif;
                 ">
-                    M-14
+                    {{ $allottee->property_number ?? '------' }}
                 </span>
             </td>
 
@@ -132,7 +134,8 @@
 
     <!-- PARA -->
 
-    <div style="
+    <div
+        style="
         margin-top:10px;
         font-size:17px;
         text-align:justify;
@@ -141,20 +144,21 @@
 
         >kj[k.M jkT; vkokl cksMZ ¼vkoklh; Hkw&lEink dk
         izcU/ku ,oa fuLrkj½ fofu;ekoyh 2004 ds micU/kksa ds
-        rgr~ fnukad <span style="
+        rgr~ fnukad <span
+            style="
                     font-size:12px;
                     font-family: Arial, sans-serif;
                 ">
             <strong>
-                {{ ($allottee->allotment_day && $allottee->allotment_month && $allottee->allotment_year)
+                {{ $allottee->allotment_day && $allottee->allotment_month && $allottee->allotment_year
                     ? "{$allottee->allotment_day}.{$allottee->allotment_month}.{$allottee->allotment_year}"
-                    : '28.11.2026'
-                }}
+                    : '28.11.2026' }}
             </strong>
         </span> dks cksMZ eq[;ky; ds lHkk d{k esa
         fudkyh xbZ ykWVjh ds vkyksd esa Jh fot; dqekj flag] firk Jh
         cynso dqekj flag] lk0&822123] eks0 % 9934100038
-        ----- vkosnu la[;k& <span style="
+        ----- vkosnu la[;k& <span
+            style="
                     font-size:12px;
                     font-family: Arial, sans-serif;
                 ">
@@ -239,7 +243,8 @@
 
     <!-- PARA 2 -->
 
-    <div style="
+    <div
+        style="
         margin-top:12px;
         font-size:16px;
         line-height:1.35;
@@ -247,7 +252,8 @@
     ">
 
         2- mDr ¶ySV dk mÙkj of.kZr Hkqtkvksa dh eki ds lkFk
-        tSlk gS] og <span style="
+        tSlk gS] og <span
+            style="
                     font-size:12px;
                     font-family: Arial, sans-serif;
                 ">

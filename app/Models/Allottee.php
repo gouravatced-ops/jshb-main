@@ -175,4 +175,17 @@ class Allottee extends Model
     {
         return $this->hasMany(AllotteeTransaction::class, 'allottee_id', 'id');
     }
+
+    public static function generateUniquePropertyNumber(): string
+    {
+        do {
+            $propertyNumber = chr(rand(65, 72))
+                . '-'
+                . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        } while (
+            self::where('property_number', $propertyNumber)->exists()
+        );
+
+        return $propertyNumber;
+    }
 }

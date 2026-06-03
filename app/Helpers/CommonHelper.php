@@ -113,7 +113,7 @@ if (!function_exists('getStates')) {
     {
         return DB::table('states')
             ->orderByRaw("
-                CASE 
+                CASE
                     WHEN name_en = 'Bihar (Now Jharkhand)' THEN 1
                     WHEN name_en = 'Jharkhand' THEN 2
                     WHEN name_en = 'Bihar' THEN 3
@@ -194,8 +194,8 @@ if (!function_exists('formatDate')) {
     }
 }
 
-if (!function_exists('getDebugIndex')) {
-    function getDebugIndex($data)
+if (!function_exists('debug')) {
+    function debug($data)
     {
         echo '<pre>';
         print_r($data->toArray());

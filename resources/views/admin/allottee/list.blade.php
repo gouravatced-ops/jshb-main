@@ -178,6 +178,12 @@
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
 
+                                    <a class="action-btn delete"
+                                        href="{{ route('admin.allottee.delete.components', $allottee) }}"
+                                        title="Reset Allottee Components">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </a>
+
                                     {{-- <a class="action-btn edit"
                                         href="{{ route('admin.allottees.letters.allotment', $allottee) }}"
                                         target="_blank"
@@ -186,11 +192,11 @@
                                     </a> --}}
 
                                     <!-- <a class="action-btn success"
-                                            href="{{ route('admin.allottees.letters.possession', $allottee) }}"
-                                            target="_blank"
-                                            title="Generate Possession Letter">
-                                            <i class="fa-solid fa-file-circle-check"></i>
-                                        </a> -->
+                                                                href="{{ route('admin.allottees.letters.possession', $allottee) }}"
+                                                                target="_blank"
+                                                                title="Generate Possession Letter">
+                                                                <i class="fa-solid fa-file-circle-check"></i>
+                                                            </a> -->
 
                                 </div>
                             </td>

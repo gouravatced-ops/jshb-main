@@ -150,6 +150,19 @@ a {
     white-space: nowrap;
 }
 
+.topbar-badge-close {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--brand-light);
+    color: var(--danger);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 .topbar-avatar {
     width: 38px;
     height: 38px;
@@ -665,7 +678,6 @@ a {
     margin-left: var(--sidebar-w);
     flex: 1;
     padding: 28px 30px;
-    /* background-image: url('../../img/background.png'); */
 }
 
 /* ── PAGE HEADER ──────────────────────────────────────── */
@@ -684,7 +696,7 @@ a {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.03rem;
     margin-bottom: 0.25rem;
 }
 

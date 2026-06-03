@@ -83,13 +83,21 @@
 
         <span class="topbar-spacer"></span>
 
-        <span class="topbar-badge">
-            <i class="fa-solid fa-circle-check me-1"></i>Applicant Account
-        </span>
+        <a href="javascript:void(0)" onclick="goToAllottees()" class="topbar-badge">
+            <i class="fa-solid fa-house me-1"></i> Dashboard
+        </a>
+
+        {{-- <span class="topbar-badge">
+            <i class="fa-solid fa-circle-check me-1"></i> Applicant Account
+        </span> --}}
+        <a href="javascript:void(0)" onclick="closeTab()" class="topbar-badge-close">
+            <i class="fa-solid fa-xmark me-1"></i> Close
+        </a>
 
         <div class="topbar-avatar" title="{{ $allottee->allottee_name ?? 'User' }}">
             {{ strtoupper(substr($allottee->allottee_name ?? 'U', 0, 2)) }}
         </div>
+
     </header>
 
     <div class="page-wrap">
@@ -926,6 +934,16 @@
             });
         } else {
             if (window.App) window.App.init();
+        }
+    </script>
+
+    <script>
+        function goToAllottees() {
+            window.location.href = "{{ route('admin.allottees.index') }}";
+        }
+
+        function closeTab() {
+            window.close();
         }
     </script>
 </body>

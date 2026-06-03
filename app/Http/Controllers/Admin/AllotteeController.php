@@ -518,7 +518,6 @@ class AllotteeController extends Controller
     }
 
     // RESOLVE STEP STATUS
-
     private function resolveStepStatus(
         int $menuOrder,
         int $subMenuIndex = 0
@@ -592,7 +591,6 @@ class AllotteeController extends Controller
 
     private function saveGeneratedPdf(Allottee $allottee, string $docName, string $type, string $content): string
     {
-
         // CHECK EXISTING DOCUMENT
         $exists = $allottee->generatedDocument()
             ->where('document_type', $type)
@@ -860,23 +858,26 @@ class AllotteeController extends Controller
     public function show(Allottee $allottee)
     {
         $allottee->load([
-            'division:id,name',
-            'subDivision:id,name',
-            'propertyCategory:id,name',
-            'propertyType:id,name',
-            'quarterType:quarter_id,quarter_code',
-            'scheme:id,scheme_name',
+            'division',
+            'subDivision',
+            'propertyCategory',
+            'propertyType',
+            'quarterType',
+            'scheme',
             'alloteeAdresses',
         ]);
 
         // PROCESS FLOW
-
-        $this->ensureProcessSteps($allottee);
-
-        // $this->refreshStepFlow($allottee);
+        $processStage = $allottee->processSteps()
+            ->exists();
+        if (!$processStage) {
+            $this->ensureProcessSteps($allottee);
+            $this->refreshStepFlow($allottee);
+        } else {
+            $this->ensureProcessSteps($allottee);
+        }
 
         // DOCUMENTS
-
         $documents = AllotteeGeneratedDocument::query()
             ->where('allottee_id', $allottee->id)
             ->latest()
@@ -949,7 +950,7 @@ class AllotteeController extends Controller
         ];
         $allottee->load($relationWith);
         $this->ensureProcessSteps($allottee);
-        $this->refreshStepFlow($allottee);
+        // $this->refreshStepFlow($allottee);
         $step = AllotteeProcessStep::where('allottee_id', $allottee->id)->where('step_no', $stepNo)->firstOrFail();
         if ($step->status === 'locked') {
             return response('<div class="alert alert-warning">This step is locked. Complete previous step first.</div>');
@@ -972,7 +973,7 @@ class AllotteeController extends Controller
             $allottee->current_step = $stepNo + 1;
             $allottee->save();
         }
-        $this->refreshStepFlow($allottee);
+        // $this->refreshStepFlow($allottee);
         return response()->json(['success' => true, 'message' => 'Step marked completed.']);
     }
 
@@ -1017,7 +1018,7 @@ class AllotteeController extends Controller
                 $step11->save();
             }
         }
-        $this->refreshStepFlow($allottee);
+        // $this->refreshStepFlow($allottee);
         return back()->with('success', 'Payment option saved successfully.');
     }
 
@@ -1125,6 +1126,10 @@ class AllotteeController extends Controller
 
     public function allotmentLetterPdf(Request $request, Allottee $allottee)
     {
+        $allottee->update([
+            'property_number' =>  Allottee::generateUniquePropertyNumber(),
+        ]);
+
         $allottee->load(['division:id,name', 'subDivision:id,name', 'propertyCategory:id,name']);
         // Set PDF options for proper Unicode rendering
         $pdf = Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
@@ -1137,21 +1142,13 @@ class AllotteeController extends Controller
             ]);
         $fileName = 'allotment-letter-' . $allottee->id . '.pdf';
         if ($request->boolean('download')) {
-            $document = AllotteeGeneratedDocument::where([
-                'allottee_id'   => $allottee->id,
-                'document_type' => 'allotment-letter',
-            ])->latest()->first();
-            if (
-                $document &&
-                File::exists(public_path($document->file_path))
-            ) {
-                return response()->download(
-                    public_path($document->file_path),
-                    $document->file_name
-                );
-            }
+            $fileName = $this->saveGeneratedPdf($allottee, 'Allotment Letter', 'allotment-letter', $pdf->output());
         }
-        return $pdf->stream($fileName);
+        if (!$request->boolean('download')) {
+            return $pdf->stream($fileName);
+        } else {
+            return back()->with('success', 'PDF generated successfully.');
+        }
     }
 
     public function possessionLetterPdf(Request $request, Allottee $allottee)
@@ -1362,6 +1359,19 @@ class AllotteeController extends Controller
             $subdivisions = getSubDivisions(encryptId($applicant->division_id)) ?? [];
             $propertyTypes = getPropertyType(encryptId($applicant->pcategory_id)) ?? [];
             $propertySubTypes = getPropertySubType(encryptId($applicant->property_type_id)) ?? [];
+
+            $transaction = AllotteeTransaction::where([
+                'allottee_id'     => $applicant->id,
+                'transaction_type' => 'lottery_payment',
+                'payment_stage'   => 'application',
+            ])->first();
+
+            $applicant->payment_amount = $transaction->total_amount ?? '';
+            $applicant->payment_day = $transaction->payment_day ?? '';
+            $applicant->payment_month = $transaction->payment_month ?? '';
+            $applicant->payment_year = $transaction->payment_year ?? '';
+            $applicant->payment_utr_no = $transaction->utr_no ?? '';
+            $applicant->payment_receipt_path = $transaction->receipt_path ?? '';
 
             return view('admin.allottee.step0', compact('applicant', 'getSchemeList', 'subdivisions', 'propertyTypes', 'propertySubTypes'));
         }
@@ -1693,6 +1703,7 @@ class AllotteeController extends Controller
             $allottee->allotment_day = date('d');
             $allottee->allotment_month = date('m');
             $allottee->allotment_year = date('Y');
+            $allottee->property_number = Allottee::generateUniquePropertyNumber();
             $allottee->save();
             DB::commit();
 
@@ -1737,5 +1748,25 @@ class AllotteeController extends Controller
             ->orWhere('primary_mobile', 'like', "%{$search}%")
             ->paginate(10);
         return view('admin.allottee.index', compact('allottees'));
+    }
+
+    public function deleteAllotteeComponents(Allottee $allottee)
+    {
+        $allottee->update([
+            'payment_option' => null,
+        ]);
+
+        $allottee->processSteps()->delete();
+        $allottee->allotteeOrders()->delete();
+
+        $allottee->allotteeTransaction()
+            ->where('transaction_type', '!=', 'lottery_payment')
+            ->delete();
+
+        $allottee->generatedDocument()->delete();
+
+        return redirect()
+            ->route('admin.allottees.index')
+            ->with('success', 'Allottee components deleted successfully.');
     }
 }

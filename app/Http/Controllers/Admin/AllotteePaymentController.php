@@ -357,7 +357,9 @@ class AllotteePaymentController extends Controller
                 $payment->allottee_id,
                 'step_no'     => 9,
             ])->update([
-                'status' => 'pending',
+                'status'       => 'completed',
+                'completed_at' => now(),
+                'completed_by' => Auth::id(),
             ]);
 
             DB::commit();

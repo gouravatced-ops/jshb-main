@@ -106,14 +106,18 @@
                     </a>
                 @endif
             @else
-                <button class="btn-brand" disabled
+                <a href="{{ route('admin.allottees.letters.allotment.pdf', [
+                    'allottee' => $allottee,
+                    'download' => 1,
+                ]) }}"
+                    class="btn-brand"
                     style="
-                        background:rgba(255,255,255,.2);
-                        opacity:0.7;
+                        background:rgba(255,255,255,.95);
+                        color:var(--brand);
                     ">
-                    <i class="fa-solid fa-clock"></i>
-                    Waiting For Generation
-                </button>
+                    <i class="fa-solid fa-file-pdf me-2"></i>
+                    Generate Allotment Letter
+                </a>
             @endif
         </div>
     </div>

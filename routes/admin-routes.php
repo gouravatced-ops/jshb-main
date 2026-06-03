@@ -74,7 +74,8 @@ Route::middleware('auth')
         Route::get('/allottees/process/start', [AllotteeController::class, 'indexStart'])->name('apply.index');
         // edit
         Route::get('/allottees/edit/start/{allottee}', [AllotteeController::class, 'indexEditStart'])->name('edit.apply.index');
-        
+        Route::get('/allottees/delete/{allottee}', [AllotteeController::class, 'deleteAllotteeComponents'])->name('allottee.delete.components');
+
 
         Route::get('/allottees/step/{step}/{applicantId?}', [AllotteeController::class, 'getStep'])->name('apply.step');
         Route::post('/apply/step0/save', [AllotteeController::class, 'saveStep0'])->name('apply.step0.save');
