@@ -24,7 +24,7 @@
             ->latest()
             ->first();
     @endphp
-    <div class="letter-hero">
+    <div class="letter-hero letter-hero1">
         <p class="letter-hero-title">
             <i class="fa-solid fa-envelope-open-text me-2"></i>
             Allotment Letter

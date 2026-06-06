@@ -54,6 +54,7 @@ class Allottee extends Model
         'allottee_remarks',
         'current_step',
         'step_remarks',
+        'payment_option',
         'allottee_create_date',
         'create_ip_address',
         'update_ip_address',
@@ -161,11 +162,6 @@ class Allottee extends Model
         return $this->hasMany(AllotteeGeneratedDocument::class, 'allottee_id', 'id');
     }
 
-    public function emiAccount()
-    {
-        return $this->hasMany(AllotteeEmiLedger::class, 'allottee_id', 'id');
-    }
-
     public function allotteeOrders()
     {
         return $this->hasMany(AllotteePaymentOrder::class, 'allottee_id', 'id');
@@ -174,6 +170,16 @@ class Allottee extends Model
     public function allotteeTransaction()
     {
         return $this->hasMany(AllotteeTransaction::class, 'allottee_id', 'id');
+    }
+
+    public function emiAccount()
+    {
+        return $this->hasMany(AllotteeEmiAccount::class, 'allottee_id', 'id');
+    }
+
+    public function emiSchedule()
+    {
+        return $this->hasMany(AllotteeEmiSchedule::class, 'allottee_id', 'id');
     }
 
     public static function generateUniquePropertyNumber(): string

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hero Banner Templates — 10 Designs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f1f5f9;
+            padding: 30px 20px;
+            min-height: 100vh
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0d1b2e;
+            margin-bottom: 6px
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: .85rem;
+            color: #64748b;
+            margin-bottom: 32px
+        }
+
+        /* ── PAGE GRID ── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr));
+            gap: 22px;
+            max-width: 1200px;
+            margin: 0 auto
+        }
+
+        /* ── EACH CARD ── */
+        .card {
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .12)
+        }
+
+        .template-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 7px 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        /* ── BANNER BASE ── */
+        .banner {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 26px;
+            min-height: 100px
+        }
+
+        .banner-left {
+            position: relative;
+            z-index: 2
+        }
+
+        .banner-right {
+            position: relative;
+            z-index: 2;
+            text-align: right;
+            flex-shrink: 0;
+            margin-left: 16px
+        }
+
+        .admin-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            opacity: .55;
+            margin-bottom: 4px
+        }
+
+        .dash-title {
+            font-size: 21px;
+            font-weight: 800;
+            margin-bottom: 10px
+        }
+
+        .badges {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 11px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid transparent
+        }
+
+        .clock-val {
+            font-size: 25px;
+            font-weight: 800;
+            line-height: 1
+        }
+
+        .clock-date {
+            font-size: 11px;
+            margin-top: 4px;
+            opacity: .6
+        }
+
+        /* ── SVG CANVAS ── */
+        .bg-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 1 – OCEAN WAVE
+  ═══════════════════════════ */
+        .t1 .template-label {
+            background: #e0f2fe;
+            color: #0c4a6e
+        }
+
+        .t1 .banner {
+            background: #0d1b2e
+        }
+
+        .t1 .admin-lbl,
+        .t1 .clock-date {
+            color: rgba(255, 255, 255, .55)
+        }
+
+        .t1 .dash-title,
+        .t1 .clock-val {
+            color: #fff
+        }
+
+        .t1 .badge-ip {
+            background: rgba(255, 255, 255, .1);
+            color: rgba(255, 255, 255, .85);
+            border-color: rgba(255, 255, 255, .15)
+        }
+
+        .t1 .badge-login {
+            background: rgba(34, 197, 94, .14);
+            color: #86efac;
+            border-color: rgba(34, 197, 94, .25)
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 2 – BUBBLES
+  ═══════════════════════════ */
+        .t2 .template-label {
+            background: #ede9fe;
+            color: #4c1d95
+        }
+
+        .t2 .banner {
+            background: #1e1b4b
+        }
+
+        .t2 .admin-lbl {
+            color: #c4b5fd
+        }
+
+        .t2 .clock-date {
+            color: #c4b5fd
+        }
+
+        .t2 .dash-title,
+        .t2 .clock-val {
+            color: #fff
+        }
+
+        .t2 .badge-ip {
+            background: rgba(255, 255, 255, .1);
+            color: rgba(255, 255, 255, .85);
+            border-color: rgba(255, 255, 255, .12)
+        }
+
+        .t2 .badge-login {
+            background: rgba(167, 139, 250, .2);
+            color: #ddd6fe;
+            border-color: rgba(167, 139, 250, .3)
+        }
+
+        .t2 .clock-val {
+            color: #a78bfa
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 3 – DIAGONAL SLASH
+  ═══════════════════════════ */
+        .t3 .template-label {
+            background: #fef3c7;
+            color: #78350f
+        }
+
+        .t3 .banner {
+            background: #0f172a
+        }
+
+        .t3 .admin-lbl {
+            color: #f5a623
+        }
+
+        .t3 .clock-date {
+            color: rgba(255, 255, 255, .5)
+        }
+
+        .t3 .dash-title {
+            color: #fff
+        }
+
+        .t3 .clock-val {
+            color: #f5a623
+        }
+
+        .t3 .badge-ip {
+            background: rgba(255, 255, 255, .08);
+            color: rgba(255, 255, 255, .8);
+            border-color: rgba(255, 255, 255, .12)
+        }
+
+        .t3 .badge-login {
+            background: rgba(245, 166, 35, .18);
+            color: #fcd34d;
+            border-color: rgba(245, 166, 35, .3)
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 4 – DOT MATRIX
+  ═══════════════════════════ */
+        .t4 .template-label {
+            background: #d1fae5;
+            color: #064e3b
+        }
+
+        .t4 .banner {
+            background: #022c22
+        }
+
+        .t4 .admin-lbl {
+            color: #6ee7b7
+        }
+
+        .t4 .clock-date {
+            color: rgba(255, 255, 255, .45)
+        }
+
+        .t4 .dash-title {
+            color: #fff
+        }
+
+        .t4 .clock-val {
+            color: #34d399
+        }
+
+        .t4 .badge-ip {
+            background: rgba(255, 255, 255, .07);
+            color: rgba(255, 255, 255, .8);
+            border-color: rgba(255, 255, 255, .1)
+        }
+
+        .t4 .badge-login {
+            background: rgba(52, 211, 153, .15);
+            color: #6ee7b7;
+            border-color: rgba(52, 211, 153, .25)
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 5 – CIRCUIT LINES
+  ═══════════════════════════ */
+        .t5 .template-label {
+            background: #fee2e2;
+            color: #7f1d1d
+        }
+
+        .t5 .banner {
+            background: #1a0a0a
+        }
+
+        .t5 .admin-lbl {
+            color: #fca5a5
+        }
+
+        .t5 .clock-date {
+            color: rgba(255, 255, 255, .45)
+        }
+
+        .t5 .dash-title {
+            color: #fff
+        }
+
+        .t5 .clock-val {
+            color: #f87171
+        }
+
+        .t5 .badge-ip {
+            background: rgba(255, 255, 255, .07);
+            color: rgba(255, 255, 255, .8);
+            border-color: rgba(255, 255, 255, .1)
+        }
+
+        .t5 .badge-login {
+            background: rgba(239, 68, 68, .18);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, .3)
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 6 – AURORA / MESH
+  ═══════════════════════════ */
+        .t6 .template-label {
+            background: #fdf4ff;
+            color: #6b21a8
+        }
+
+        .t6 .banner {
+            background: #0a0a1a
+        }
+
+        .t6 .admin-lbl {
+            color: #e879f9
+        }
+
+        .t6 .clock-date {
+            color: rgba(255, 255, 255, .45)
+        }
+
+        .t6 .dash-title {
+            color: #fff
+        }
+
+        .t6 .clock-val {
+            color: #e879f9
+        }
+
+        .t6 .badge-ip {
+            background: rgba(255, 255, 255, .07);
+            color: rgba(255, 255, 255, .8);
+            border-color: rgba(255, 255, 255, .1)
+        }
+
+        .t6 .badge-login {
+            background: rgba(232, 121, 249, .18);
+            color: #f0abfc;
+            border-color: rgba(232, 121, 249, .3)
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 7 – HEXAGON GRID
+  ═══════════════════════════ */
+        .t7 .template-label {
+            background: #fff7ed;
+            color: #7c2d12
+        }
+
+        .t7 .banner {
+            background: #0c1a0f
+        }
+
+        .t7 .admin-lbl {
+            color: #fb923c
+        }
+
+        .t7 .clock-date {
+            color: rgba(255, 255, 255, .45)
+        }
+
+        .t7 .dash-title {
+            color: #fff
+        }
+
+        .t7 .clock-val {
+            color: #fb923c
+        }
+
+        .t7 .badge-ip {
+            background: rgba(255, 255, 255, .07);
+            color: rgba(255, 255, 255, .8);
+            border-color: rgba(255, 255, 255, .1)
+        }
+
+        .t7 .badge-login {
+            background: rgba(251, 146, 60, .18);
+            color: #fdba74;
+            border-color: rgba(251, 146, 60, .3)
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 8 – GLASSMORPHISM
+  ═══════════════════════════ */
+        .t8 .template-label {
+            background: #f0f9ff;
+            color: #0c4a6e
+        }
+
+        .t8 .banner {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 50%, #7c3aed 100%)
+        }
+
+        .t8 .admin-lbl {
+            color: rgba(255, 255, 255, .7)
+        }
+
+        .t8 .clock-date {
+            color: rgba(255, 255, 255, .6)
+        }
+
+        .t8 .dash-title,
+        .t8 .clock-val {
+            color: #fff
+        }
+
+        .t8 .badge-ip {
+            background: rgba(255, 255, 255, .15);
+            color: #fff;
+            border-color: rgba(255, 255, 255, .25);
+            backdrop-filter: blur(4px)
+        }
+
+        .t8 .badge-login {
+            background: rgba(255, 255, 255, .2);
+            color: #fff;
+            border-color: rgba(255, 255, 255, .35)
+        }
+
+        .t8-glass {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 12px;
+            margin: 10px;
+            pointer-events: none;
+            z-index: 1
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 9 – TOPOGRAPHIC
+  ═══════════════════════════ */
+        .t9 .template-label {
+            background: #f0fdf4;
+            color: #14532d
+        }
+
+        .t9 .banner {
+            background: #0f1f0f
+        }
+
+        .t9 .admin-lbl {
+            color: #4ade80
+        }
+
+        .t9 .clock-date {
+            color: rgba(255, 255, 255, .45)
+        }
+
+        .t9 .dash-title {
+            color: #fff
+        }
+
+        .t9 .clock-val {
+            color: #4ade80
+        }
+
+        .t9 .badge-ip {
+            background: rgba(255, 255, 255, .07);
+            color: rgba(255, 255, 255, .8);
+            border-color: rgba(255, 255, 255, .1)
+        }
+
+        .t9 .badge-login {
+            background: rgba(74, 222, 128, .15);
+            color: #86efac;
+            border-color: rgba(74, 222, 128, .25)
+        }
+
+        /* ═══════════════════════════
+     TEMPLATE 10 – NEON CYBER
+  ═══════════════════════════ */
+        .t10 .template-label {
+            background: #fefce8;
+            color: #713f12
+        }
+
+        .t10 .banner {
+            background: #010714
+        }
+
+        .t10 .admin-lbl {
+            color: #22d3ee
+        }
+
+        .t10 .clock-date {
+            color: rgba(255, 255, 255, .4)
+        }
+
+        .t10 .dash-title {
+            color: #fff
+        }
+
+        .t10 .clock-val {
+            color: #22d3ee
+        }
+
+        .t10 .badge-ip {
+            background: rgba(34, 211, 238, .1);
+            color: #67e8f9;
+            border-color: rgba(34, 211, 238, .25)
+        }
+
+        .t10 .badge-login {
+            background: rgba(34, 211, 238, .15);
+            color: #a5f3fc;
+            border-color: rgba(34, 211, 238, .3)
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Hero Banner — 10 Templates</h1>
+    <p class="subtitle">Copy any template's HTML + CSS into your project</p>
+
+    <div class="grid">
+
+        <!-- ══════════════ TEMPLATE 1 – OCEAN WAVE ══════════════ -->
+        <div class="card t1">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <path d="M1,7 C3,4 5,8 7,5 C9,2 11,6 12,4" fill="none" stroke="#0c4a6e" stroke-width="1.5"
+                        stroke-linecap="round" />
+                </svg>
+                Template 1 — Ocean Wave
+            </div>
+            <div class="banner">
+                <!-- SVG waves -->
+                <svg class="bg-svg" viewBox="0 0 600 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,55 C80,25 180,75 300,45 C420,15 500,65 600,35 L600,100 L0,100Z"
+                        fill="rgba(255,200,50,0.07)" />
+                    <path d="M0,70 C100,45 220,88 380,58 C520,30 580,75 600,55 L600,100 L0,100Z"
+                        fill="rgba(255,200,50,0.05)" />
+                    <path d="M0,38 C70,12 200,58 360,28 C480,6 570,46 600,18" fill="none" stroke="rgba(245,166,35,0.2)"
+                        stroke-width="1.8" />
+                    <path d="M0,62 C90,40 230,78 400,52 C520,34 580,64 600,45" fill="none" stroke="rgba(245,166,35,0.1)"
+                        stroke-width="1.2" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════ TEMPLATE 2 – BUBBLES ══════════════ -->
+        <div class="card t2">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <circle cx="6" cy="6" r="4" fill="none" stroke="#4c1d95" stroke-width="1.5" />
+                    <circle cx="10" cy="2" r="2" fill="none" stroke="#4c1d95" stroke-width="1.2" />
+                </svg>
+                Template 2 — Bubbles
+            </div>
+            <div class="banner">
+                <svg class="bg-svg" viewBox="0 0 600 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="520" cy="50" r="58" fill="rgba(167,139,250,0.12)" />
+                    <circle cx="565" cy="18" r="32" fill="rgba(167,139,250,0.09)" />
+                    <circle cx="475" cy="82" r="20" fill="rgba(196,181,253,0.08)" />
+                    <circle cx="430" cy="12" r="13" fill="rgba(221,214,254,0.1)" />
+                    <circle cx="400" cy="72" r="9" fill="rgba(167,139,250,0.16)" />
+                    <circle cx="360" cy="22" r="5" fill="rgba(196,181,253,0.22)" />
+                    <circle cx="310" cy="88" r="8" fill="rgba(139,92,246,0.18)" />
+                    <circle cx="25" cy="18" r="18" fill="rgba(167,139,250,0.07)" />
+                    <circle cx="55" cy="78" r="10" fill="rgba(167,139,250,0.06)" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════ TEMPLATE 3 – DIAGONAL SLASH ══════════════ -->
+        <div class="card t3">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <line x1="2" y1="10" x2="10" y2="2" stroke="#78350f" stroke-width="2" stroke-linecap="round" />
+                    <line x1="5" y1="10" x2="12" y2="3" stroke="#78350f" stroke-width="1.2" stroke-linecap="round"
+                        opacity=".5" />
+                </svg>
+                Template 3 — Diagonal Slash
+            </div>
+            <div class="banner">
+                <svg class="bg-svg" viewBox="0 0 600 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="340,0 600,0 600,100 280,100" fill="rgba(245,166,35,0.08)" />
+                    <polygon points="410,0 600,0 600,100 350,100" fill="rgba(245,166,35,0.06)" />
+                    <line x1="330" y1="0" x2="270" y2="100" stroke="rgba(245,166,35,0.22)" stroke-width="2" />
+                    <line x1="400" y1="0" x2="340" y2="100" stroke="rgba(245,166,35,0.11)" stroke-width="1.2" />
+                    <line x1="460" y1="0" x2="400" y2="100" stroke="rgba(245,166,35,0.06)" stroke-width="1" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════ TEMPLATE 4 – DOT MATRIX ══════════════ -->
+        <div class="card t4">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <circle cx="2" cy="2" r="1.2" fill="#064e3b" />
+                    <circle cx="6" cy="2" r="1.2" fill="#064e3b" />
+                    <circle cx="10" cy="2" r="1.2" fill="#064e3b" />
+                    <circle cx="2" cy="6" r="1.2" fill="#064e3b" />
+                    <circle cx="6" cy="6" r="1.2" fill="#064e3b" />
+                    <circle cx="10" cy="6" r="1.2" fill="#064e3b" />
+                    <circle cx="2" cy="10" r="1.2" fill="#064e3b" />
+                    <circle cx="6" cy="10" r="1.2" fill="#064e3b" />
+                    <circle cx="10" cy="10" r="1.2" fill="#064e3b" />
+                </svg>
+                Template 4 — Dot Matrix
+            </div>
+            <div class="banner">
+                <svg class="bg-svg" viewBox="0 0 600 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="dots4" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <circle cx="10" cy="10" r="1.3" fill="rgba(52,211,153,0.2)" />
+                        </pattern>
+                    </defs>
+                    <rect width="600" height="100" fill="url(#dots4)" />
+                    <rect x="260" y="0" width="340" height="100" fill="rgba(16,185,129,0.06)" />
+                    <line x1="260" y1="0" x2="260" y2="100" stroke="rgba(52,211,153,0.22)" stroke-width="1"
+                        stroke-dasharray="4,4" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════ TEMPLATE 5 – CIRCUIT LINES ══════════════ -->
+        <div class="card t5">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <polyline points="0,6 3,6 4,3 7,3 8,6 12,6" fill="none" stroke="#7f1d1d" stroke-width="1.5" />
+                    <circle cx="4" cy="3" r="1.5" fill="#7f1d1d" />
+                    <circle cx="8" cy="6" r="1.5" fill="#7f1d1d" />
+                </svg>
+                Template 5 — Circuit Lines
+            </div>
+            <div class="banner">
+                <svg class="bg-svg" viewBox="0 0 600 100" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="600,20 510,20 492,38 405,38" fill="none" stroke="rgba(239,68,68,0.27)"
+                        stroke-width="1.5" />
+                    <polyline points="600,65 545,65 527,82 448,82" fill="none" stroke="rgba(239,68,68,0.17)"
+                        stroke-width="1.2" />
+                    <polyline points="600,42 558,42 540,22 470,22" fill="none" stroke="rgba(239,68,68,0.1)"
+                        stroke-width="1" />
+                    <circle cx="492" cy="38" r="3.5" fill="rgba(239,68,68,0.45)" />
+                    <circle cx="527" cy="82" r="3" fill="rgba(239,68,68,0.35)" />
+                    <circle cx="405" cy="38" r="2.5" fill="rgba(239,68,68,0.55)" />
+                    <circle cx="448" cy="82" r="2.5" fill="rgba(239,68,68,0.4)" />
+                    <polyline points="0,72 88,72 108,52 188,52" fill="none" stroke="rgba(239,68,68,0.13)"
+                        stroke-width="1" />
+                    <circle cx="108" cy="52" r="2" fill="rgba(239,68,68,0.28)" />
+                    <line x1="0" y1="50" x2="600" y2="50" stroke="rgba(239,68,68,0.04)" stroke-width="14" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════ TEMPLATE 6 – AURORA MESH ══════════════ -->
+        <div class="card t6">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <ellipse cx="6" cy="6" rx="5" ry="3" fill="none" stroke="#6b21a8" stroke-width="1.5"
+                        transform="rotate(-30 6 6)" />
+                    <ellipse cx="6" cy="6" rx="5" ry="3" fill="none" stroke="#6b21a8" stroke-width="1" opacity=".5"
+                        transform="rotate(30 6 6)" />
+                </svg>
+                Template 6 — Aurora Mesh
+            </div>
+            <div class="banner">
+                <svg class="bg-svg" viewBox="0 0 600 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- aurora blobs -->
+                    <ellipse cx="480" cy="30" rx="160" ry="55" fill="rgba(232,121,249,0.08)"
+                        transform="rotate(-15 480 30)" />
+                    <ellipse cx="530" cy="70" rx="130" ry="45" fill="rgba(139,92,246,0.1)"
+                        transform="rotate(10 530 70)" />
+                    <ellipse cx="380" cy="20" rx="100" ry="35" fill="rgba(56,189,248,0.07)"
+                        transform="rotate(-5 380 20)" />
+                    <!-- mesh lines -->
+                    <line x1="300" y1="0" x2="450" y2="100" stroke="rgba(232,121,249,0.12)" stroke-width="1" />
+                    <line x1="360" y1="0" x2="510" y2="100" stroke="rgba(232,121,249,0.08)" stroke-width="1" />
+                    <line x1="420" y1="0" x2="570" y2="100" stroke="rgba(139,92,246,0.08)" stroke-width="1" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════ TEMPLATE 7 – HEXAGON GRID ══════════════ -->
+        <div class="card t7">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <polygon points="6,1 11,3.5 11,8.5 6,11 1,8.5 1,3.5" fill="none" stroke="#7c2d12"
+                        stroke-width="1.5" />
+                </svg>
+                Template 7 — Hexagon Grid
+            </div>
+            <div class="banner">
+                <svg class="bg-svg" viewBox="0 0 600 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- hexagons scattered right side -->
+                    <polygon points="460,12 476,21 476,39 460,48 444,39 444,21" fill="none"
+                        stroke="rgba(251,146,60,0.18)" stroke-width="1.2" />
+                    <polygon points="492,30 508,39 508,57 492,66 476,57 476,39" fill="rgba(251,146,60,0.06)"
+                        stroke="rgba(251,146,60,0.14)" stroke-width="1" />
+                    <polygon points="524,10 540,19 540,37 524,46 508,37 508,19" fill="none"
+                        stroke="rgba(251,146,60,0.12)" stroke-width="1" />
+                    <polygon points="556,28 572,37 572,55 556,64 540,55 540,37" fill="rgba(251,146,60,0.05)"
+                        stroke="rgba(251,146,60,0.16)" stroke-width="1.2" />
+                    <polygon points="524,46 540,55 540,73 524,82 508,73 508,55" fill="none"
+                        stroke="rgba(251,146,60,0.1)" stroke-width="1" />
+                    <polygon points="460,48 476,57 476,75 460,84 444,75 444,57" fill="rgba(251,146,60,0.04)"
+                        stroke="rgba(251,146,60,0.12)" stroke-width="1" />
+                    <polygon points="428,12 444,21 444,39 428,48 412,39 412,21" fill="none"
+                        stroke="rgba(251,146,60,0.08)" stroke-width="1" />
+                    <!-- dim ones far right -->
+                    <polygon points="575,5 591,14 591,32 575,41 559,32 559,14" fill="none"
+                        stroke="rgba(251,146,60,0.08)" stroke-width="1" />
+                    <polygon points="575,55 591,64 591,82 575,91 559,82 559,64" fill="none"
+                        stroke="rgba(251,146,60,0.07)" stroke-width="1" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════ TEMPLATE 8 – GLASSMORPHISM ══════════════ -->
+        <div class="card t8">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <rect x="1" y="1" width="10" height="10" rx="3" fill="none" stroke="#0c4a6e" stroke-width="1.5"
+                        opacity=".5" />
+                    <rect x="3" y="3" width="6" height="6" rx="2" fill="rgba(14,165,233,0.3)" />
+                </svg>
+                Template 8 — Glassmorphism
+            </div>
+            <div class="banner">
+                <!-- glass card overlay -->
+                <div class="t8-glass"></div>
+                <svg class="bg-svg" viewBox="0 0 600 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- frosted circles -->
+                    <circle cx="540" cy="30" r="60" fill="rgba(255,255,255,0.06)" />
+                    <circle cx="490" cy="75" r="35" fill="rgba(255,255,255,0.04)" />
+                    <circle cx="580" cy="80" r="25" fill="rgba(255,255,255,0.05)" />
+                    <!-- grid lines light -->
+                    <line x1="0" y1="33" x2="600" y2="33" stroke="rgba(255,255,255,0.06)" stroke-width="1" />
+                    <line x1="0" y1="66" x2="600" y2="66" stroke="rgba(255,255,255,0.06)" stroke-width="1" />
+                    <line x1="200" y1="0" x2="200" y2="100" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+                    <line x1="400" y1="0" x2="400" y2="100" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════ TEMPLATE 9 – TOPOGRAPHIC ══════════════ -->
+        <div class="card t9">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <path d="M1,9 C2,6 4,7 6,5 C8,3 9,4 11,2" fill="none" stroke="#14532d" stroke-width="1.5" />
+                    <path d="M1,11 C3,8 5,9 7,7 C9,5 10,6 12,4" fill="none" stroke="#14532d" stroke-width="1"
+                        opacity=".5" />
+                </svg>
+                Template 9 — Topographic
+            </div>
+            <div class="banner">
+                <svg class="bg-svg" viewBox="0 0 600 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- concentric topo lines -->
+                    <path d="M600,80 C520,60 440,90 360,70 C280,50 200,80 120,55 C60,38 20,55 0,45" fill="none"
+                        stroke="rgba(74,222,128,0.12)" stroke-width="1.5" />
+                    <path d="M600,65 C510,45 420,75 330,55 C240,35 160,65 80,42 C40,30 10,42 0,35" fill="none"
+                        stroke="rgba(74,222,128,0.1)" stroke-width="1.5" />
+                    <path d="M600,50 C500,30 400,60 300,40 C200,20 120,50 40,28 C20,22 5,28 0,24" fill="none"
+                        stroke="rgba(74,222,128,0.08)" stroke-width="1.2" />
+                    <path d="M600,35 C490,15 380,48 270,25 C180,8 100,35 20,15" fill="none"
+                        stroke="rgba(74,222,128,0.06)" stroke-width="1" />
+                    <path d="M600,18 C470,2 360,32 240,10 C150,-4 70,20 0,5" fill="none" stroke="rgba(74,222,128,0.05)"
+                        stroke-width="1" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════ TEMPLATE 10 – NEON CYBER ══════════════ -->
+        <div class="card t10">
+            <div class="template-label">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <rect x="1" y="4" width="10" height="4" rx="1" fill="none" stroke="#713f12" stroke-width="1.5" />
+                    <line x1="4" y1="1" x2="4" y2="4" stroke="#713f12" stroke-width="1.5" />
+                    <line x1="8" y1="1" x2="8" y2="4" stroke="#713f12" stroke-width="1.5" />
+                    <line x1="4" y1="8" x2="4" y2="11" stroke="#713f12" stroke-width="1.5" />
+                    <line x1="8" y1="8" x2="8" y2="11" stroke="#713f12" stroke-width="1.5" />
+                </svg>
+                Template 10 — Neon Cyber
+            </div>
+            <div class="banner">
+                <svg class="bg-svg" viewBox="0 0 600 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- scanlines -->
+                    <line x1="0" y1="10" x2="600" y2="10" stroke="rgba(34,211,238,0.04)" stroke-width="6" />
+                    <line x1="0" y1="30" x2="600" y2="30" stroke="rgba(34,211,238,0.04)" stroke-width="6" />
+                    <line x1="0" y1="50" x2="600" y2="50" stroke="rgba(34,211,238,0.04)" stroke-width="6" />
+                    <line x1="0" y1="70" x2="600" y2="70" stroke="rgba(34,211,238,0.04)" stroke-width="6" />
+                    <line x1="0" y1="90" x2="600" y2="90" stroke="rgba(34,211,238,0.04)" stroke-width="6" />
+                    <!-- neon corner brackets -->
+                    <polyline points="580,8 598,8 598,26" fill="none" stroke="rgba(34,211,238,0.35)" stroke-width="2"
+                        stroke-linecap="round" />
+                    <polyline points="580,92 598,92 598,74" fill="none" stroke="rgba(34,211,238,0.35)" stroke-width="2"
+                        stroke-linecap="round" />
+                    <!-- cyber lines -->
+                    <line x1="250" y1="0" x2="250" y2="100" stroke="rgba(34,211,238,0.07)" stroke-width="1"
+                        stroke-dasharray="3,5" />
+                    <line x1="350" y1="0" x2="350" y2="100" stroke="rgba(34,211,238,0.05)" stroke-width="1"
+                        stroke-dasharray="3,5" />
+                    <polyline points="270,50 310,30 380,30 410,50 380,70 310,70 270,50" fill="rgba(34,211,238,0.04)"
+                        stroke="rgba(34,211,238,0.15)" stroke-width="1" />
+                    <!-- glow dot -->
+                    <circle cx="598" cy="8" r="2.5" fill="rgba(34,211,238,0.6)" />
+                    <circle cx="598" cy="92" r="2.5" fill="rgba(34,211,238,0.6)" />
+                </svg>
+                <div class="banner-left">
+                    <div class="admin-lbl">Admin Quick View</div>
+                    <div class="dash-title">Dashboard</div>
+                    <div class="badges">
+                        <span class="badge badge-ip">⬤ Current Login IP: 127.0.0.1</span>
+                        <span class="badge badge-login">✓ Login: 2 hours 16 seconds ago</span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="clock-val">11:16 AM</div>
+                    <div class="clock-date">Saturday, 06 Jun 2026</div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /grid -->
+
+    <p style="text-align:center;margin-top:28px;font-size:.75rem;color:#94a3b8">JSHB ADMS Hero Banners · 10 Templates
+    </p>
+
+</body>
+
+</html>

@@ -31,15 +31,16 @@
 <div class="sidebar-footer">
     <div class="sidebar-user">
         <div class="sidebar-avatar">
-            @if($sidebarUser && $sidebarUser->photo)
-            <img src="{{ asset('storage/photos/' . $sidebarUser->photo) }}" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+            @if ($sidebarUser && $sidebarUser->photo)
+                <img src="{{ asset('storage/photos/' . $sidebarUser->photo) }}" alt="Profile Photo"
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
             @else
-            {{ $sidebarInitials }}
+                {{ $sidebarInitials }}
             @endif
         </div>
         <div class="sidebar-user-info">
             <div class="sidebar-user-name">{{ $sidebarUser->name ?? 'Guest User' }}</div>
-            <span>{{ $sidebarUser->email ?? 'guest@domain.com' }}</span>
+            <span class="sidebar-user-name">{{ $sidebarUser->email ?? 'guest@domain.com' }}</span>
         </div>
     </div>
 </div>

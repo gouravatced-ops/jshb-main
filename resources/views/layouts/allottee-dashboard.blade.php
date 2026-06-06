@@ -114,14 +114,15 @@
                 @php
                     $menu = $menuSteps->first();
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | MENU VISIBILITY CONDITIONS
-                    |--------------------------------------------------------------------------
-                    */
+                    // MENU VISIBILITY CONDITIONS
 
                     // Hide Choose Payment Option if payment option already selected
                     if ($menuKey === 'choose-payment-option' && !is_null($paymentOption)) {
+                        continue;
+                    }
+
+                    // Hide Allotment Cancellation if payment option selected
+                    if ($menuKey === 'allotment-cancellation' && !is_null($paymentOption)) {
                         continue;
                     }
 
@@ -135,11 +136,12 @@
                         continue;
                     }
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | SIDEBAR STATES
-                    |--------------------------------------------------------------------------
-                    */
+                    // show Final Calculation only for emi
+                    if ($menuKey === 'final-calculation' && $paymentOption !== 'emi') {
+                        continue;
+                    }
+
+                    // SIDEBAR STATES
 
                     $hasSubmenus = $menuSteps->whereNotNull('sub_menu_key')->count() > 0;
 
@@ -179,7 +181,7 @@
                                     <i class="fa-solid fa-lock"></i>
                                 @endif
 
-                                <i class="fa-solid fa-chevron-down menu-arrow"></i>
+                                {{-- <i class="fa-solid fa-chevron-down menu-arrow"></i> --}}
                             </span>
 
                         </button>
@@ -573,7 +575,7 @@
                 if (modalTitleElement) {
                     modalTitleElement.innerHTML = `
                     <i class="fa-solid fa-file-signature me-2 text-success"></i>
-                    Upload Signed ${docName.replaceAll('-', ' ')}
+                    Upload ${docName.replaceAll('-', ' ')}
                 `;
                 }
 
@@ -633,6 +635,9 @@
                 const docNumber = document.getElementById('docNumber')?.value;
                 const stepNo = document.getElementById('stepNoValue')?.value;
 
+                console.log("Payload :" + documentId, docTypeSelect, documentType, allotteeId, docIssueDate,
+                    docNumber);
+
                 const formData = new FormData();
                 formData.append('document_id', documentId);
                 formData.append('document_name', docTypeSelect);
@@ -642,6 +647,8 @@
                 formData.append('document_number', docNumber || '');
                 formData.append('stepNo', stepNo);
                 formData.append('file', fileInput.files[0]);
+
+                console.log(formData);
 
                 try {
                     const response = await fetch(routes.uploadSigned, {
