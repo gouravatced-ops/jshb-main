@@ -15,7 +15,11 @@
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 </head>
 
-<body>
+<body class="abstract-background glowing-rings">
+
+    <div class="ring ring-1"></div>
+    <div class="ring ring-2"></div>
+    <div class="ring ring-3"></div>
 
     <!-- TOASTER -->
     <div class="toaster-wrap" id="toasterWrap"></div>
@@ -136,6 +140,164 @@
 
     <script src="{{ asset('js/dashboard.js') }}"></script>
     <script src="{{ asset('js/fieldvalidation.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        // Sparkline helper
+        function sparkline(id, data, color) {
+            new Chart(document.getElementById(id), {
+                type: 'line',
+                data: {
+                    labels: data.map((_, i) => i),
+                    datasets: [{
+                        data,
+                        borderColor: color,
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: true,
+                        backgroundColor: color + '22',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false
+                        }
+                    },
+                    animation: false,
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        sparkline('sparkline1', [10, 14, 12, 16, 20, 18, 22, 24, 21, 26, 28, 30], '#1a7a6e');
+        sparkline('sparkline2', [8, 10, 9, 12, 11, 15, 13, 16, 14, 17, 16, 18], '#1a7a4a');
+        sparkline('sparkline3', [15, 20, 18, 25, 22, 30, 27, 32, 29, 35, 33, 38], '#f5c518');
+        sparkline('sparkline4', [30, 35, 32, 40, 38, 44, 42, 48, 45, 50, 48, 54], '#0f1b2d');
+
+        // Transactions line chart
+        new Chart(document.getElementById('txnChart'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Amount (in Cr)',
+                    data: [13, 19, 9, 25, 23, 31, 30, 43, 42, 38, 45, 55],
+                    borderColor: '#1a7a4a',
+                    backgroundColor: 'rgba(26,122,74,0.08)',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#1a7a4a',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 10,
+                            font: {
+                                size: 11
+                            },
+                            color: '#6b7a8d'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            color: '#6b7a8d'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: '#f0f2f5'
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            color: '#6b7a8d'
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+
+        // Allottees bar chart
+        new Chart(document.getElementById('allotChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Allottees',
+                    data: [310, 290, 420, 300, 300, 340, 295, 300, 420, 300, 295, 550],
+                    backgroundColor: '#0f1b2d',
+                    borderRadius: 1,
+                    barThickness: 14
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 10,
+                            font: {
+                                size: 11
+                            },
+                            color: '#6b7a8d'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            color: '#6b7a8d'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: '#f0f2f5'
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            color: '#6b7a8d'
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 

@@ -1,0 +1,27 @@
+<svg width="900" height="900" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- Unpaid Amount -->
+    <path d="M450 450 L450 40
+             A410 410 0 1 1 160 740
+             Z"
+          fill="#df0f32"/>
+
+    <!-- Paid Amount -->
+    <path d="M450 450 L160 740
+             A410 410 0 0 1 450 40
+             Z"
+          fill="#22C55E"/>
+
+    <!-- Outer Ring -->
+    <circle cx="450" cy="450" r="410"
+            stroke="#0F172A"
+            stroke-width="2"
+            opacity="0.08"
+            fill="none"/>
+
+    <!-- Inner Cutout -->
+    <circle cx="450" cy="450" r="260"
+            fill="white"
+            opacity="0.03"/>
+
+</svg>
