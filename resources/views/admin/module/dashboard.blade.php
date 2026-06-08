@@ -281,6 +281,7 @@
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 12px 14px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);
         }
 
         .chart-card-header {
@@ -307,6 +308,7 @@
             background: var(--body-bg);
             cursor: pointer;
             outline: none;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);
         }
 
         /* TABLES */

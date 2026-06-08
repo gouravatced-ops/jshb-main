@@ -73,7 +73,7 @@
 
 body {
     font-family: var(--font-main);
-    background: #fafaef;
+    background: #e1e1dc;
     color: var(--text-dark);
     min-height: 100vh;
     overflow-x: hidden;
@@ -1928,6 +1928,7 @@ a {
     gap: 6px;
     height: 100%;
     opacity: 0;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);
     transform: translateY(28px) scale(0.97);
     transition: box-shadow 0.2s;
 }
@@ -1937,7 +1938,7 @@ a {
 }
 
 .stat-card:hover {
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);
+    box-shadow: 0 4px 18px rgba(70, 70, 70, 0.09);
 }
 
 @keyframes cardLand {
