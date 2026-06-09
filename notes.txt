@@ -990,3 +990,47 @@ SET
     payment_status = 'paid',
     paid_at = NOW()
 WHERE id = 1;
+
+
+
+-- Opening Balance
+INSERT INTO emi_ledger (emi_account_id, txn_date, particulars, debit, credit, balance_principal)
+VALUES (1, '2024-01-01', 'Loan Disbursed', 391500.00, 0, 391500.00);
+
+-- Month 1 Payment
+INSERT INTO emi_ledger VALUES (1, 1, 1, '2024-02-01', 'EMI Payment - Month 1', 0, 9008.35, 382491.65);
+INSERT INTO emi_ledger VALUES (2, 1, 1, '2024-02-01', 'Interest Adjustment', 0, 4404.38, 382491.65);
+INSERT INTO emi_ledger VALUES (3, 1, 1, '2024-02-01', 'Admin Charge', 0, 10.00, 382491.65);
+
+-- Month 2 Payment
+INSERT INTO emi_ledger VALUES (4, 1, 2, '2024-03-01', 'EMI Payment - Month 2', 0, 9008.35, 377483.30);
+INSERT INTO emi_ledger VALUES (5, 1, 2, '2024-03-01', 'Interest Adjustment', 0, 4352.57, 377483.30);
+INSERT INTO emi_ledger VALUES (6, 1, 2, '2024-03-01', 'Admin Charge', 0, 10.00, 377483.30);
+
+-- Month 3 Payment
+INSERT INTO emi_ledger VALUES (7, 1, 3, '2024-04-01', 'EMI Payment - Month 3', 0, 9008.35, 372474.95);
+INSERT INTO emi_ledger VALUES (8, 1, 3, '2024-04-01', 'Interest Adjustment', 0, 4302.85, 372474.95);
+INSERT INTO emi_ledger VALUES (9, 1, 3, '2024-04-01', 'Admin Charge', 0, 10.00, 372474.95);
+
+-- Month 4 Payment
+INSERT INTO emi_ledger VALUES (10, 1, 4, '2024-05-01', 'EMI Payment - Month 4', 0, 9008.35, 367466.60);
+INSERT INTO emi_ledger VALUES (11, 1, 4, '2024-05-01', 'Interest Adjustment', 0, 4249.33, 367466.60);
+INSERT INTO emi_ledger VALUES (12, 1, 4, '2024-05-01', 'Admin Charge', 0, 10.00, 367466.60);
+
+-- Month 5 Payment
+INSERT INTO emi_ledger VALUES (13, 1, 5, '2024-06-01', 'EMI Payment - Month 5', 0, 9008.35, 362458.25);
+INSERT INTO emi_ledger VALUES (14, 1, 5, '2024-06-01', 'Interest Adjustment', 0, 4192.60, 362458.25);
+INSERT INTO emi_ledger VALUES (15, 1, 5, '2024-06-01', 'Admin Charge', 0, 10.00, 362458.25);
+
+-- Month 6 Payment
+INSERT INTO emi_ledger VALUES (16, 1, 6, '2024-07-01', 'EMI Payment - Month 6', 0, 9008.35, 357449.90);
+INSERT INTO emi_ledger VALUES (17, 1, 6, '2024-07-01', 'Interest Adjustment', 0, 4132.47, 357449.90);
+INSERT INTO emi_ledger VALUES (18, 1, 6, '2024-07-01', 'Admin Charge', 0, 10.00, 357449.90);
+
+-- Month 7 Late Payment
+INSERT INTO emi_ledger VALUES (19, 1, 7, '2024-10-15', 'EMI Payment - Month 7 (Late)', 0, 9008.35, 353374.01);
+INSERT INTO emi_ledger VALUES (20, 1, 7, '2024-10-15', 'Interest Adjustment (Penalty 16%)', 0, 4841.54, 353374.01);
+INSERT INTO emi_ledger VALUES (21, 1, 7, '2024-10-15', 'Late Fee Adjustment', 0, 90.08, 353374.01);
+INSERT INTO emi_ledger VALUES (22, 1, 7, '2024-10-15', 'Admin Charge', 0, 10.00, 353374.01);
+
+-- Month 7 Demand's remaining due (if any partial payment, but here fully paid)

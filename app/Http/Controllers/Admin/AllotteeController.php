@@ -1921,4 +1921,18 @@ class AllotteeController extends Controller
             ->route('admin.allottees.index')
             ->with('success', 'Allottee components deleted successfully.');
     }
+
+    public function deleteEMISetup(Allottee $allottee)
+    {
+        $allottee->update([
+            'payment_option' => null,
+        ]);
+
+        $allottee->emiAccount()->delete();
+        $allottee->emiSchedule()->delete();
+
+        return redirect()
+            ->route('admin.allottees.index')
+            ->with('success', 'Allottee EMI Setup Revoke successfully.');
+    }
 }

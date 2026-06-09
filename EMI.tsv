@@ -1,13 +1,17 @@
 	Opening Principal	Monthly EMI	    Interest Rate 	Penalty Interest Rate (2.5%)	Other Charges when penality	After 7th month when they pay
-	₹ 3,91,500.00	     ₹ 10,280.39	13.50%	         13.50% + 2.5% = 16%	            1% of Monthly EMI + Admin Charges (10)
+	₹ 3,91,500.00	     ₹ 9008.35	13.50%	         13.50% + 2.5% = 16%	            1% of Monthly EMI + Admin Charges (10)
 
-    Opening Principal   (=E6-H6+F6+G6)
+    Opening Principal   (D-F+ E1 + E2) if late and if not late Opening Principal   (D-F)
+    Annualized Amt.     (B+C)
+
+    EMI Count
+    60 Months
 
       (A)                (B)              (C)               (D)                                                   (E)                          (F)               (G)
 #	Due Date	    Opening Principal	Interest	    Annualized Amt.	            other Penalty		                                    Total Paid	    Date of payment
 					                                                        Late fine @ 1 % Monthly EMI Monthly Amt.	Admin Charges
 1	07-07-2026	    ₹ 3,91,500.00	    ₹ 4,404.38	    ₹ 3,95,904.38	                ₹ 102.80                          ₹ 10.00	      ₹ 10,000.00	     08-07-2026
-	07-08-2026	    ₹ 3,86,017.18	    ₹ 5,146.90	    ₹ 3,91,164.08	                ₹ 102.80                          ₹ 10.00	      ₹ 10,000.00	     10-08-2026
+	07-08-2026	    ₹ 3,86,017.18	    ₹ 5,146.90	    ₹ 3,91,164.08	                ₹ 0.00                          ₹ 0.00	      ₹ 10,000.00	     02-08-2026
 	07-09-2026	    ₹ 3,81,277.91	    ₹ 5,083.71	    ₹ 3,86,361.62	                ₹ 102.80                          ₹ 10.00	      ₹ 10,000.00
 	07-10-2026	    ₹ 3,76,475.46	    ₹ 5,019.67	    ₹ 3,81,495.13	                ₹ 102.80                          ₹ 10.00	      ₹ 10,000.00
 	07-11-2026	    ₹ 3,71,608.97	    ₹ 4,954.79	    ₹ 3,76,563.76	                ₹ 102.80                          ₹ 10.00	      ₹ 10,000.00
@@ -71,6 +75,14 @@ User EMI Amount jaise hr mahine 10280.39 karna hai lekin woh 2000 bhi de skate h
 ishme toh hr mahine oragnization intgerest pay karega , agar woh 1 lakh bhi pay kar sakte hai
 
 Means schdule ek baar mein nhi banega user page karega then new EMI schedule banayega
+
+Opening Principal	Monthly EMI	    Interest Rate 	Penalty Interest Rate (2.5%)	Other Charges when penality	After 7th month when they pay
+	₹ 3,91,500.00	     ₹ 10,280.39	13.50%	         13.50% + 2.5% = 16%	            1% of Monthly EMI + Admin Charges (10)
+
+EMI Count Month
+50
+
+if pay demand based emi month bade bhi sakta jaruri nhi 50 month mein completed karn ahai emi amount emi count se hi niklega
 
 Due Date	Opening Principal	Interest	Annualized Amt.	           other Penalty
                                                                Late fine @ 1 % Monthly EMI Monthly Amt.	  Admin Charges

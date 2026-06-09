@@ -8,7 +8,7 @@
     <style>
         @font-face {
             font-family: 'KrutiDev';
-            src: url("{{ public_path('font/KrutiDev010.ttf') }}") format('truetype');
+            src: url("{{ public_path('font/KrutiDev011.ttf') }}") format('truetype');
         }
 
         body {

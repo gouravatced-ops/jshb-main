@@ -74,7 +74,6 @@ Route::middleware('auth')
         Route::get('/allottees/process/start', [AllotteeController::class, 'indexStart'])->name('apply.index');
         // edit
         Route::get('/allottees/edit/start/{allottee}', [AllotteeController::class, 'indexEditStart'])->name('edit.apply.index');
-        Route::get('/allottees/delete/{allottee}', [AllotteeController::class, 'deleteAllotteeComponents'])->name('allottee.delete.components');
 
 
         Route::get('/allottees/step/{step}/{applicantId?}', [AllotteeController::class, 'getStep'])->name('apply.step');
@@ -93,6 +92,10 @@ Route::middleware('auth')
         Route::get('/allottees/{allottee}/letters/possession/pdf', [AllotteeController::class, 'possessionLetterPdf'])->name('allottees.letters.possession.pdf');
         Route::get('/allottees/{allottee}', [AllotteeController::class, 'show'])->name('allottees.show');
         Route::post('/allottees/signed/document/uploads', [AllotteeController::class, 'signedDocumentUploads'])->name('allottees.signed.document.uploads');
+
+        // Delete Allottee Components
+        Route::get('/allottees/delete/{allottee}', [AllotteeController::class, 'deleteAllotteeComponents'])->name('allottee.delete.components');
+        Route::get('/allottees/delete/emi/{allottee}', [AllotteeController::class, 'deleteEMISetup'])->name('allottee.delete.emi.setup');
 
         // Initial Payment
         Route::post('/allottees/initial-payment/pay', [AllotteePaymentController::class, 'payInitialPayment'])->name('allottees.initial.payment.pay');

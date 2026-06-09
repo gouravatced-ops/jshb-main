@@ -4,11 +4,6 @@
 
 @section('content')
     <div class="card">
-        @if (session('success'))
-            <div class="alert alert-success" style="margin: 20px 20px 0;">
-                {{ session('success') }}
-            </div>
-        @endif
         <div class="card-head">
             <div>
                 <div class="card-title">Allottee List</div>
@@ -23,6 +18,12 @@
                 </a>
             </div>
         </div>
+
+        @if (session('success'))
+            <div class="alert alert-success" style="margin: 20px 20px 0;">
+                {{ session('success') }}
+            </div>
+        @endif
 
         <style>
             #allotteeFilterForm {
@@ -184,6 +185,14 @@
                                         <i class="fa-solid fa-rotate-left"></i>
                                     </a>
 
+                                    @if ($allottee->payment_option == 'emi')
+                                        <a class="action-btn delete"
+                                            href="{{ route('admin.allottee.delete.emi.setup', $allottee) }}"
+                                            title="Reset EMI">
+                                            <i class="fas fa-receipt"></i>
+                                        </a>
+                                    @endif
+
                                     {{-- <a class="action-btn edit"
                                         href="{{ route('admin.allottees.letters.allotment', $allottee) }}"
                                         target="_blank"
@@ -192,11 +201,11 @@
                                     </a> --}}
 
                                     <!-- <a class="action-btn success"
-                                                                href="{{ route('admin.allottees.letters.possession', $allottee) }}"
-                                                                target="_blank"
-                                                                title="Generate Possession Letter">
-                                                                <i class="fa-solid fa-file-circle-check"></i>
-                                                            </a> -->
+                                                                                    href="{{ route('admin.allottees.letters.possession', $allottee) }}"
+                                                                                    target="_blank"
+                                                                                    title="Generate Possession Letter">
+                                                                                    <i class="fa-solid fa-file-circle-check"></i>
+                                                                                </a> -->
 
                                 </div>
                             </td>
