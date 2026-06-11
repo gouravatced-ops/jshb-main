@@ -55,4 +55,12 @@ class AllotteeEmiAccount extends Model
             'emi_account_id'
         );
     }
+
+    public function demands()
+    {
+        return $this->hasMany(
+            AllotteeMonthlyDemand::class,
+            'emi_account_id'
+        );
+    }
 }

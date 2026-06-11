@@ -2,15 +2,26 @@
 
 @php
 
+    // For Testing: Mock the current system date if test_date is passed
+    if (request()->has('test_date')) {
+        \Carbon\Carbon::setTestNow(request('test_date'));
+    }
+
     $emiAccount = \App\Models\AllotteeEmiAccount::where('allottee_id', $allottee->id)->first();
 
-    $currentEmi = null;
+    $currentDemand = null;
 
     if ($emiAccount) {
-        $currentEmi = \App\Models\AllotteeEmiSchedule::where('emi_account_id', $emiAccount->id)
-            ->whereIn('payment_status', ['pending', 'partial', 'overdue'])
+        $currentDemand = \App\Models\AllotteeMonthlyDemand::where('emi_account_id', $emiAccount->id)
+            ->whereIn('demand_status', ['Pending', 'Partially Paid', 'Overdue'])
             ->orderBy('emi_no')
             ->first();
+
+        // Refresh penalty for the current demand before displaying
+        if ($currentDemand) {
+            $emiCalculatorService = app(\App\Services\EmiCalculatorService::class);
+            $emiCalculatorService->refreshPenalty($currentDemand);
+        }
     }
 
 @endphp
@@ -31,6 +42,27 @@
             </p>
         </div>
 
+        {{-- Simulation Controls for Testing Late Penalties --}}
+        <div class="d-flex align-items-center gap-2 p-2 rounded mb-4"
+            style="background: #fff9db; border: 1px solid #ffe066;">
+            <span class="small fw-bold text-dark"><i class="fa-solid fa-flask me-1"></i> Date Simulation:</span>
+            <input type="date" id="sim_test_date" class="form-control form-control-sm" style="width: 140px;"
+                value="{{ now()->format('Y-m-d') }}">
+            <button class="btn btn-sm btn-warning fw-bold"
+                onclick="App.loadStep({{ $step->step_no }}, document.querySelector('.sidebar-submenu-link.active, .sidebar-link.active'), '?test_date=' + document.getElementById('sim_test_date').value)">
+                Apply simulation
+            </button>
+            @if (request()->has('test_date'))
+                <button class="btn btn-sm btn-outline-secondary"
+                    onclick="App.loadStep({{ $step->step_no }}, document.querySelector('.sidebar-submenu-link.active, .sidebar-link.active'))">
+                    Reset Date
+                </button>
+            @endif
+            <div class="ms-auto small text-muted">
+                * Current: <strong>{{ now()->format('d-M-Y') }}</strong> (Set to July 10 to see late charges)
+            </div>
+        </div>
+
         <button class="btn-ghost" onclick="window.close();">
 
             <i class="fa-solid fa-arrow-left"></i>
@@ -39,7 +71,7 @@
         </button>
     </div>
 
-    @if ($currentEmi)
+    @if ($currentDemand)
 
         {{-- EMI DETAILS --}}
         <div class="row g-3 mb-4">
@@ -51,7 +83,7 @@
                     </p>
 
                     <p class="info-card-value">
-                        EMI-{{ str_pad($currentEmi->emi_no, 2, '0', STR_PAD_LEFT) }}
+                        EMI-{{ str_pad($currentDemand->emi_no, 2, '0', STR_PAD_LEFT) }}
                     </p>
                 </div>
             </div>
@@ -63,7 +95,7 @@
                     </p>
 
                     <p class="info-card-value">
-                        {{ \Carbon\Carbon::parse($currentEmi->due_date)->format('d-m-Y') }}
+                        {{ \Carbon\Carbon::parse($currentDemand->due_date)->format('d-m-Y') }}
                     </p>
                 </div>
             </div>
@@ -76,9 +108,13 @@
 
                     <p class="info-card-value">
 
-                        @if ($currentEmi->payment_status == 'overdue')
+                        @if ($currentDemand->demand_status == 'Overdue')
                             <span class="badge bg-danger">
                                 Overdue
+                            </span>
+                        @elseif($currentDemand->demand_status == 'Partially Paid')
+                            <span class="badge bg-info">
+                                Partially Paid
                             </span>
                         @else
                             <span class="badge bg-warning text-dark">
@@ -102,7 +138,8 @@
                     </p>
 
                     <p class="info-card-value">
-                        ₹ {{ number_format($currentEmi->principal_component, 2) }}
+                        ₹
+                        {{ number_format($currentDemand->principle_amount > 0 ? $currentDemand->principle_amount : $currentDemand->emi_amount - $currentDemand->interest_amount, 2) }}
                     </p>
                 </div>
             </div>
@@ -114,7 +151,7 @@
                     </p>
 
                     <p class="info-card-value">
-                        ₹ {{ number_format($currentEmi->interest_component, 2) }}
+                        ₹ {{ number_format($currentDemand->interest_amount, 2) }}
                     </p>
                 </div>
             </div>
@@ -126,8 +163,12 @@
                     </p>
 
                     <p class="info-card-value text-danger">
-                        ₹ {{ number_format($currentEmi->penalty_amount, 2) }}
+                        ₹
+                        {{ number_format($currentDemand->late_fine_penalty + $currentDemand->penalty_interest_amount, 2) }}
                     </p>
+                    @if ($currentDemand->late_fine_penalty > 0 || $currentDemand->penalty_interest_amount > 0)
+                        <small class="text-danger">Late payment charges applied</small>
+                    @endif
                 </div>
             </div>
 
@@ -138,12 +179,23 @@
                     </p>
 
                     <p class="info-card-value">
-                        ₹ {{ number_format($currentEmi->admin_charge, 2) }}
+                        ₹ {{ number_format($currentDemand->penalty_admin_charges, 2) }}
                     </p>
                 </div>
             </div>
 
         </div>
+
+        {{-- PARTIAL PAYMENT INFO --}}
+        @if ($currentDemand->demand_status == 'Partially Paid')
+            <div class="alert alert-info mt-3 mb-0">
+                <i class="fa-solid fa-info-circle"></i>
+                Partially Paid: ₹ {{ number_format($currentDemand->total_paid_amount, 2) }} paid out of ₹
+                {{ number_format($currentDemand->total_demand_amount, 2) }}
+                <br>
+                <strong>Outstanding: ₹ {{ number_format($currentDemand->outstanding_amount, 2) }}</strong>
+            </div>
+        @endif
 
         {{-- TOTAL PAYABLE --}}
         <div class="card mt-4 border-0 shadow-sm">
@@ -154,7 +206,11 @@
                     font-size:14px;
                     color:#6b7280;
                 ">
-                    Total Payable Amount
+                    @if ($currentDemand->demand_status == 'Partially Paid')
+                        Outstanding Amount
+                    @else
+                        Total Payable Amount
+                    @endif
                 </div>
 
                 <div
@@ -163,8 +219,21 @@
                     font-weight:700;
                     color:var(--brand);
                 ">
-                    ₹ {{ number_format($currentEmi->total_payable, 2) }}
+                    ₹ {{ number_format($currentDemand->outstanding_amount, 2) }}
                 </div>
+
+                @if ($currentDemand->demand_status != 'Partially Paid')
+                    <div style="font-size:12px; color:#6b7280; margin-top:5px;">
+                        EMI Amount: ₹ {{ number_format($currentDemand->emi_amount, 2) }}
+                        @if ($currentDemand->late_fine_penalty > 0 || $currentDemand->penalty_interest_amount > 0)
+                            + Penalty: ₹
+                            {{ number_format($currentDemand->late_fine_penalty + $currentDemand->penalty_interest_amount, 2) }}
+                        @endif
+                        @if ($currentDemand->penalty_admin_charges > 0)
+                            + Admin: ₹ {{ number_format($currentDemand->penalty_admin_charges, 2) }}
+                        @endif
+                    </div>
+                @endif
 
             </div>
 
@@ -179,14 +248,15 @@
             flex-wrap:wrap;
         ">
 
-            <button class="btn-brand" onclick="payCurrentEmi('{{ encrypt($currentEmi->id) }}')">
+            <button class="btn-brand"
+                onclick="payCurrentEmi('{{ $currentDemand->id }}', {{ $currentDemand->outstanding_amount }})">
 
                 <i class="fa-solid fa-credit-card"></i>
                 Pay Now
 
             </button>
 
-            <button class="btn-ghost" onclick="showDummyGateway('{{ encrypt($currentEmi->id) }}')">
+            <button class="btn-ghost" onclick="showDummyGateway('{{ $currentDemand->id }}')">
 
                 <i class="fa-solid fa-building-columns"></i>
                 Dummy Gateway
@@ -290,20 +360,3 @@
     @endif
 
 </div>
-
-<script>
-    function payCurrentEmi(id) {
-        if (!confirm('Proceed with EMI payment?')) {
-            return;
-        }
-
-        window.location.href =
-            "";
-    }
-
-    function showDummyGateway(id) {
-        alert(
-            'Dummy Gateway Integration Here'
-        );
-    }
-</script>

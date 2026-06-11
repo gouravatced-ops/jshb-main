@@ -21,6 +21,13 @@
         ->latest('paid_at')
         ->first();
 
+    // Get demand details for each transaction
+    foreach ($transactions as $txn) {
+        if ($txn->demand_id) {
+            $txn->demand = \App\Models\AllotteeMonthlyDemand::find($txn->demand_id);
+        }
+    }
+
 @endphp
 
 <div>
@@ -123,6 +130,8 @@
 
                             <th>Transaction No</th>
 
+                            <th>EMI No</th>
+
                             <th>Type</th>
 
                             <th>Principal</th>
@@ -160,6 +169,14 @@
                                     <strong>
                                         {{ $txn->transaction_no ?? '-' }}
                                     </strong>
+                                </td>
+
+                                <td>
+                                    @if ($txn->demand_id && isset($txn->demand))
+                                        EMI-{{ str_pad($txn->demand->emi_no, 2, '0', STR_PAD_LEFT) }}
+                                    @else
+                                        —
+                                    @endif
                                 </td>
 
                                 <td>
@@ -283,7 +300,7 @@
 
                                 <tr>
 
-                                    <td colspan="12" class="text-center py-5">
+                                    <td colspan="13" class="text-center py-5">
 
                                         <i class="fa-solid fa-clock-rotate-left fa-2x mb-2 text-muted"></i>
 

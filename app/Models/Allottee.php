@@ -182,6 +182,11 @@ class Allottee extends Model
         return $this->hasMany(AllotteeEmiSchedule::class, 'allottee_id', 'id');
     }
 
+    public function emiDemand()
+    {
+        return $this->hasMany(AllotteeMonthlyDemand::class, 'allottee_id', 'id');
+    }
+
     public static function generateUniquePropertyNumber(): string
     {
         do {

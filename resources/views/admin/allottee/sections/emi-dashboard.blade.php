@@ -4,14 +4,17 @@
 
     $emiAccount = \App\Models\AllotteeEmiAccount::where('allottee_id', $allottee->id)->first();
 
-    $schedules = $emiAccount
-        ? \App\Models\AllotteeEmiSchedule::where('emi_account_id', $emiAccount->id)->orderBy('emi_no')->get()
+    $demands = $emiAccount
+        ? \App\Models\AllotteeMonthlyDemand::where('emi_account_id', $emiAccount->id)->orderBy('emi_no')->get()
         : collect();
 
-    $paidEmis = $schedules->where('payment_status', 'paid')->count();
-    $pendingEmis = $schedules->where('payment_status', '!=', 'paid')->count();
+    $paidDemands = $demands->where('demand_status', 'Paid')->count();
+    $pendingDemands = $demands->whereIn('demand_status', ['Pending', 'Partially Paid', 'Overdue'])->count();
 
-    $nextEmi = $schedules->where('payment_status', '!=', 'paid')->sortBy('emi_no')->first();
+    $nextDemand = $demands
+        ->whereIn('demand_status', ['Pending', 'Partially Paid', 'Overdue'])
+        ->sortBy('emi_no')
+        ->first();
 
 @endphp
 
@@ -47,7 +50,7 @@
             <div class="col-md-3">
                 <div class="info-card">
                     <p class="info-card-label">
-                        Principal Amount
+                        Principle Amount
                     </p>
 
                     <p class="info-card-value">
@@ -87,7 +90,7 @@
                     </p>
 
                     <p class="info-card-value text-danger">
-                        ₹ {{ number_format($emiAccount->remaining_amount, 2) }}
+                        ₹ {{ number_format($emiAccount->annualized_amount, 2) }}
                     </p>
                 </div>
             </div>
@@ -112,11 +115,11 @@
             <div class="col-md-3">
                 <div class="info-card">
                     <p class="info-card-label">
-                        Paid EMI
+                        Paid Demands
                     </p>
 
                     <p class="info-card-value text-success">
-                        {{ $paidEmis }}
+                        {{ $paidDemands }}
                     </p>
                 </div>
             </div>
@@ -124,11 +127,11 @@
             <div class="col-md-3">
                 <div class="info-card">
                     <p class="info-card-label">
-                        Pending EMI
+                        Pending Demands
                     </p>
 
                     <p class="info-card-value text-warning">
-                        {{ $pendingEmis }}
+                        {{ $pendingDemands }}
                     </p>
                 </div>
             </div>
@@ -157,25 +160,25 @@
 
         </div>
 
-        {{-- NEXT EMI --}}
-        @if ($nextEmi)
+        {{-- NEXT DEMAND --}}
+        @if ($nextDemand)
             <div class="alert alert-warning mb-4">
 
                 <strong>
                     Next EMI :
                 </strong>
 
-                EMI #{{ $nextEmi->emi_no }}
+                EMI #{{ $nextDemand->emi_no }}
 
                 |
 
                 Due Date :
-                {{ \Carbon\Carbon::parse($nextEmi->due_date)->format('d-m-Y') }}
+                {{ \Carbon\Carbon::parse($nextDemand->due_date)->format('d-m-Y') }}
 
                 |
 
                 Amount :
-                ₹ {{ number_format($nextEmi->total_payable, 2) }}
+                ₹ {{ number_format($nextDemand->total_demand_amount, 2) }}
 
             </div>
         @endif
@@ -189,8 +192,8 @@
             margin-bottom:20px;
         ">
 
-            @if ($nextEmi)
-                <button class="btn-brand" onclick="payEmi('{{ encrypt($nextEmi->id) }}')">
+            @if ($nextDemand)
+                <button class="btn-brand" onclick="payEmi('{{ encrypt($nextDemand->id) }}')">
 
                     <i class="fa-solid fa-credit-card"></i>
                     Pay EMI
@@ -221,7 +224,7 @@
 
         </div>
 
-        {{-- EMI SCHEDULE --}}
+        {{-- EMI DEMANDS TABLE --}}
         <div class="card">
 
             <div class="card-header">
@@ -238,57 +241,72 @@
                             <tr>
                                 <th>#</th>
                                 <th>Due Date</th>
-                                <th>Opening Principal</th>
-                                <th>Principal</th>
+                                <th>Opening Principle</th>
                                 <th>Interest</th>
+                                <th>Annualized Amount</th>
+                                <th>Principle</th>
                                 <th>Penalty</th>
-                                <th>Total Payable</th>
+                                <th>Total Paid</th>
+                                <th>Payment Date</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
 
                         <tbody>
 
-                            @forelse($schedules as $schedule)
+                            @forelse($demands as $demand)
                                 <tr>
 
                                     <td>
-                                        {{ $schedule->emi_no }}
+                                        {{ $demand->emi_no }}
                                     </td>
 
                                     <td>
-                                        {{ \Carbon\Carbon::parse($schedule->due_date)->format('d-m-Y') }}
+                                        {{ \Carbon\Carbon::parse($demand->due_date)->format('d-m-Y') }}
                                     </td>
 
                                     <td>
-                                        ₹ {{ number_format($schedule->opening_principal, 2) }}
+                                        ₹ {{ number_format($demand->opening_balance, 2) }}
                                     </td>
 
                                     <td>
-                                        ₹ {{ number_format($schedule->principal_component, 2) }}
+                                        ₹ {{ number_format($demand->interest_amount, 2) }}
                                     </td>
 
                                     <td>
-                                        ₹ {{ number_format($schedule->interest_component, 2) }}
+                                        ₹ {{ number_format($demand->annualized_amount, 2) }}
+                                    </td>
+
+                                    <td>
+                                        ₹ {{ number_format($demand->principle_amount, 2) }}
                                     </td>
 
                                     <td class="text-danger">
-                                        ₹ {{ number_format($schedule->penalty_amount, 2) }}
+                                        ₹
+                                        {{ number_format($demand->late_fine_penalty + $demand->penalty_interest_amount, 2) }}
                                     </td>
 
                                     <td>
-                                        ₹ {{ number_format($schedule->total_payable, 2) }}
+                                        ₹ {{ number_format($demand->total_paid_amount, 2) }}
+                                    </td>
+
+                                    <td>
+                                        {{ optional($demand->paid_at)->format('d-m-Y') }}
                                     </td>
 
                                     <td>
 
-                                        @if ($schedule->payment_status == 'paid')
+                                        @if ($demand->demand_status == 'Paid')
                                             <span class="badge bg-success">
                                                 Paid
                                             </span>
-                                        @elseif($schedule->payment_status == 'overdue')
+                                        @elseif($demand->demand_status == 'Overdue')
                                             <span class="badge bg-danger">
                                                 Overdue
+                                            </span>
+                                        @elseif($demand->demand_status == 'Partially Paid')
+                                            <span class="badge bg-info">
+                                                Partial
                                             </span>
                                         @else
                                             <span class="badge bg-warning text-dark">
@@ -304,7 +322,7 @@
 
                                 <tr>
                                     <td colspan="8" class="text-center">
-                                        No EMI Schedule Found
+                                        No EMI Demands Found
                                     </td>
                                 </tr>
                             @endforelse

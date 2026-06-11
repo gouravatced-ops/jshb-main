@@ -2,44 +2,53 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class AllotteeMonthlyDemand extends Model
 {
     use HasFactory;
 
-    protected $table = 'allottee_monthly_demands';
+    protected $table = 'allottee_emi_demands';
+
+    const STATUS_PENDING  = 'pending';
+    const STATUS_PARTIAL  = 'partial';
+    const STATUS_PAID     = 'paid';
+    const STATUS_OVERDUE  = 'overdue';
 
     protected $fillable = [
         'allottee_id',
         'emi_account_id',
         'order_id',
 
-        'demand_month',
-        'demand_year',
+        'emi_no',
         'due_date',
 
-        'opening_principal',
+        'opening_balance',
+        'emi_amount',
 
-        'annual_interest_rate',
-        'penalty_interest_rate',
-
+        'interest_rate',
         'interest_amount',
-        'penalty_amount',
-        'late_fee',
-        'admin_charge',
 
-        'total_demand',
+        'penalty_interest_rate',
+        'penalty_interest_amount',
 
-        'paid_amount',
+        'principle_amount',
+        'late_fine_penalty',
+        'penalty_admin_charges',
+
+        'annualized_amount',
         'balance_amount',
 
+        'total_demand_amount',
+        'total_paid_amount',
+
         'demand_status',
+        'outstanding_amount',
 
         'generated_at',
+        'payment_date',
         'paid_at',
-
         'remarks',
         'created_by',
     ];
@@ -49,6 +58,12 @@ class AllotteeMonthlyDemand extends Model
         'generated_at' => 'datetime',
         'paid_at'      => 'datetime',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
 
     public function allottee()
     {
@@ -71,55 +86,101 @@ class AllotteeMonthlyDemand extends Model
         );
     }
 
-    public function refreshDemand()
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+
+    public function isPaid(): bool
     {
-        if ($this->demand_status === 'paid') {
-            return;
+        return $this->demand_status === self::STATUS_PAID;
+    }
+
+    public function isOverdue(): bool
+    {
+        return now()->startOfDay()->gt($this->due_date);
+    }
+
+    protected function calculateInterestAmount(): float
+    {
+        return round(
+            ($this->opening_balance * $this->interest_rate / 100) / 12,
+            2
+        );
+    }
+
+    protected function calculatePenaltyAmount(): float
+    {
+        if (!$this->isOverdue()) {
+            return 0;
         }
 
-        $today = now()->startOfDay();
+        return round(
+            ($this->opening_balance * $this->penalty_interest_rate / 100) / 12,
+            2
+        );
+    }
 
-        $interestRate =
-            $today->gt($this->due_date)
-            ? ($this->annual_interest_rate + $this->penalty_interest_rate)
-            : $this->annual_interest_rate;
+    protected function calculateLateFee(float $interestAmount): float
+    {
+        return $this->isOverdue()
+            ? round($interestAmount * 0.01, 2)
+            : 0;
+    }
 
-        $interestAmount =
-            ($this->opening_principal * $interestRate / 100) / 12;
+    protected function calculateAdminCharge(): float
+    {
+        return $this->isOverdue() ? 10 : 0;
+    }
 
-        $lateFee = 0;
-        $penaltyAmount = 0;
-        $adminCharge = 0;
+    /*
+    |--------------------------------------------------------------------------
+    | Demand Refresh
+    |--------------------------------------------------------------------------
+    */
 
-        if ($today->gt($this->due_date)) {
-
-            $lateFee = round($interestAmount * 0.01, 2);
-
-            $adminCharge = 10;
-
-            $penaltyAmount =
-                ($this->opening_principal * $this->penalty_interest_rate / 100) / 12;
+    public function refreshDemand(): self
+    {
+        if ($this->isPaid()) {
+            return $this;
         }
 
-        $totalDemand =
+        $interestAmount = $this->calculateInterestAmount();
+
+        $penaltyAmount = $this->calculatePenaltyAmount();
+
+        $lateFee = $this->calculateLateFee($interestAmount);
+
+        $adminCharge = $this->calculateAdminCharge();
+
+        $totalDemand = round(
             $interestAmount +
-            $penaltyAmount +
-            $lateFee +
-            $adminCharge;
+                $penaltyAmount +
+                $lateFee +
+                $adminCharge,
+            2
+        );
 
-        $this->update([
-            'interest_amount' => round($interestAmount, 2),
-            'penalty_amount'  => round($penaltyAmount, 2),
-            'late_fee'        => round($lateFee, 2),
-            'admin_charge'    => round($adminCharge, 2),
-            'total_demand'    => round($totalDemand, 2),
-            'balance_amount'  => round(
-                $totalDemand - $this->paid_amount,
-                2
-            ),
-            'demand_status'   => $today->gt($this->due_date)
-                ? 'overdue'
-                : $this->demand_status,
-        ]);
+        $balanceAmount = round(
+            max(0, $totalDemand - $this->paid_amount),
+            2
+        );
+
+        $status = $this->isOverdue()
+            ? self::STATUS_OVERDUE
+            : $this->demand_status;
+
+        $this->fill([
+            'interest_amount' => $interestAmount,
+            'penalty_amount'  => $penaltyAmount,
+            'late_fee'        => $lateFee,
+            'admin_charge'    => $adminCharge,
+            'total_demand'    => $totalDemand,
+            'balance_amount'  => $balanceAmount,
+            'demand_status'   => $status,
+        ])->save();
+
+        return $this;
     }
 }

@@ -15,7 +15,7 @@ use App\Models\AllotteeGeneratedDocument;
 use App\Models\AllotteePaymentOrder;
 use App\Models\AllotteeTransaction;
 use App\Models\AllotteeEmiAccount;
-use App\Models\AllotteeEmiSchedule;
+use App\Models\AllotteeMonthlyDemand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
@@ -1076,6 +1076,10 @@ class AllotteeController extends Controller
 
             $finance = $allottee->scheme->schemeFinance;
 
+            if (!$finance) {
+                throw new \Exception("Scheme financial details not found for the selected property.");
+            }
+
             $propertyAmount = (float) ($finance->property_total_cost ?? 0);
 
             $lotteryPercentage   = (float) ($finance->lottery_percentage ?? 10);
@@ -1136,14 +1140,14 @@ class AllotteeController extends Controller
                 $nextSteps = [10, 11];
             }
 
+            // In your updatePaymentOption method, replace the EMI section with:
+
             // EMI PAYMENT
             else {
-
                 // Remove one-time order if exists
-                AllotteePaymentOrder::where(
-                    'allottee_id',
-                    $allottee->id
-                )->where('order_type', 'final')->delete();
+                AllotteePaymentOrder::where('allottee_id', $allottee->id)
+                    ->where('order_type', 'final')
+                    ->delete();
 
                 $emiOrder = AllotteePaymentOrder::updateOrCreate(
                     [
@@ -1192,18 +1196,12 @@ class AllotteeController extends Controller
                     ]
                 );
 
-                // Generate EMI Schedule only once
-
-                if (
-                    DB::table('allottee_emi_schedules')
-                    ->where('emi_account_id', $emiAccount->id)
-                    ->count() == 0
-                ) {
-                    app(EmiCalculatorService::class)
-                        ->generateSchedule($emiAccount);
+                // Generate first demand only if no demands exist
+                if (!$emiAccount->demands()->exists()) {
+                    app(EmiCalculatorService::class)->generateFirstDemand($emiAccount);
                 }
 
-                $nextSteps = [12, 13, 14];
+                $nextSteps = [12, 13, 14, 15];
             }
 
             // STEP MANAGEMENT
@@ -1233,6 +1231,52 @@ class AllotteeController extends Controller
             'success',
             'Payment option updated successfully.'
         );
+    }
+
+    /**
+     * Process EMI payment
+     */
+    public function processEmiPayment(Request $request, Allottee $allottee, $demandId)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'payment_mode' => 'required|in:cash,cheque,dd,upi,netbanking,gateway',
+        ]);
+
+        DB::transaction(function () use ($request, $allottee, $demandId, $validated) {
+            $demand = AllotteeMonthlyDemand::where('allottee_id', $allottee->id)
+                ->where('id', $demandId)
+                ->firstOrFail();
+
+            $emiService = app(EmiCalculatorService::class);
+
+            // Refresh penalty before payment
+            $emiService->refreshPenalty($demand);
+
+            // Apply payment
+            $emiService->applyPayment($demand, $validated['amount'], $validated['payment_mode']);
+
+            // Create transaction record
+            AllotteeTransaction::create([
+                'allottee_id' => $allottee->id,
+                'demand_id' => $demand->id,
+                'transaction_type' => 'emi_payment',
+                'payment_stage' => 'emi',
+                'amount' => $validated['amount'],
+                'principal_amount' => $demand->principle_amount,
+                'interest_amount' => $demand->interest_amount,
+                'penalty_amount' => $demand->late_fine_penalty + $demand->penalty_interest_amount,
+                'admin_charge' => $demand->penalty_admin_charges,
+                'total_amount' => $validated['amount'],
+                'payment_mode' => $validated['payment_mode'],
+                'payment_status' => 'success',
+                'transaction_no' => 'TXN-' . uniqid(),
+                'paid_at' => now(),
+                'created_by' => Auth::id(),
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'Payment processed successfully.');
     }
 
     public function allotmentLetter(Allottee $allottee)
@@ -1929,7 +1973,11 @@ class AllotteeController extends Controller
         ]);
 
         $allottee->emiAccount()->delete();
+        $allottee->emiDemand()->delete();
         $allottee->emiSchedule()->delete();
+        $allottee->allotteeTransaction()
+            ->where('transaction_type', '=', 'emi_payment')
+            ->delete();
 
         return redirect()
             ->route('admin.allottees.index')

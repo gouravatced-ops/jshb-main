@@ -248,12 +248,3 @@
         </button>
     </div> -->
 </div>
-<script>
-    function viewDocument(docName) {
-        alert('Viewing: ' + docName);
-    }
-
-    function submitAllDocuments() {
-        alert('Submitting all documents for verification');
-    }
-</script>

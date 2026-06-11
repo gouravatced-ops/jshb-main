@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CategoriesController;
 use App\Http\Controllers\Admin\SchemeController;
 use App\Http\Controllers\Admin\AllotteeController;
 use App\Http\Controllers\Admin\AllotteePaymentController;
+use App\Http\Controllers\Admin\AllotteeEmiController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -103,4 +104,45 @@ Route::middleware('auth')
 
         // One Time Payment
         Route::post('/allottees/one-time-pay', [AllotteePaymentController::class, 'payOnetimePayment'])->name('allottees.one-time-payment.pay');
+
+        // emi payment
+        // Allottee EMI Routes
+        Route::prefix('allottee')->name('allottee.')->group(function () {
+
+            // EMI Dashboard
+            Route::get('{allottee}/emi-dashboard', [AllotteeEmiController::class, 'dashboard'])
+                ->name('emi.dashboard');
+
+            // EMI Schedule
+            Route::get('{allottee}/emi-schedule', [AllotteeEmiController::class, 'schedule'])
+                ->name('emi.schedule');
+
+            // Pay EMI Page
+            Route::get('{allottee}/pay-emi', [AllotteeEmiController::class, 'payEmi'])
+                ->name('emi.pay');
+
+            // EMI History
+            Route::get('{allottee}/emi-history', [AllotteeEmiController::class, 'history'])
+                ->name('emi.history');
+
+            // Process EMI Payment
+            Route::post('{allottee}/process-emi-payment', [AllotteeEmiController::class, 'processPayment'])
+                ->name('emi.process-payment');
+
+            // Pre Payment (Extra Payment)
+            Route::post('{allottee}/pre-payment', [AllotteeEmiController::class, 'prePayment'])
+                ->name('emi.pre-payment');
+
+            // Close Loan
+            Route::post('{allottee}/close-loan', [AllotteeEmiController::class, 'closeLoan'])
+                ->name('emi.close');
+
+            // Download EMI Statement
+            Route::get('{allottee}/emi-statement', [AllotteeEmiController::class, 'downloadStatement'])
+                ->name('emi.statement');
+
+            // Refresh Penalties (AJAX)
+            Route::post('refresh-penalties', [AllotteeEmiController::class, 'refreshPenalties'])
+                ->name('emi.refresh-penalties');
+        });
     });
