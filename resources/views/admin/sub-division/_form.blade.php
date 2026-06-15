@@ -6,7 +6,7 @@
         <div class="form-grid">
             <div class="form-group">
                 <label>Division <span class="required">*</span></label>
-                <select name="division_id" class="form-control" required>
+                <select name="division_id" class="form-select" required>
                     <option value="">Select Division</option>
                     @foreach($divisions as $division)
                         <option value="{{ $division->id }}" {{ (string) old('division_id', $subDivision->division_id) === (string) $division->id ? 'selected' : '' }}>

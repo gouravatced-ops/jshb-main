@@ -256,12 +256,12 @@
 
             </button>
 
-            <button class="btn-ghost" onclick="showDummyGateway('{{ $currentDemand->id }}')">
+            {{-- <button class="btn-ghost" onclick="showDummyGateway('{{ $currentDemand->id }}')">
 
                 <i class="fa-solid fa-building-columns"></i>
                 Dummy Gateway
 
-            </button>
+            </button> --}}
 
         </div>
 

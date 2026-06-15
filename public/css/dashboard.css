@@ -2445,7 +2445,13 @@ table.ep-table tbody td {
 
 .action-btn.edit:hover {
     background: var(--primary-light);
-    border-color: #86efac;
+    border-color: #86a2ef;
+    color: var(--primary-color);
+}
+
+.action-btn.toggle-status:hover {
+    background: var(--primary-light);
+    border-color: #86a2ef;
     color: var(--primary-color);
 }
 

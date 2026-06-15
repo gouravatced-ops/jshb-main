@@ -230,22 +230,22 @@ class AllotteeController extends Controller
                         'icon'         => 'fa-solid fa-chart-line',
                         'blade'        => 'emi-dashboard',
                     ],
-                    // [
-                    //     'order_key'    => 2,
-                    //     'sub_menu_key' => 'monthly-emi',
-                    //     'title'        => 'Pay EMI',
-                    //     'icon'         => 'fa-solid fa-credit-card',
-                    //     'blade'        => 'monthly-emi',
-                    // ],
                     [
                         'order_key'    => 2,
+                        'sub_menu_key' => 'monthly-emi',
+                        'title'        => 'Pay EMI',
+                        'icon'         => 'fa-solid fa-credit-card',
+                        'blade'        => 'monthly-emi',
+                    ],
+                    [
+                        'order_key'    => 3,
                         'sub_menu_key' => 'emi-schedule',
                         'title'        => 'EMI Schedule',
                         'icon'         => 'fa-solid fa-calendar-check',
                         'blade'        => 'emi-schedule',
                     ],
                     [
-                        'order_key'    => 3,
+                        'order_key'    => 4,
                         'sub_menu_key' => 'emi-history',
                         'title'        => 'EMI History',
                         'icon'         => 'fa-solid fa-receipt',
@@ -1192,6 +1192,7 @@ class AllotteeController extends Controller
                         'tenure_months'         => $tenureMonths,
                         'account_status'        => 'active',
                         'emi_start_date'        => now()->addMonth()->startOfMonth(),
+                        'emi_end_date'          => Carbon::parse(now()->addMonth()->startOfMonth())->addMonths($tenureMonths - 1),
                         'created_by'            => Auth::id(),
                     ]
                 );

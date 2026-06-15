@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Allottee;
 use App\Models\AllotteeEmiAccount;
+use App\Models\AllotteeGeneratedDocument;
 use App\Models\AllotteeMonthlyDemand;
 use App\Models\AllotteeTransaction;
 use App\Services\EmiCalculatorService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -211,6 +214,69 @@ class AllotteeEmiController extends Controller
                     'created_by' => Auth::id(),
                 ]);
 
+                // --- START RECEIPT GENERATION ---
+                // Amount in Word English and Hindi
+                $amountInEnglish = amountToWords($transaction->total_amount, 'en');
+                $amountInHindi = amountToWords($transaction->total_amount, 'hi');
+
+                // Information for template (e.g., "January 2024")
+                $emiMonth = Carbon::parse($demand->due_date)->format('F Y');
+
+                // GENERATE RECEIPT PDF
+                $pdf = Pdf::loadView(
+                    'admin.allottee.sections.emi-payment-receipt',
+                    compact(
+                        'demand',
+                        'transaction',
+                        'amountInEnglish',
+                        'amountInHindi',
+                        'emiMonth'
+                    )
+                )
+                    ->setPaper('a4', 'portrait')
+                    ->setOptions([
+                        'defaultFont' => 'DejaVu Sans',
+                        'dpi' => 96,
+                        'isHtml5ParserEnabled' => true,
+                        'isRemoteEnabled' => true,
+                        'chroot' => public_path(),
+                    ]);
+
+                // RECEIPT FOLDER
+                $folder = implode('/', [
+                    'documents',
+                    'allottee',
+                    'payment',
+                    'emi',
+                    now()->format('Y'),
+                    now()->format('m'),
+                    now()->format('d'),
+                ]);
+                $directory = public_path($folder);
+                File::ensureDirectoryExists($directory, 0755, true);
+
+                // RECEIPT FILE
+                $fileName = 'emi-payment-receipt-' . $demand->id . '-' . now()->format('YmdHis') . '-' . rand(1000, 9999) . '.pdf';
+                file_put_contents($directory . '/' . $fileName, $pdf->output());
+
+                // UPDATE TRANSACTION RECEIPT
+                $transaction->update([
+                    'receipt_file' => $fileName,
+                    'receipt_path' => $folder . '/' . $fileName,
+                ]);
+
+                // SAVE GENERATED DOCUMENT
+                AllotteeGeneratedDocument::create([
+                    'allottee_id'    => $allottee->id,
+                    'document_name'  => 'EMI Payment Receipt - ' . $emiMonth,
+                    'document_type'  => 'emi-payment-receipt',
+                    'file_name'      => $fileName,
+                    'file_path'      => $folder . '/' . $fileName,
+                    'generated_by'   => Auth::id(),
+                    'generated_at'   => now(),
+                ]);
+                // --- END RECEIPT GENERATION ---
+
                 $nextDemand = AllotteeMonthlyDemand::where('emi_account_id', $emiAccount->id)
                     ->whereIn('demand_status', ['Pending', 'Partially Paid', 'Overdue'])
                     ->orderBy('emi_no')
@@ -224,6 +290,7 @@ class AllotteeEmiController extends Controller
                     'has_next_demand' => $nextDemand !== null,
                     'account_status' => $emiAccount->account_status,
                     'remaining_amount' => $emiAccount->remaining_amount,
+                    'receipt_url' => asset($folder . '/' . $fileName),
                 ];
             });
 
@@ -233,11 +300,19 @@ class AllotteeEmiController extends Controller
 
             return redirect()->route('admin.allottee.emi.pay', $allottee)
                 ->with('success', $result['message']);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('EMI Payment failed', [
                 'allottee_id' => $allottee->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
+
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment failed: ' . $e->getMessage()
+                ], 500);
+            }
 
             return redirect()->back()
                 ->with('error', 'Payment failed: ' . $e->getMessage());

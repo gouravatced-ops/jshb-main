@@ -143,7 +143,7 @@ class EmiCalculatorService
             'emi_amount' => $emiAmount,
             'interest_rate' => $account->annual_interest_rate,
             'interest_amount' => $interestAmount,
-            'penalty_interest_rate' => $account->penalty_interest_rate + $account->annual_interest_rate,
+            'penalty_interest_rate' => $account->penalty_interest_rate,
             'penalty_interest_amount' => 0,
             'principle_amount' => 0,
             'late_fine_penalty' => 0,
@@ -298,33 +298,39 @@ class EmiCalculatorService
             return;
         }
 
+        $emiAccount = $demand->emiAccount;
+        $emiCount = $emiAccount->tenure_months;
+
         $dueDate = Carbon::parse($demand->due_date);
         $today = now();
 
         // Check if payment is late (after due date)
         if ($today->gt($dueDate)) {
-            // Calculate late fine: 1% of monthly EMI
+            // Penalty Interest Rate (Dynamic: 16%)
+            $penaltyInterestRate = $demand->penalty_interest_rate;
+
+            // Formula: late_fine_penalty = 0.01 * emi_amount
             $lateFinePenalty = round($demand->emi_amount * 0.01, 2);
 
-            // Admin charges: ₹10
-            $adminCharges = 10;
+            // Formula: penalty_admin_charges = 10.00
+            $adminCharges = 10.00;
 
-            // Penalty interest: based on penalty_interest_rate
-            $penaltyInterestRate = $demand->penalty_interest_rate;
-            $monthlyPenaltyRate = ($penaltyInterestRate / 12) / 100;
-            $penaltyInterestAmount = round($demand->opening_balance * $monthlyPenaltyRate, 2);
+            // Formula: penalty_interest_amount = (opening_balance * penalty_interest_rate) / 100 / 12
+            $penaltyInterestAmount = round(($demand->opening_balance * $penaltyInterestRate) / 100 / 12, 2);
 
-            // Calculate new total demand amount
-            $newTotalDemandAmount = $demand->emi_amount + $lateFinePenalty + $adminCharges + $penaltyInterestAmount;
+            // New Formula: total_demand_amount = penalty_interest_amount + late_fine_penalty + penalty_admin_charges
+            $newTotalDemandAmount = $penaltyInterestAmount + $lateFinePenalty + $adminCharges + $demand->emi_amount;
 
             Log::info('EMI refreshPenalty overdue update', [
                 'demand_id' => $demand->id,
                 'allottee_id' => $demand->allottee_id,
                 'old_total_demand_amount' => $demand->total_demand_amount,
+                'penalty_interest_rate' => $penaltyInterestRate,
                 'new_total_demand_amount' => $newTotalDemandAmount,
                 'late_fine_penalty' => $lateFinePenalty,
                 'penalty_admin_charges' => $adminCharges,
                 'penalty_interest_amount' => $penaltyInterestAmount,
+                'principle_amount' => $demand->principle_amount,
                 'outstanding_amount_before' => $demand->outstanding_amount,
                 'outstanding_amount_after' => $newTotalDemandAmount - $demand->total_paid_amount,
             ]);
@@ -336,6 +342,7 @@ class EmiCalculatorService
                 'total_demand_amount' => $newTotalDemandAmount,
                 'outstanding_amount' => $newTotalDemandAmount - $demand->total_paid_amount,
                 'demand_status' => 'Overdue',
+                'is_late_payment' => 1,
             ]);
         } else {
             // Reset penalties if paid on time
@@ -358,6 +365,7 @@ class EmiCalculatorService
                     'total_demand_amount' => $originalDemandAmount,
                     'outstanding_amount' => $originalDemandAmount - $demand->total_paid_amount,
                     'demand_status' => 'Pending',
+                    'is_late_payment' => 0,
                 ]);
             }
         }

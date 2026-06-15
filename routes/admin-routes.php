@@ -9,6 +9,9 @@ use App\Http\Controllers\Admin\SchemeController;
 use App\Http\Controllers\Admin\AllotteeController;
 use App\Http\Controllers\Admin\AllotteePaymentController;
 use App\Http\Controllers\Admin\AllotteeEmiController;
+use App\Http\Controllers\Admin\PropertyTypeController;
+use App\Http\Controllers\Admin\PropertyMainTypeController;
+use App\Http\Controllers\Admin\QuarterTypeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -27,6 +30,7 @@ Route::middleware('auth')
         Route::post('/divisions', [DivisionController::class, 'store'])->name('divisions.store');
         Route::get('/divisions/{division}/edit', [DivisionController::class, 'edit'])->name('divisions.edit');
         Route::put('/divisions/{division}', [DivisionController::class, 'update'])->name('divisions.update');
+        Route::post('/divisions/{division}/toggle-status', [DivisionController::class, 'toggleStatus'])->name('divisions.toggle-status');
         Route::delete('/divisions/{division}', [DivisionController::class, 'destroy'])->name('divisions.destroy');
 
         // Sub Division
@@ -36,6 +40,7 @@ Route::middleware('auth')
         Route::post('/sub-divisions', [SubDivisionController::class, 'store'])->name('sub-divisions.store');
         Route::get('/sub-divisions/{subDivision}/edit', [SubDivisionController::class, 'edit'])->name('sub-divisions.edit');
         Route::put('/sub-divisions/{subDivision}', [SubDivisionController::class, 'update'])->name('sub-divisions.update');
+        Route::post('/sub-divisions/{subDivision}/toggle-status', [SubDivisionController::class, 'toggleStatus'])->name('sub-divisions.toggle-status');
         Route::delete('/sub-divisions/{subDivision}', [SubDivisionController::class, 'destroy'])->name('sub-divisions.destroy');
 
         // Property Category
@@ -45,7 +50,38 @@ Route::middleware('auth')
         Route::post('/categories', [CategoriesController::class, 'store'])->name('categories.store');
         Route::get('/categories/{categories}/edit', [CategoriesController::class, 'edit'])->name('categories.edit');
         Route::put('/categories/{categories}', [CategoriesController::class, 'update'])->name('categories.update');
+        Route::post('/categories/{categories}/toggle-status', [CategoriesController::class, 'toggleStatus'])->name('categories.toggle-status');
         Route::delete('/categories/{categories}', [CategoriesController::class, 'destroy'])->name('categories.destroy');
+
+        // Property Type
+        Route::get('/property-types', [PropertyTypeController::class, 'index'])->name('property-types.index');
+        Route::get('/property-types/search', [PropertyTypeController::class, 'search'])->name('property-types.search');
+        Route::get('/property-types/create', [PropertyTypeController::class, 'create'])->name('property-types.create');
+        Route::post('/property-types', [PropertyTypeController::class, 'store'])->name('property-types.store');
+        Route::get('/property-types/{propertyType}/edit', [PropertyTypeController::class, 'edit'])->name('property-types.edit');
+        Route::put('/property-types/{propertyType}', [PropertyTypeController::class, 'update'])->name('property-types.update');
+        Route::post('/property-types/{propertyType}/toggle-status', [PropertyTypeController::class, 'toggleStatus'])->name('property-types.toggle-status');
+        Route::delete('/property-types/{propertyType}', [PropertyTypeController::class, 'destroy'])->name('property-types.destroy');
+
+        // Property Sub Type
+        Route::get('/property-sub-types', [PropertyMainTypeController::class, 'index'])->name('property-sub-types.index');
+        Route::get('/property-sub-types/search', [PropertyMainTypeController::class, 'search'])->name('property-sub-types.search');
+        Route::get('/property-sub-types/create', [PropertyMainTypeController::class, 'create'])->name('property-sub-types.create');
+        Route::post('/property-sub-types', [PropertyMainTypeController::class, 'store'])->name('property-sub-types.store');
+        Route::get('/property-sub-types/{propertySubType}/edit', [PropertyMainTypeController::class, 'edit'])->name('property-sub-types.edit');
+        Route::put('/property-sub-types/{propertySubType}', [PropertyMainTypeController::class, 'update'])->name('property-sub-types.update');
+        Route::post('/property-sub-types/{propertySubType}/toggle-status', [PropertyMainTypeController::class, 'toggleStatus'])->name('property-sub-types.toggle-status');
+        Route::delete('/property-sub-types/{propertySubType}', [PropertyMainTypeController::class, 'destroy'])->name('property-sub-types.destroy');
+
+        // Quarter Type
+        Route::get('/quarter-types', [QuarterTypeController::class, 'index'])->name('quarter-types.index');
+        Route::get('/quarter-types/search', [QuarterTypeController::class, 'search'])->name('quarter-types.search');
+        Route::get('/quarter-types/create', [QuarterTypeController::class, 'create'])->name('quarter-types.create');
+        Route::post('/quarter-types', [QuarterTypeController::class, 'store'])->name('quarter-types.store');
+        Route::get('/quarter-types/{quarterType}/edit', [QuarterTypeController::class, 'edit'])->name('quarter-types.edit');
+        Route::put('/quarter-types/{quarterType}', [QuarterTypeController::class, 'update'])->name('quarter-types.update');
+        Route::post('/quarter-types/{quarterType}/toggle-status', [QuarterTypeController::class, 'toggleStatus'])->name('quarter-types.toggle-status');
+        Route::delete('/quarter-types/{quarterType}', [QuarterTypeController::class, 'destroy'])->name('quarter-types.destroy');
 
         // Scheme
         Route::get('/schemes', [SchemeController::class, 'index'])->name('schemes.index');

@@ -60,6 +60,7 @@ class DivisionController extends Controller
                     'created_at' => optional($division->created_at)->format('M d, Y') ?: '-',
                     'edit_url' => route('admin.divisions.edit', $division),
                     'delete_url' => route('admin.divisions.destroy', $division),
+                    'toggle_status_url' => route('admin.divisions.toggle-status', $division),
                 ];
             })
             ->values();
@@ -119,6 +120,21 @@ class DivisionController extends Controller
         return redirect()
             ->route('admin.divisions.index')
             ->with('success', 'Division updated successfully.');
+    }
+
+    public function toggleStatus(Division $division)
+    {
+        if ($redirect = $this->adminGuard()) {
+            return $redirect;
+        }
+
+        $division->update([
+            'status' => !$division->status,
+        ]);
+
+        return redirect()
+            ->route('admin.divisions.index')
+            ->with('success', 'Division status updated successfully.');
     }
 
     public function destroy(Division $division)

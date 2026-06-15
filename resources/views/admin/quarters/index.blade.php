@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Sub Division List | JSHB')
+@section('title', 'Quarter Type List | JSHB')
 
 @section('content')
 <div class="card">
@@ -13,16 +13,16 @@
 
     <div class="card-head">
         <div>
-            <div class="card-title">Sub Division List</div>
-            <div class="card-subtitle">Manage all sub divisions from the admin panel</div>
+            <div class="card-title">Quarter Type List</div>
+            <div class="card-subtitle">Manage all quarter types from the admin panel</div>
         </div>
         <div class="card-actions">
-            <form method="GET" action="{{ route('admin.sub-divisions.index') }}" class="search-box" onsubmit="return false;">
+            <form method="GET" action="{{ route('admin.quarter-types.index') }}" class="search-box" onsubmit="return false;">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="subDivisionSearchInput" name="search" value="{{ $search }}" placeholder="Search sub divisions..." autocomplete="off">
+                <input type="text" id="quarterTypeSearchInput" name="search" value="{{ $search }}" placeholder="Search quarter types..." autocomplete="off">
             </form>
-            <a class="btn-pink" href="{{ route('admin.sub-divisions.create') }}">
-                <i class="fa-solid fa-plus"></i> Add Sub Division
+            <a class="btn-pink" href="{{ route('admin.quarter-types.create') }}">
+                <i class="fa-solid fa-plus"></i> Add Quarter Type
             </a>
         </div>
     </div>
@@ -32,53 +32,53 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Sub Division</th>
-                    <th>Division</th>
                     <th>Code</th>
-                    <th>Colony</th>
+                    <th>Quarter Name</th>
+                    <th>Full Name</th>
+                    <th>Income Range</th>
+                    <th>Order</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody id="subDivisionTableBody">
-                @forelse($subDivisions as $subDivision)
+            <tbody id="quarterTypeTableBody">
+                @forelse($quarterTypes as $quarterType)
                     <tr>
-                        <td>{{ $subDivisions->firstItem() + $loop->index }}</td>
+                        <td>{{ $quarterTypes->firstItem() + $loop->index }}</td>
+                        <td>{{ $quarterType->quarter_code }}</td>
                         <td>
                             <div class="table-user">
-                                <!-- <div class="table-avatar a2">{{ strtoupper(substr($subDivision->name, 0, 2)) }}</div> -->
                                 <div>
-                                    <div class="table-name">{{ $subDivision->name }}</div>
-                                    <div class="table-email">{{ $subDivision->locality_address ?: 'No address added' }}</div>
+                                    <div class="table-name">{{ $quarterType->quarter_name }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td>{{ $subDivision->division?->name ?: '-' }}</td>
-                        <td>{{ $subDivision->subdivision_code ?: '-' }}</td>
-                        <td>{{ $subDivision->colony_name ?: '-' }}</td>
+                        <td>{{ $quarterType->quarter_full_name ?: '-' }}</td>
+                        <td>{{ $quarterType->income_range }}</td>
+                        <td>{{ $quarterType->display_order }}</td>
                         <td>
-                            <span class="badge-status {{ $subDivision->status ? 'active' : 'inactive' }}">
+                            <span class="badge-status {{ $quarterType->status == 1 ? 'active' : 'inactive' }}">
                                 <i class="fa-solid fa-circle"></i>
-                                {{ $subDivision->status ? 'Active' : 'Inactive' }}
+                                {{ $quarterType->status == 1 ? 'Active' : 'Inactive' }}
                             </span>
                         </td>
                         <td>
                             <div class="action-btns">
-                                <a class="action-btn edit" href="{{ route('admin.sub-divisions.edit', $subDivision) }}" title="Edit">
+                                <a class="action-btn edit" href="{{ route('admin.quarter-types.edit', $quarterType) }}" title="Edit">
                                     <i class="fa-solid fa-pen text-primary"></i>
                                 </a>
-                                <form action="{{ route('admin.sub-divisions.toggle-status', $subDivision) }}" method="POST" style="display:inline;">
+                                <form action="{{ route('admin.quarter-types.toggle-status', $quarterType) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('POST')
                                     <button class="action-btn toggle-status" type="submit" title="Toggle Status">
-                                        @if($subDivision->status)
+                                        @if($quarterType->status)
                                             <i class="fa-solid fa-toggle-on text-success"></i>
                                         @else
                                             <i class="fa-solid fa-toggle-off text-danger"></i>
                                         @endif
                                     </button>
                                 </form>
-                                <form action="{{ route('admin.sub-divisions.destroy', $subDivision) }}" method="POST" style="display:inline;">
+                                <form action="{{ route('admin.quarter-types.destroy', $quarterType) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button class="action-btn del" type="submit" title="Delete">
@@ -90,8 +90,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" style="text-align:center;padding:32px 20px;color:var(--text-light);">
-                            Sub Division list not found.
+                        <td colspan="8" style="text-align:center;padding:32px 20px;color:var(--text-light);">
+                            Quarter type list not found.
                         </td>
                     </tr>
                 @endforelse
@@ -99,24 +99,24 @@
         </table>
     </div>
 
-    @if($subDivisions->total() > 0)
-        <div class="table-pagination" id="subDivisionPagination">
+    @if($quarterTypes->total() > 0)
+        <div class="table-pagination" id="quarterTypePagination">
             <span>
-                Showing <strong>{{ $subDivisions->firstItem() }}</strong> to <strong>{{ $subDivisions->lastItem() }}</strong> of <strong>{{ $subDivisions->total() }}</strong> sub divisions
+                Showing <strong>{{ $quarterTypes->firstItem() }}</strong> to <strong>{{ $quarterTypes->lastItem() }}</strong> of <strong>{{ $quarterTypes->total() }}</strong> quarter types
             </span>
             <div class="pagination-btns">
-                @if($subDivisions->onFirstPage())
+                @if($quarterTypes->onFirstPage())
                     <span class="pag-btn" style="pointer-events:none;opacity:.5;"><i class="fa-solid fa-chevron-left"></i></span>
                 @else
-                    <a class="pag-btn" href="{{ $subDivisions->previousPageUrl() }}"><i class="fa-solid fa-chevron-left"></i></a>
+                    <a class="pag-btn" href="{{ $quarterTypes->previousPageUrl() }}"><i class="fa-solid fa-chevron-left"></i></a>
                 @endif
 
-                @foreach($subDivisions->getUrlRange(1, $subDivisions->lastPage()) as $page => $url)
-                    <a class="pag-btn {{ $page === $subDivisions->currentPage() ? 'active' : '' }}" href="{{ $url }}">{{ $page }}</a>
+                @foreach($quarterTypes->getUrlRange(1, $quarterTypes->lastPage()) as $page => $url)
+                    <a class="pag-btn {{ $page === $quarterTypes->currentPage() ? 'active' : '' }}" href="{{ $url }}">{{ $page }}</a>
                 @endforeach
 
-                @if($subDivisions->hasMorePages())
-                    <a class="pag-btn" href="{{ $subDivisions->nextPageUrl() }}"><i class="fa-solid fa-chevron-right"></i></a>
+                @if($quarterTypes->hasMorePages())
+                    <a class="pag-btn" href="{{ $quarterTypes->nextPageUrl() }}"><i class="fa-solid fa-chevron-right"></i></a>
                 @else
                     <span class="pag-btn" style="pointer-events:none;opacity:.5;"><i class="fa-solid fa-chevron-right"></i></span>
                 @endif
@@ -127,9 +127,9 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('subDivisionSearchInput');
-        const tableBody = document.getElementById('subDivisionTableBody');
-        const pagination = document.getElementById('subDivisionPagination');
+        const searchInput = document.getElementById('quarterTypeSearchInput');
+        const tableBody = document.getElementById('quarterTypeTableBody');
+        const pagination = document.getElementById('quarterTypePagination');
         let debounceTimer;
 
         function escapeHtml(value) {
@@ -145,8 +145,8 @@
             if (!rows.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" style="text-align:center;padding:32px 20px;color:var(--text-light);">
-                            Sub Division not found for this search.
+                        <td colspan="8" style="text-align:center;padding:32px 20px;color:var(--text-light);">
+                            Quarter type not found for this search.
                         </td>
                     </tr>
                 `;
@@ -156,19 +156,19 @@
             tableBody.innerHTML = rows.map((row, index) => `
                 <tr>
                     <td>${index + 1}</td>
+                    <td>${escapeHtml(row.quarter_code)}</td>
                     <td>
                         <div class="table-user">
                             <div>
-                                <div class="table-name">${escapeHtml(row.name)}</div>
-                                <div class="table-email">${escapeHtml(row.locality_address)}</div>
+                                <div class="table-name">${escapeHtml(row.quarter_name)}</div>
                             </div>
                         </div>
                     </td>
-                    <td>${escapeHtml(row.division_name)}</td>
-                    <td>${escapeHtml(row.subdivision_code)}</td>
-                    <td>${escapeHtml(row.colony_name)}</td>
+                    <td>${escapeHtml(row.quarter_full_name)}</td>
+                    <td>${escapeHtml(row.income_range)}</td>
+                    <td>${escapeHtml(row.display_order)}</td>
                     <td>
-                        <span class="badge-status ${row.status ? 'active' : 'inactive'}">
+                        <span class="badge-status ${row.status == 1 ? 'active' : 'inactive'}">
                             <i class="fa-solid fa-circle"></i>
                             ${escapeHtml(row.status_label)}
                         </span>
@@ -195,13 +195,13 @@
             const keyword = searchInput.value.trim();
 
             if (keyword === '') {
-                showSecondaryLoader('Loading sub divisions...');
-                window.location.href = @json(route('admin.sub-divisions.index'));
+                showSecondaryLoader('Loading quarter types...');
+                window.location.href = @json(route('admin.quarter-types.index'));
                 return;
             }
 
-            showSecondaryLoader('Searching sub divisions...');
-            fetch(`${@json(route('admin.sub-divisions.search'))}?search=${encodeURIComponent(keyword)}`, {
+            showSecondaryLoader('Searching quarter types...');
+            fetch(`${@json(route('admin.quarter-types.search'))}?search=${encodeURIComponent(keyword)}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json',

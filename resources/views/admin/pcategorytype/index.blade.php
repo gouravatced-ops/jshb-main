@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Division List | JSHB')
+@section('title', 'Property Type List | JSHB')
 
 @section('content')
     <div class="card">
@@ -16,18 +16,18 @@
 
         <div class="card-head">
             <div>
-                <div class="card-title">Division List</div>
-                <div class="card-subtitle">Manage all divisions from the admin panel</div>
+                <div class="card-title">Property Type List</div>
+                <div class="card-subtitle">Manage all property types from the admin panel</div>
             </div>
             <div class="card-actions">
-                <form method="GET" action="{{ route('admin.divisions.index') }}" class="search-box"
+                <form method="GET" action="{{ route('admin.property-types.index') }}" class="search-box"
                     onsubmit="return false;">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="divisionSearchInput" name="search" value="{{ $search }}"
-                        placeholder="Search divisions..." autocomplete="off">
+                    <input type="text" id="propertyTypeSearchInput" name="search" value="{{ $search }}"
+                        placeholder="Search property types..." autocomplete="off">
                 </form>
-                <a class="btn-pink" href="{{ route('admin.divisions.create') }}">
-                    <i class="fa-solid fa-plus"></i> Add Division
+                <a class="btn-pink" href="{{ route('admin.property-types.create') }}">
+                    <i class="fa-solid fa-plus"></i> Add Property Type
                 </a>
             </div>
         </div>
@@ -37,57 +37,52 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Division Name</th>
-                        <th>Division Code</th>
+                        <th>Type Name</th>
+                        <th>Category</th>
                         <th>Status</th>
-                        <th>Created</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="divisionTableBody">
-                    @forelse($divisions as $division)
+                <tbody id="propertyTypeTableBody">
+                    @forelse($propertyTypes as $propertyType)
                         <tr>
-                            <td>{{ $divisions->firstItem() + $loop->index }}</td>
+                            <td>{{ $propertyTypes->firstItem() + $loop->index }}</td>
                             <td>
                                 <div class="table-user">
-                                    <!-- <div class="table-avatar a1">{{ strtoupper(substr($division->name, 0, 2)) }}</div> -->
                                     <div>
-                                        <div class="table-name">{{ $division->name }}</div>
-                                        {{-- <div class="table-email">ID: {{ $division->id }}</div> --}}
+                                        <div class="table-name">{{ $propertyType->name }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ $division->division_code ?: '-' }}</td>
+                            <td>{{ $propertyType->propertyCategory?->name ?: '-' }}</td>
                             <td>
-                                <span class="badge-status {{ $division->status ? 'active' : 'inactive' }}">
+                                <span class="badge-status {{ $propertyType->status ? 'active' : 'inactive' }}">
                                     <i class="fa-solid fa-circle"></i>
-                                    {{ $division->status ? 'Active' : 'Inactive' }}
+                                    {{ $propertyType->status ? 'Active' : 'Inactive' }}
                                 </span>
                             </td>
-                            <td>{{ optional($division->created_at)->format('M d, Y') ?: '-' }}</td>
                             <td>
                                 <div class="action-btns">
-                                    <a class="action-btn edit" href="{{ route('admin.divisions.edit', $division) }}"
-                                        title="Edit">
+                                    <a class="action-btn edit"
+                                        href="{{ route('admin.property-types.edit', $propertyType) }}" title="Edit">
                                         <i class="fa-solid fa-pen text-primary"></i>
                                     </a>
-                                    <form action="{{ route('admin.divisions.toggle-status', $division) }}" method="POST"
-                                        style="display:inline;">
-                                        @csrf
-                                        @method('POST')
-                                        <button class="action-btn toggle-status" type="submit" title="Toggle Status">
-                                            @if($division->status)
-                                                <i class="fa-solid fa-toggle-on text-success"></i>
-                                            @else
-                                                <i class="fa-solid fa-toggle-off text-danger"></i>
-                                            @endif
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('admin.divisions.destroy', $division) }}" method="POST"
-                                        style="display:inline;">
+                                    <form action="{{ route('admin.property-types.toggle-status', $propertyType) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('POST')
+                                    <button class="action-btn toggle-status" type="submit" title="Toggle Status">
+                                        @if($propertyType->status)
+                                            <i class="fa-solid fa-toggle-on text-success"></i>
+                                        @else
+                                            <i class="fa-solid fa-toggle-off text-danger"></i>
+                                        @endif
+                                    </button>
+                                </form>
+                                    <form action="{{ route('admin.property-types.destroy', $propertyType) }}"
+                                        method="POST" style="display:inline;">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="action-btn del" type="submit" title="Delete">
+                                        <button class="action-btn del" type="submit" title="Toggle Status">
                                             <i class="fa-solid fa-trash text-danger"></i>
                                         </button>
                                     </form>
@@ -96,8 +91,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="text-align:center;padding:32px 20px;color:var(--text-light);">
-                                Division list not found.
+                            <td colspan="5" style="text-align:center;padding:32px 20px;color:var(--text-light);">
+                                Property type list not found.
                             </td>
                         </tr>
                     @endforelse
@@ -105,28 +100,29 @@
             </table>
         </div>
 
-        @if ($divisions->total() > 0)
-            <div class="table-pagination" id="divisionPagination">
+        @if ($propertyTypes->total() > 0)
+            <div class="table-pagination" id="propertyTypePagination">
                 <span>
-                    Showing <strong>{{ $divisions->firstItem() }}</strong> to
-                    <strong>{{ $divisions->lastItem() }}</strong> of <strong>{{ $divisions->total() }}</strong> divisions
+                    Showing <strong>{{ $propertyTypes->firstItem() }}</strong> to
+                    <strong>{{ $propertyTypes->lastItem() }}</strong> of <strong>{{ $propertyTypes->total() }}</strong>
+                    property types
                 </span>
                 <div class="pagination-btns">
-                    @if ($divisions->onFirstPage())
+                    @if ($propertyTypes->onFirstPage())
                         <span class="pag-btn" style="pointer-events:none;opacity:.5;"><i
                                 class="fa-solid fa-chevron-left"></i></span>
                     @else
-                        <a class="pag-btn" href="{{ $divisions->previousPageUrl() }}"><i
+                        <a class="pag-btn" href="{{ $propertyTypes->previousPageUrl() }}"><i
                                 class="fa-solid fa-chevron-left"></i></a>
                     @endif
 
-                    @foreach ($divisions->getUrlRange(1, $divisions->lastPage()) as $page => $url)
-                        <a class="pag-btn {{ $page === $divisions->currentPage() ? 'active' : '' }}"
+                    @foreach ($propertyTypes->getUrlRange(1, $propertyTypes->lastPage()) as $page => $url)
+                        <a class="pag-btn {{ $page === $propertyTypes->currentPage() ? 'active' : '' }}"
                             href="{{ $url }}">{{ $page }}</a>
                     @endforeach
 
-                    @if ($divisions->hasMorePages())
-                        <a class="pag-btn" href="{{ $divisions->nextPageUrl() }}"><i
+                    @if ($propertyTypes->hasMorePages())
+                        <a class="pag-btn" href="{{ $propertyTypes->nextPageUrl() }}"><i
                                 class="fa-solid fa-chevron-right"></i></a>
                     @else
                         <span class="pag-btn" style="pointer-events:none;opacity:.5;"><i
@@ -139,9 +135,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('divisionSearchInput');
-            const tableBody = document.getElementById('divisionTableBody');
-            const pagination = document.getElementById('divisionPagination');
+            const searchInput = document.getElementById('propertyTypeSearchInput');
+            const tableBody = document.getElementById('propertyTypeTableBody');
+            const pagination = document.getElementById('propertyTypePagination');
             let debounceTimer;
 
             function escapeHtml(value) {
@@ -157,8 +153,8 @@
                 if (!rows.length) {
                     tableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" style="text-align:center;padding:32px 20px;color:var(--text-light);">
-                            Division not found for this search.
+                        <td colspan="5" style="text-align:center;padding:32px 20px;color:var(--text-light);">
+                            Property type not found for this search.
                         </td>
                     </tr>
                 `;
@@ -172,18 +168,16 @@
                         <div class="table-user">
                             <div>
                                 <div class="table-name">${escapeHtml(row.name)}</div>
-                                <div class="table-email">ID: ${escapeHtml(row.id)}</div>
                             </div>
                         </div>
                     </td>
-                    <td>${escapeHtml(row.division_code)}</td>
+                    <td>${escapeHtml(row.category_name)}</td>
                     <td>
                         <span class="badge-status ${row.status ? 'active' : 'inactive'}">
                             <i class="fa-solid fa-circle"></i>
                             ${escapeHtml(row.status_label)}
                         </span>
                     </td>
-                    <td>${escapeHtml(row.created_at)}</td>
                     <td>
                         <div class="action-btns">
                             <a class="action-btn edit" href="${escapeHtml(row.edit_url)}" title="Edit">
@@ -192,7 +186,7 @@
                             <form action="${escapeHtml(row.delete_url)}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button class="action-btn del" type="submit" title="Delete">
+                                <button class="action-btn del" type="submit" title="Toggle Status">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </form>
@@ -204,18 +198,15 @@
 
             function fetchResults() {
                 const keyword = searchInput.value.trim();
-                const url = keyword === '' ?
-                    @json(route('admin.divisions.index')) :
-                    `${@json(route('admin.divisions.search'))}?search=${encodeURIComponent(keyword)}`;
 
                 if (keyword === '') {
-                    showSecondaryLoader('Loading divisions...');
-                    window.location.href = @json(route('admin.divisions.index'));
+                    showSecondaryLoader('Loading property types...');
+                    window.location.href = @json(route('admin.property-types.index'));
                     return;
                 }
 
-                showSecondaryLoader('Searching divisions...');
-                fetch(url, {
+                showSecondaryLoader('Searching property types...');
+                fetch(`${@json(route('admin.property-types.search'))}?search=${encodeURIComponent(keyword)}`, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json',

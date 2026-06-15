@@ -46,6 +46,8 @@ class AllotteeMonthlyDemand extends Model
         'demand_status',
         'outstanding_amount',
 
+        'is_late_payment',
+
         'generated_at',
         'payment_date',
         'paid_at',

@@ -53,7 +53,7 @@ const Step2Handler = {
 
         if (!stateId) return;
 
-        fetch(`/districts/${stateId}`)
+        fetch(`/public/districts/${stateId}`)
             .then(res => res.json())
             .then(data => {
                 const isHindi = targetId.includes('hi');

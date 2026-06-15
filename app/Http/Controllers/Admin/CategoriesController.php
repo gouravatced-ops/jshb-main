@@ -28,7 +28,7 @@ class CategoriesController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20)
             ->withQueryString();
-        
+
         return view('admin.categories.index', compact('categories', 'search'));
     }
 
@@ -58,6 +58,7 @@ class CategoriesController extends Controller
                     'created_at' => optional($categories->created_at)->format('M d, Y') ?: '-',
                     'edit_url' => route('admin.categories.edit', $categories),
                     'delete_url' => route('admin.categories.destroy', $categories),
+                    'toggle_status_url' => route('admin.categories.toggle-status', $categories),
                 ];
             })
             ->values();
@@ -117,6 +118,21 @@ class CategoriesController extends Controller
         return redirect()
             ->route('admin.categories.index')
             ->with('success', 'Category updated successfully.');
+    }
+
+    public function toggleStatus(PropertyCategory $categories)
+    {
+        if ($redirect = $this->adminGuard()) {
+            return $redirect;
+        }
+
+        $categories->update([
+            'status' => !$categories->status,
+        ]);
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Category status updated successfully.');
     }
 
     public function destroy(PropertyCategory $categories)
