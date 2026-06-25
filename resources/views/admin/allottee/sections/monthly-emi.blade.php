@@ -139,7 +139,7 @@
 
                     <p class="info-card-value">
                         ₹
-                        {{ number_format($currentDemand->principle_amount > 0 ? $currentDemand->principle_amount : $currentDemand->emi_amount - $currentDemand->interest_amount, 2) }}
+                        {{ number_format($currentDemand->opening_balance > 0 ? $currentDemand->opening_balance : $currentDemand->emi_amount - $currentDemand->interest_amount, 2) }}
                     </p>
                 </div>
             </div>

@@ -13,6 +13,7 @@ class AllotteeTransaction extends Model
     protected $fillable = [
         'allottee_id',
         'order_id',
+        'demand_id',
         'transaction_type',
         'payment_stage',
         'amount',

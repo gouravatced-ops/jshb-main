@@ -90,7 +90,7 @@
                     </p>
 
                     <p class="info-card-value text-danger">
-                        ₹ {{ number_format($nextDemand->annualized_amount, 2) }}
+                        ₹ {{ number_format($nextDemand?->annualized_amount ?? 0, 2) }}
                     </p>
                 </div>
             </div>

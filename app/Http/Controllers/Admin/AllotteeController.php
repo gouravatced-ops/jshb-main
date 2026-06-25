@@ -254,47 +254,10 @@ class AllotteeController extends Controller
                 ],
             ],
 
-            // FINAL CALCULATION
-            [
-                'order_key'   => 9,
-                'menu_key'    => 'final-calculation',
-                'title'       => 'Final Calculation',
-                'description' => 'Final calculation process',
-                'icon'        => 'fa-solid fa-calculator',
-                'always_show' => true,
-                'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                    ],
-                ],
-                'submenus'    => [
-                    [
-                        'order_key'    => 1,
-                        'sub_menu_key' => 'final-calculate-value',
-                        'title'        => 'Calculate Value',
-                        'icon'         => 'fa-solid fa-calculator',
-                        'blade'        => 'final-calculate-value',
-                    ],
-                    [
-                        'order_key'    => 2,
-                        'sub_menu_key' => 'final-payment-demand-note',
-                        'title'        => 'Payment Demand Note',
-                        'icon'         => 'fa-solid fa-file-invoice',
-                        'blade'        => 'final-payment-demand-note',
-                    ],
-                    [
-                        'order_key'    => 3,
-                        'sub_menu_key' => 'final-generate-letter',
-                        'title'        => 'Generate Letter',
-                        'icon'         => 'fa-solid fa-envelope-open-text',
-                        'blade'        => 'final-generate-letter',
-                    ],
-                ],
-            ],
-
+            
             // NOC
             [
-                'order_key'   => 10,
+                'order_key'   => 9,
                 'menu_key'    => 'noc',
                 'title'       => 'NOC',
                 'description' => 'NOC related process',
@@ -327,6 +290,44 @@ class AllotteeController extends Controller
                         'title'        => 'Generate NOC',
                         'icon'         => 'fa-solid fa-file-circle-plus',
                         'blade'        => 'generate-noc',
+                    ],
+                ],
+            ],
+
+            // FINAL CALCULATION
+            [
+                'order_key'   => 10,
+                'menu_key'    => 'final-calculation',
+                'title'       => 'Final Calculation',
+                'description' => 'Final calculation process',
+                'icon'        => 'fa-solid fa-calculator',
+                'always_show' => true,
+                'visible_if'  => [
+                    'payment_option' => [
+                        'emi',
+                    ],
+                ],
+                'submenus'    => [
+                    [
+                        'order_key'    => 1,
+                        'sub_menu_key' => 'final-calculate-value',
+                        'title'        => 'Calculate Value',
+                        'icon'         => 'fa-solid fa-calculator',
+                        'blade'        => 'final-calculate-value',
+                    ],
+                    [
+                        'order_key'    => 2,
+                        'sub_menu_key' => 'final-payment-demand-note',
+                        'title'        => 'Payment Demand Note',
+                        'icon'         => 'fa-solid fa-file-invoice',
+                        'blade'        => 'final-payment-demand-note',
+                    ],
+                    [
+                        'order_key'    => 3,
+                        'sub_menu_key' => 'final-generate-letter',
+                        'title'        => 'Generate Letter',
+                        'icon'         => 'fa-solid fa-envelope-open-text',
+                        'blade'        => 'final-generate-letter',
                     ],
                 ],
             ],
@@ -1196,7 +1197,7 @@ class AllotteeController extends Controller
                         'created_by'            => Auth::id(),
                     ]
                 );
-
+ 
                 // Generate first demand only if no demands exist
                 if (!$emiAccount->demands()->exists()) {
                     app(EmiCalculatorService::class)->generateFirstDemand($emiAccount);
@@ -1979,6 +1980,15 @@ class AllotteeController extends Controller
         $allottee->allotteeTransaction()
             ->where('transaction_type', '=', 'emi_payment')
             ->delete();
+        $allottee->generatedDocument()
+            ->where('document_type', 'emi-payment-receipt')
+            ->delete();
+
+        AllotteeProcessStep::where('allottee_id', $allottee->id)
+            ->whereIn('step_no', [16, 17, 18])
+            ->update([
+                'status' => 'locked',
+            ]);
 
         return redirect()
             ->route('admin.allottees.index')

@@ -9,6 +9,7 @@
 
     $totalPaid = \App\Models\AllotteeTransaction::where('allottee_id', $allottee->id)
         ->where('payment_status', 'success')
+        ->where('transaction_type', 'emi_payment')
         ->sum('total_amount');
 
     $totalEmiPaid = \App\Models\AllotteeTransaction::where('allottee_id', $allottee->id)

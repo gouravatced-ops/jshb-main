@@ -187,6 +187,11 @@ class Allottee extends Model
         return $this->hasMany(AllotteeMonthlyDemand::class, 'allottee_id', 'id');
     }
 
+    public function siteVerification()
+    {
+        return $this->hasOne(AllotteeSiteVerification::class, 'allottee_id', 'id');
+    }
+
     public static function generateUniquePropertyNumber(): string
     {
         do {

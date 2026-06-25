@@ -5,7 +5,9 @@ namespace App\Services;
 use Carbon\Carbon;
 use App\Models\AllotteeEmiAccount;
 use App\Models\AllotteeMonthlyDemand;
+use App\Models\AllotteeProcessStep;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class EmiCalculatorService
@@ -131,7 +133,11 @@ class EmiCalculatorService
         $annualizedAmount = round($openingPrincipal + $interestAmount, 2);
 
         // Total demand amount is the EMI amount (penalties applied later by refreshPenalty)
-        $totalDemandAmount = $emiAmount;
+        // If annualized amount is less than EMI, use annualized amount (final payment scenario)
+        // Otherwise, use the fixed EMI amount
+        $totalDemandAmount = ($annualizedAmount < $emiAmount)
+            ? $annualizedAmount
+            : $emiAmount;
 
         return AllotteeMonthlyDemand::create([
             'allottee_id' => $account->allottee_id,
@@ -253,25 +259,48 @@ class EmiCalculatorService
             'account_status' => $account->account_status,
         ]);
 
-        // If there is still remaining principal, ensure next demand exists.
-        if ($newRemainingAmount > 0) {
+        // If there is still significant remaining principal, ensure next demand exists.
+        // We use a threshold of 0.01 to avoid generating demands for rounding dust.
+        if ($newRemainingAmount > 0.01) {
             Log::info('EMI generating next demand after payment', [
                 'demand_id' => $demand->id,
                 'emi_account_id' => $account->id,
                 'account_remaining' => $newRemainingAmount,
             ]);
             $this->generateNextDemand($account);
-        }
-
-        // Close account if fully paid
-        if ($newRemainingAmount <= 0.01) {
-            Log::info('EMI account closing after payment', [
+        } else {
+            // Close account if fully paid or balance is negligible (<= 0.01)
+            Log::info('EMI account closing after final payment', [
                 'emi_account_id' => $account->id,
                 'remaining_amount' => $newRemainingAmount,
             ]);
+
+
             $account->update([
                 'account_status' => 'closed',
-                'closed_at' => now()
+                'closed_at' => now(),
+                'remaining_amount' => 0, // Settle any remaining tiny fraction
+            ]);
+
+            // STEP MANAGEMENT
+            $completedSteps = [12, 13, 14, 15];
+            AllotteeProcessStep::where('allottee_id', $demand->allottee_id)
+                ->whereIn('step_no', $completedSteps)
+                ->where('status', '!=', 'completed')
+                ->update([
+                    'status'       => 'completed',
+                    'completed_at' => now(),
+                    'completed_by' => Auth::id(),
+                ]);
+
+            $nextSteps = [16];
+
+            AllotteeProcessStep::where(
+                'allottee_id',
+                $demand->allottee_id
+            )->whereIn('step_no', $nextSteps)
+                ->update([
+                    'status' => 'pending',
             ]);
         }
 
