@@ -34,19 +34,10 @@ class DashboardController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
-        $employeeDetail = $user->engineerDetail()
-            ->with(['currentOrganization', 'department', 'district', 'block', 'postType'])
-            ->first();
         $recentLogins = $user->loginLogs()->latest()->take(5)->get();
         $otpLogCount = $user->otpLogs()->count();
-        $recentRequisitions = GuestHouseRequisition::query()
-            ->with(['district', 'block'])
-            ->where('user_id', $user->id)
-            ->latest()
-            ->take(5)
-            ->get();
 
-        return view('user.dashboard', compact('user', 'employeeDetail', 'recentLogins', 'otpLogCount', 'recentRequisitions'));
+        return view('user.dashboard', compact('user', 'recentLogins', 'otpLogCount'));
     }
 
     public function admin(Request $request)
@@ -164,6 +155,95 @@ class DashboardController extends Controller
             'latestLogin',
         ));
     }
+
+    public function engineer(Request $request)
+    {
+        if ($this->checkSessionExpiry($request)) {
+            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+        }
+
+        if ($redirect = $this->redirectIfLocked()) {
+            return $redirect;
+        }
+
+        $user = Auth::user();
+
+        if (! $user || $user->role !== 'engineer') {
+            return redirect()->route('dashboard')->with('error', 'Engineer access required.');
+        }
+
+        $users = User::with('detail')->orderByDesc('created_at')->get();
+        $loginLogs = LoginLog::latest()->take(10)->get();
+        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $latestLogin = $loginLogs->first();
+
+        return view('engineer.dashboard', compact(
+            'users',
+            'loginLogs',
+            'otpLogs',
+            'latestLogin',
+        ));
+    }
+
+    public function managing(Request $request)
+    {
+        if ($this->checkSessionExpiry($request)) {
+            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+        }
+
+        if ($redirect = $this->redirectIfLocked()) {
+            return $redirect;
+        }
+
+        $user = Auth::user();
+
+        if (! $user || $user->role !== 'managing') {
+            return redirect()->route('dashboard')->with('error', 'Managing Director access required.');
+        }
+
+        $users = User::with('detail')->orderByDesc('created_at')->get();
+        $loginLogs = LoginLog::latest()->take(10)->get();
+        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $latestLogin = $loginLogs->first();
+
+        return view('managing.dashboard', compact(
+            'users',
+            'loginLogs',
+            'otpLogs',
+            'latestLogin',
+        ));
+    }
+
+    public function operator(Request $request)
+    {
+        if ($this->checkSessionExpiry($request)) {
+            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+        }
+
+        if ($redirect = $this->redirectIfLocked()) {
+            return $redirect;
+        }
+
+        $user = Auth::user();
+
+        if (! $user || $user->role !== 'operator') {
+            return redirect()->route('dashboard')->with('error', 'Operator access required.');
+        }
+
+        $users = User::with('detail')->orderByDesc('created_at')->get();
+        $loginLogs = LoginLog::latest()->take(10)->get();
+        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $latestLogin = $loginLogs->first();
+
+        return view('operator.dashboard', compact(
+            'users',
+            'loginLogs',
+            'otpLogs',
+            'latestLogin',
+        ));
+    }
+
+
 
     private function checkSessionExpiry(Request $request)
     {

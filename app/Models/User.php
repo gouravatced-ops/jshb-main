@@ -19,6 +19,31 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    protected static function booted()
+    {
+        static::saving(function ($user) {
+            if ($user->role_id) {
+                $role = $user->roleRelation ?: Role::find($user->role_id);
+                if ($role) {
+                    $slug = $role->slug;
+                    $user->user_type = match ($slug) {
+                        'admin', 'super-admin', 'managing-director' => 'administration',
+                        'division-officer',
+                        'dealing-assistant',
+                        'office-superintendent',
+                        'estate-officer',
+                        'executive-engineer',
+                        'assistant-engineer',
+                        'junior-engineer' => 'engineer',
+                        'allottee' => 'allottee',
+                        'operator' => 'operator',
+                        default => 'staff',
+                    };
+                }
+            }
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -29,10 +54,14 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'role_id',
+        'division_id',
+        'user_type',
         'login_with_otp',
         'password_created_at',
         'photo',
         'is_locked',
+        'status',
         'secure_pin',
     ];
 
@@ -59,6 +88,7 @@ class User extends Authenticatable
             'password_created_at' => 'datetime',
             'login_with_otp' => 'boolean',
             'is_locked' => 'boolean',
+            'status' => 'boolean',
             'password' => 'hashed',
             'secure_pin' => 'hashed',
         ];
@@ -71,7 +101,7 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserDetail::class);
     }
-    
+
     // If you want to keep both relationship names
     public function userDetail()
     {
@@ -101,5 +131,64 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new CustomResetPasswordNotification($token));
+    }
+
+    public function roleRelation()
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function getRoleAttribute()
+    {
+        $slug = $this->roleRelation?->slug;
+
+        if (!$slug) {
+            return null;
+        }
+
+        return match ($slug) {
+            'admin', 'super-admin' => 'admin',
+            'division-officer'     => 'division',
+            'executive-engineer',
+            'dealing-assistant',
+            'office-superintendent',
+            'estate-officer',
+            'assistant-engineer',
+            'junior-engineer'      => 'engineer',
+            'managing-director'    => 'managing',
+            'operator'             => 'operator',
+            'allottee'             => 'user',
+            default                => 'staff',
+        };
+    }
+
+    public function setRoleAttribute($value)
+    {
+        $map = [
+            'admin'       => 'admin',
+            'division'    => 'division-officer',
+            'engineer' => 'executive-engineer',
+            'managing'    => 'managing-director',
+            'operator'    => 'operator',
+            'user'        => 'allottee',
+            'staff'       => 'staff',
+        ];
+
+        if (isset($map[$value])) {
+            $role = Role::where('slug', $map[$value])->first();
+            if ($role) {
+                $this->attributes['role_id'] = $role->id;
+            }
+        }
+    }
+
+    public function division()
+    {
+        return $this->belongsTo(Division::class, 'division_id');
+    }
+
+    public function getRoleDisplayNameAttribute()
+    {
+        return $this->roleRelation ? $this->roleRelation->name : ucfirst($this->role);
     }
 }

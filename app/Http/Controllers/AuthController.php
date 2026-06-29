@@ -34,6 +34,10 @@ class AuthController extends Controller
             return back()->withInput()->with('error', 'Account not found.');
         }
 
+        if ($user->status === false || $user->status === 0 || $user->status === '0') {
+            return back()->withInput()->with('error', 'Your account has been deactivated.');
+        }
+
         if ($otpStage) {
             if (! $user->login_with_otp) {
                 return back()->withInput()->with('error', 'This account does not use OTP login.');
@@ -211,7 +215,12 @@ class AuthController extends Controller
     }
 
     private function setSessionExpiry(Request $request)
-    {   
+    {
+        if (app()->environment('local')) {
+            $request->session()->forget(['session_expires_at_ts', 'session_expires_at', 'session_last_activity']);
+            return;
+        }
+
         $minutesOfSession = (int) env('SESSION_LIFETIME', 60);
         $expiry = now()->addMinutes($minutesOfSession);
         $request->session()->put('session_expires_at_ts', $expiry->timestamp);
@@ -221,13 +230,25 @@ class AuthController extends Controller
 
     private function dashboardRoute(User $user): string
     {
-        return match ($user->role) {
-            'user'        => 'dashboard',
-            'admin'       => 'admin.dashboard',
-            'staff'       => 'staff.dashboard',
-            'division'    => 'division.dashboard',
-            'subdivision' => 'subdivision.dashboard',
-            default       => 'dashboard', // fallback safety
+        return match ($user->roleRelation->slug) {
+
+            'admin',
+            'super-admin' => 'admin.dashboard',
+            'division-officer' => 'division.dashboard',
+
+            'executive-engineer',
+            'dealing-assistant',
+            'office-superintendent',
+            'estate-officer',
+            'assistant-engineer',
+            'junior-engineer' => 'engineer.dashboard',
+
+            'managing-director' => 'managing.dashboard',
+
+            'operator' => 'operator.dashboard',
+
+            'allottee' => 'dashboard',
+            default => 'staff.dashboard',
         };
     }
 }

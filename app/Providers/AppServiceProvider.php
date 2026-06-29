@@ -14,11 +14,10 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\Gate::define('super-admin', function (\App\Models\User $user) {
+            return $user->roleRelation?->slug === 'super-admin';
+        });
     }
 }

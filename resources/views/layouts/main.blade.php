@@ -15,11 +15,7 @@
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 </head>
 
-<body class="abstract-background glowing-rings">
-
-    <div class="ring ring-1"></div>
-    <div class="ring ring-2"></div>
-    <div class="ring ring-3"></div>
+<body>
 
     <!-- TOASTER -->
     <div class="toaster-wrap" id="toasterWrap"></div>

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             DepartmentSeeder::class,
+            RoleSeeder::class,
         ]);
 
         User::factory()
@@ -61,7 +62,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
-            'role' => 'admin',
+            'role_id' => 8,
             'login_with_otp' => true,
             'email_verified_at' => now(),
             'password_created_at' => now(),

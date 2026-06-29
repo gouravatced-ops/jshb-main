@@ -1,7 +1,7 @@
 <!-- HEADER -->
 @php
 $authUser = auth()->user();
-$profileRoute = $authUser?->role === 'admin' ? route('admin.profile') : route('profile');
+$profileRoute = $authUser?->user_type === 'administration' ? route('admin.profile') : route('profile');
 $profileInitials = 'U';
 if ($authUser && ! empty($authUser->name)) {
 $nameParts = preg_split('/\s+/', trim($authUser->name));
@@ -34,11 +34,17 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
             <i class="fa-solid fa-magnifying-glass"></i>
         </button> -->
 
+        @if($authUser?->user_type === 'engineer')
+            <span style="font-size: 13px; color: var(--text-dark); margin-right: 15px; font-weight: 600; display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                <i class="fa-solid fa-user-gear" style="margin-right: 8px; color: var(--pink-color);"></i>
+                {{ $authUser->roleRelation?->name ?: 'Engineer' }} &nbsp; <strong>({{ $authUser->division?->name ?: 'No Division' }})</strong>
+            </span>
+        @endif
+
         <!-- Lock Screen -->
         <button class="header-icon-btn" title="Lock Screen" onclick="activateLockScreen()">
             <i class="fa-solid fa-lock"></i>
         </button>
-
         <!-- Notifications -->
         <div style="position:relative">
             <!-- <button class="header-icon-btn" id="notifBtn" onclick="toggleNotif()" title="Notifications">
@@ -104,7 +110,7 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
                 </div>
                 <div style="text-align:left">
                     <div class="profile-name">{{ $authUser->name ?? 'Guest User' }}</div>
-                    <div class="profile-role">{{ ucfirst($authUser->role ?? 'User') }}</div>
+                    <div class="profile-role">{{ ucfirst($authUser->roleRelation->name ?? 'User') }}</div>
                 </div>
                 <i class="fa-solid fa-chevron-down profile-chevron"></i>
             </button>
@@ -113,7 +119,7 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
                     <!-- <div class="profile-drop-avatar">AS</div> -->
                     <div>
                         <div class="profile-drop-name">{{ $authUser->name ?? 'Guest User' }}</div>
-                        <div class="profile-drop-role">{{ ucfirst($authUser->role ?? 'User') }} &bull; {{ $authUser->email ?? 'no-email@domain.com' }}</div>
+                        <div class="profile-drop-role">{{ $authUser->email ?? 'no-email@domain.com' }}</div>
                     </div>
                 </div>
                 <a class="profile-drop-item" href="{{ $profileRoute }}"><i class="fa-solid fa-user"></i> My Profile</a>

@@ -50,43 +50,6 @@
         <div class="card">
             <div class="card-head">
                 <div>
-                    <div class="card-title">Employee Details</div>
-                    <div class="card-subtitle">Official employee record linked with your login</div>
-                </div>
-                <a class="btn-outline" href="{{ route('requisitions.create') }}"><i class="fa-solid fa-file-signature"></i> New Requisition</a>
-            </div>
-            <div style="padding:22px;display:grid;gap:14px">
-                @if($employeeDetail)
-                    <div class="activity-item">
-                        <div class="activity-icon" style="background:var(--pink-light);color:var(--pink-primary)"><i class="fa-solid fa-id-badge"></i></div>
-                        <div class="activity-line">
-                            <div class="activity-text"><strong>{{ $employeeDetail->employee_name }}</strong> ({{ $employeeDetail->state_government_engineer_id }})</div>
-                            <div class="activity-time">{{ $employeeDetail->department?->name ?: '-' }} / {{ $employeeDetail->postType?->name ?: '-' }}</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon" style="background:var(--sky-light);color:var(--sky-primary)"><i class="fa-solid fa-building"></i></div>
-                        <div class="activity-line">
-                            <div class="activity-text"><strong>Organization</strong></div>
-                            <div class="activity-time">{{ $employeeDetail->currentOrganization?->name ?: '-' }}</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon" style="background:var(--green-light);color:var(--green-primary)"><i class="fa-solid fa-location-dot"></i></div>
-                        <div class="activity-line">
-                            <div class="activity-text"><strong>District / Block</strong></div>
-                            <div class="activity-time">{{ ($employeeDetail->district?->name_en ?: '-') . ' / ' . ($employeeDetail->block?->block_name_eng ?: '-') }}</div>
-                        </div>
-                    </div>
-                @else
-                    <div style="padding:10px 0;color:var(--text-light)">Employee details are not linked to this user yet.</div>
-                @endif
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-head">
-                <div>
                     <div class="card-title">Account Overview</div>
                     <div class="card-subtitle">Quick information about your profile</div>
                 </div>
@@ -143,63 +106,6 @@
                 @empty
                     <div style="padding:22px;color:var(--text-light)">No login activity found yet.</div>
                 @endforelse
-            </div>
-        </div>
-    </div>
-
-    <div class="grid-2" style="margin-bottom:24px">
-        <div class="card">
-            <div class="card-head">
-                <div>
-                    <div class="card-title">Guest House Requisitions</div>
-                    <div class="card-subtitle">Latest stay applications and approval status</div>
-                </div>
-                <a class="btn-pink" href="{{ route('requisitions.index') }}"><i class="fa-solid fa-list"></i> View All</a>
-            </div>
-            <div class="activity-feed">
-                @forelse($recentRequisitions as $requisition)
-                    <div class="activity-item">
-                        <div class="activity-icon" style="background:var(--orange-light, #fff7ed);color:#ea580c">
-                            <i class="fa-solid fa-hotel"></i>
-                        </div>
-                        <div class="activity-line">
-                            <div class="activity-text"><strong>{{ $requisition->guest_house_name }}</strong> at {{ $requisition->block?->block_name_eng ?: '-' }}</div>
-                            <div class="activity-time">{{ ucfirst($requisition->status) }} • {{ optional($requisition->stay_from)->format('d M Y') }} to {{ optional($requisition->stay_to)->format('d M Y') }}</div>
-                        </div>
-                    </div>
-                @empty
-                    <div style="padding:22px;color:var(--text-light)">No requisition applications found yet.</div>
-                @endforelse
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-head">
-                <div>
-                    <div class="card-title">Profile Completion</div>
-                    <div class="card-subtitle">Finish your account details for a better experience</div>
-                </div>
-                <a class="btn-pink" href="{{ route('profile') }}"><i class="fa-solid fa-pen-to-square"></i> Update Profile</a>
-            </div>
-            <div style="padding:22px">
-                @php
-                    $fields = [
-                        filled($user->name),
-                        filled($user->email),
-                        filled(optional($user->detail)->phone),
-                        filled(optional($user->detail)->city),
-                        filled(optional($user->detail)->state),
-                        filled($user->photo),
-                    ];
-                    $completion = (int) round((collect($fields)->filter()->count() / count($fields)) * 100);
-                @endphp
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                    <span style="font-size:13px;color:var(--text-mid);font-weight:600">Completion status</span>
-                    <span style="font-size:13px;color:var(--primary-color);font-weight:700">{{ $completion }}%</span>
-                </div>
-                <div class="progress-bar-custom">
-                    <div class="progress-fill" style="width:{{ $completion }}%;background:linear-gradient(90deg,var(--primary-color),var(--sky-primary))"></div>
-                </div>
             </div>
         </div>
     </div>

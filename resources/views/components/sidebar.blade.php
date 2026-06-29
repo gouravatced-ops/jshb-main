@@ -40,6 +40,12 @@
         @include('components.partials.division-sidebar')
     @elseif($sidebarUser?->role === 'subdivision')
         @include('components.partials.subdivision-sidebar')
+    @elseif($sidebarUser?->role === 'engineer')
+        @include('components.partials.engineer-sidebar')
+    @elseif($sidebarUser?->role === 'managing')
+        @include('components.partials.managing-sidebar')
+    @elseif($sidebarUser?->role === 'operator')
+        @include('components.partials.operator-sidebar')
     @endif
 
     <!-- Common Settings and Footer -->

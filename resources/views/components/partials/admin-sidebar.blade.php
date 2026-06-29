@@ -34,6 +34,31 @@
         </div>
     </div>
 
+    @if ($sidebarUser->roleRelation?->slug === 'super-admin')
+        <!-- Member Management -->
+        <div class="nav-item-wrap">
+            <div class="nav-link-custom {{ request()->routeIs('admin.members.*') ? 'active' : '' }}" onclick="toggleSubmenu('members',this)">
+                <div class="nav-icon">
+                    <i class="fa-solid fa-users-gear"></i>
+                </div>
+                <span class="nav-text">Members</span>
+                <i class="fa-solid fa-chevron-right nav-chevron" id="members-chev"></i>
+            </div>
+
+            <div class="submenu" id="members" style="{{ request()->routeIs('admin.members.*') ? 'display:block' : '' }}">
+                <a class="submenu-item {{ request()->routeIs('admin.members.index') ? 'active' : '' }}"
+                    href="{{ route('admin.members.index') }}">
+                    <i class="fa-solid fa-users"></i> Manage Members
+                </a>
+
+                <a class="submenu-item {{ request()->routeIs('admin.members.create') ? 'active' : '' }}"
+                    href="{{ route('admin.members.create') }}">
+                    <i class="fa-solid fa-user-plus"></i> Add Member
+                </a>
+            </div>
+        </div>
+    @endif
+
     <div class="sidebar-section-label">Components Management</div>
 
     <!-- Division -->

@@ -1,0 +1,215 @@
+                             Meine Abhi take Allottee Ki File Create Kardi Uske Baad
+
+AB File Movement Management
+
+Division
+
+Table : division	
+Id	Name
+1	Ranchi
+2	Dhanbad
+3	Jamshedpur
+4	Dumka
+5	Hazaribagh              
+
+Table : role	
+Id	Name
+1	Dealing Assistant
+2	Office Superintendent
+3	Estate Officer
+4	Managing Director
+5	Executive Engineer
+6	Assistant Engineer
+7	Junior Engineer
+8	Admin
+9	Super Admin
+10	Operator
+11	Staff
+12	Allottee
+
+Table : users					
+Id	Name	Mobile	Email	Role Id	Division Id
+1	Ritik Kumar	9879879846	Ritikkumar@gmail.com	1	1
+2	Manoranjan Kumar	9879879847	Manoranjankumar@gmail.com	2	1
+3	Kiran Kumar	9879879848	Kirankumar@gmail.com	3	1
+4	Gourav Kumar	9879879849	Gouravkumar@gmail.com	4	1
+5	Rakesh Kumar	9879879850	Rakeshkumar@gmail.com	5	1
+6	Ayush Kumar	9879879851	Ayushkumar@gmail.com	6	1
+7	Sourabh Dutta	9879879852	Sourabhdutta@gmail.com	7	1
+8	Harshit Kumar	9879879853	Harshitkumar@gmail.com	8	1
+9	Teeja Kumar	9879879854	Teejakumar@gmail.com	9	1
+10	Ashok Kumar	9879879855	Ashokkumar@gmail.com	10	1
+11	Jivesh Kumar	9879879856	Jiveshkumar@gmail.com	11	1
+12	Rajesh Kumar	9879879857	Rajeshkumar@gmail.com	12	1
+13	Sunil Kumar	9879879858	Sunilkumar@gmail.com	1	2
+14	Sanjeev Kumar	9879879859	Sanjeevkumar@gmail.com	2	2
+15	Manoj Kumar	9879879860	Manojkumar@gmail.com	3	2
+16	Punit Kumar	9879879861	Punitkumar@gmail.com	4	2
+17	Amit Kumar	9879879862	Amitkumar@gmail.com	5	2
+18	Sunny Kumar	9879879863	Sunnykumar@gmail.com	6	2
+19	Vinod Kumar	9879879864	Vinodkumar@gmail.com	7	2
+
+
+
+Ek Allottee ka Files File Movement Hoga 
+
+10% Lottery Payment Ke Baad
+
+Starting Phase  
+
+Lottery Apply
+ |
+Lottery Payment Done
+|
+
+Allottee File Created
+-------------------------------------------------------------------------------------------------------------
+File Movement Start  
+
+Allottee File
+        │
+        ▼
+Dealing Assistant
+        │
+   Note + Signature
+        │
+        ▼
+Office Superintendent
+        │
+   Note + Signature
+        │
+        ▼
+Estate Officer (Ranchi)
+        │
+   Note + Signature
+        │
+        ▼
+Allotment Letter Generated
+
+
+Allottee Pay  15% of Allotment Letter Amount (Paid)
+
+------------------------------------------------------------------------------------------------------------
+Aggreement Letter
+
+Allottee Apply For Aggreement
+        │
+        ▼
+Dealing Assistant
+        │
+   Note + Signature
+        │
+        ▼
+Office Superintendent
+        │
+   Note + Signature
+        │
+        ▼
+Estate Officer (Ranchi)
+        │
+   Note + Signature
+        │
+        ▼
+Managing Director (Ranchi)
+        │
+   Note + Signature
+        │
+        ▼
+Aggreement Letter Generated
+
+Download Aggreement and Signed and Upload Soft Copy by allottee 
+
+And 
+
+Download Dealing Assistant
+
+Signature + approve  and Upload Aggreement
+
+------------------------------------------------------------------------------------------------------------
+
+Now Allottee Apply For Possession Letter
+
+Possession apply Allottee Upload the Aggreement Letter with apply for Possession
+
+Apply Application for Possession Letter
+
+Possession Letter Apply Application Files of Allottee 
+        │
+        ▼
+Executive Engineer
+        │
+   Forward + Signature to AE/JE
+        │
+        ▼
+Assistant Engineer / Junior Engineer
+        │
+   Note + Signature + Approved
+        │
+        ▼
+Executive Engineer
+        │
+   Note + Signature + Approved
+        │
+        ▼
+Possession Letter Generated
+
+---------------------------------------------------------------------------------------------------------------
+
+Choose Payment Option
+
+EMI / One Time Payment 
+
+After EMI or One Time Payment Completed
+
+No Dues EMI Generated with 100%  include the transaction of lottery (10%) amount + (15%)  Allotment Amount  
++  EMI all tenure statment if one time so one time payment trasaction statement
+
+-----------------------------------------------------------------------------------------------------------------
+
+Allottee Now Apply Registry 
+
+Application of Registry
+
+Dealing Assistant
+        │
+   Forward + Signature with note
+        │
+        ▼
+Office Superintendent
+        │
+   Forward + Signature with note
+        │
+        ▼
+Estate Officer
+        │
+    Forward + Signature with note
+        │
+        ▼
+Executive Engineer
+        │
+   Forward + Signature forward to JE/AE  with note
+        │
+        ▼
+Assistant Engineer / Junior Engineer
+        │
+   Site Verification BY JE/AE
+        │
+        ▼
+    Site Checklist submit + verify AE/JE ke otp se
+        │
+        ▼
+    Extra Construction (Description if Yes) and Recommend Yes/No If No (Reason)
+        │
+        ▼
+Executive Engineer
+     Recommend Yes/No If No (Reason)  -> Allottee Notify
+        |
+        ▼
+Managing Director (Ranchi)
+        │
+   Note + Signature
+        │
+
+Property Transfer to Allottee with Registry Deed Completed
+
+Hr file movement as application ke through Allottee ka application jisse aasan hoga yeh application ke hissab se

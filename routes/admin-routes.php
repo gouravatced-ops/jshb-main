@@ -183,4 +183,15 @@ Route::middleware('auth')
             Route::post('refresh-penalties', [AllotteeEmiController::class, 'refreshPenalties'])
                 ->name('emi.refresh-penalties');
         });
+
+        // Members Management (Only accessible to super-admin)
+        Route::middleware('can:super-admin')->group(function () {
+            Route::get('/members', [\App\Http\Controllers\Admin\MemberController::class, 'index'])->name('members.index');
+            Route::get('/members/create', [\App\Http\Controllers\Admin\MemberController::class, 'create'])->name('members.create');
+            Route::post('/members', [\App\Http\Controllers\Admin\MemberController::class, 'store'])->name('members.store');
+            Route::get('/members/{member}/edit', [\App\Http\Controllers\Admin\MemberController::class, 'edit'])->name('members.edit');
+            Route::put('/members/{member}', [\App\Http\Controllers\Admin\MemberController::class, 'update'])->name('members.update');
+            Route::delete('/members/{member}', [\App\Http\Controllers\Admin\MemberController::class, 'destroy'])->name('members.destroy');
+            Route::post('/members/{member}/toggle-status', [\App\Http\Controllers\Admin\MemberController::class, 'toggleStatus'])->name('members.toggle-status');
+        });
     });

@@ -46,3 +46,6 @@ require __DIR__ . '/admin-routes.php';
 require __DIR__ . '/staff-routes.php';
 require __DIR__ . '/division-routes.php';
 require __DIR__ . '/subdivision-routes.php';
+require __DIR__ . '/engineer-routes.php';
+require __DIR__ . '/managing-routes.php';
+require __DIR__ . '/operator-routes.php';
