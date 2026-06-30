@@ -66,10 +66,18 @@
                                 <div class="table-user">
                                     <div>
                                         <div class="table-name">{{ $member->name }}</div>
+                                        {{-- <div class="table-email">{{ $member->username }}</div> --}}
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ $member->email }}</td>
+                            <td>
+                            <div class="table-user">
+                                    <div>
+                                        <div class="table-name">{{ $member->email }}</div>
+                                        <div class="table-email">{{ $member->username }}</div>
+                                    </div>
+                                </div>
+                            </td>
                             <td>
                                 <span class="badge-status active" style="background:#e0f2fe;color:#0369a1;">
                                     {{ $member->roleRelation?->name ?: 'No Role' }}
@@ -97,12 +105,12 @@
                                         $isProtected = in_array($roleSlug, ['admin', 'super-admin', 'allottee']);
                                     @endphp
 
-                                    {{-- @if(!$isProtected) --}}
+                                    @if(!$isProtected)
                                         <a class="action-btn edit" href="{{ route('admin.members.edit', $member->id) }}"
                                             title="Edit">
                                             <i class="fa-solid fa-pen text-primary"></i>
                                         </a>
-                                    {{-- @endif --}}
+                                    @endif
 
                                     <!-- Status Toggle (Deactive / Active Switch) -->
                                     <form action="{{ route('admin.members.toggle-status', $member->id) }}" method="POST"

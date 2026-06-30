@@ -52,6 +52,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'username',
         'password',
         'role',
         'role_id',
@@ -190,5 +191,38 @@ class User extends Authenticatable
     public function getRoleDisplayNameAttribute()
     {
         return $this->roleRelation ? $this->roleRelation->name : ucfirst($this->role);
+    }
+
+    /**
+     * Generate a unique username in format: JSHB{division_code}{5_random_alphanumeric}
+     * Used for allottee users.
+     */
+    public static function generateUniqueUsername(?int $divisionId = null): ?string
+    {
+        $divisionCode = '';
+        if ($divisionId) {
+            $divisionCode = Division::where('id', $divisionId)->value('division_code') ?? '';
+        }
+
+        do {
+            $randomCode = str_pad(mt_rand(10000, 99999), 5, '0', STR_PAD_LEFT);
+            $username = 'JSHB' . strtoupper($divisionCode) . $randomCode;
+        } while (self::where('username', $username)->exists());
+
+        return $username;
+    }
+
+    /**
+     * Generate a unique username in format: JSHB{8_random_alphanumeric}
+     * Used for member users.
+     */
+    public static function generateMemberUsername(): string
+    {
+        do {
+            $randomCode = str_pad(mt_rand(1000000, 9999999), 7, '0', STR_PAD_LEFT);
+            $username = 'JSHB' . $randomCode;
+        } while (self::where('username', $username)->exists());
+
+        return $username;
     }
 }

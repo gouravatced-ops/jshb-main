@@ -96,6 +96,7 @@ class MemberController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'username' => $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername(),
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
             'division_id' => in_array($role->slug, ['operator', 'managing-director']) ? null : $request->division_id,
@@ -158,6 +159,7 @@ class MemberController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $request->role_id,
+            'username' => $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername(),
             'division_id' => in_array($role->slug, ['operator', 'managing-director']) ? null : $request->division_id,
             'login_with_otp' => $request->boolean('login_with_otp'),
         ];

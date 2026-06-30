@@ -28,6 +28,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\EmiCalculatorService;
+use App\Models\User;
+use App\Models\Role;
 
 class AllotteeController extends Controller
 {
@@ -1900,6 +1902,29 @@ class AllotteeController extends Controller
             $allottee->allotment_year = date('Y');
             $allottee->property_number = Allottee::generateUniquePropertyNumber();
             $allottee->save();
+
+            // Auto-create User for the allottee (if not already exists)
+            if (!User::where('username', $allottee->username)->exists()) {
+                $allotteeRole = Role::where('slug', 'allottee')->first();
+                $fullName = trim(implode(' ', array_filter([
+                    $allottee->allottee_name,
+                    $allottee->allottee_middle_name,
+                    $allottee->allottee_surname,
+                ])));
+
+                $user = new User();
+                $user->name = $fullName;
+                $user->username = $allottee->username;
+                $user->role_id = $allotteeRole?->id;
+                $user->division_id = $allottee->division_id;
+                $user->login_with_otp = false;
+                $user->password_created_at = now();
+                $user->status = true;
+                // Copy the already-hashed password directly from allottee
+                $user->attributes['password'] = $allottee->getAttributes()['password'];
+                $user->save();
+            }
+
             DB::commit();
 
             $documentExists = $allottee->generatedDocument()

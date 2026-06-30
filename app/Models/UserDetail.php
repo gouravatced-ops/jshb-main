@@ -33,22 +33,6 @@ class UserDetail extends Model
         'phone_hash',
     ];
 
-    protected function phone(): Attribute
-    {
-        return Attribute::make(
-            get: fn (?string $value) => SensitiveData::decrypt($value),
-            set: fn (?string $value) => [
-                'phone' => SensitiveData::encrypt($value),
-                'phone_hash' => SensitiveData::hash($value),
-            ],
-        );
-    }
-
-    public function getMaskedPhoneAttribute(): string
-    {
-        return SensitiveData::mask($this->getRawOriginal('phone'));
-    }
-
     public function user()
     {
         return $this->belongsTo(User::class);
