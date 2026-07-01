@@ -1904,8 +1904,7 @@ class AllotteeController extends Controller
             $allottee->save();
 
             // Auto-create User for the allottee (if not already exists)
-            if (!User::where('username', $allottee->username)->exists()) {
-                $allotteeRole = Role::where('slug', 'allottee')->first();
+            if (!User::on('adms_allottees')->where('username', $allottee->username)->exists()) {
                 $fullName = trim(implode(' ', array_filter([
                     $allottee->allottee_name,
                     $allottee->allottee_middle_name,
@@ -1913,9 +1912,9 @@ class AllotteeController extends Controller
                 ])));
 
                 $user = new User();
+                $user->setConnection('adms_allottees');
                 $user->name = $fullName;
                 $user->username = $allottee->username;
-                $user->role_id = $allotteeRole?->id;
                 $user->division_id = $allottee->division_id;
                 $user->login_with_otp = false;
                 $user->password_created_at = now();

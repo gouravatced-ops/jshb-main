@@ -30,6 +30,14 @@ class AuthController extends Controller
             ->orWhere('name', $request->email)
             ->first();
 
+        // If not found in default DB, check adms_allottees DB
+        if (! $user) {
+            $user = User::on('adms_allottees')
+                ->where('email', $request->email)
+                ->orWhere('name', $request->email)
+                ->first();
+        }
+
         if (! $user) {
             return back()->withInput()->with('error', 'Account not found.');
         }

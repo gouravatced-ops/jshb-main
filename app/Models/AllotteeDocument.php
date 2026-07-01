@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AllotteeDocument extends Model
 {
     use HasFactory;
+    protected $connection = 'adms_allottees';
     protected $table = 'allottee_documents';
 
     protected $fillable = [

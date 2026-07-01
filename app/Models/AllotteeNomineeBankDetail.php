@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AllotteeNomineeBankDetail extends Model
 {
     use HasFactory;
+    protected $connection = 'adms_allottees';
     protected $table = 'allottee_nominee_bank_details';
 
     protected $fillable = [

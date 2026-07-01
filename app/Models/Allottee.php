@@ -9,6 +9,7 @@ use App\Traits\EncryptedRouteKey;
 class Allottee extends Model
 {
     use HasFactory, EncryptedRouteKey;
+    protected $connection = 'adms_allottees';
     protected $table = 'allottees';
     public $timestamps = true;
 

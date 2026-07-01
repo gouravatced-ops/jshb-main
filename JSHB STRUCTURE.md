@@ -28,8 +28,5 @@ Ishme allotee ke related sab database and table column hoga
 
 jshb_database  allottee_id jo jshb_allotttee_database ke allottee table jo dono database ko connect karega  
 
-
-
-
 Allottee
 

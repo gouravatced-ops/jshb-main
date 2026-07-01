@@ -10,6 +10,7 @@ use App\Models\District;
 class AllotteesContactDetail extends Model
 {
     use HasFactory;
+    protected $connection = 'adms_allottees';
     protected $table = 'allottees_contact_details';
 
     protected $primaryKey = 'id';

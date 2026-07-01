@@ -1,0 +1,17 @@
+allottees	 	
+allottees_contact_details
+allottee_documents
+allottee_emi_accounts
+allottee_emi_demands
+allottee_emi_ledger
+allottee_emi_schedules
+allottee_generated_documents
+allottee_ledger
+allottee_nominee_bank_details
+allottee_payment_orders
+allottee_process_steps
+allottee_property_fin_details
+allottee_site_verifications
+allottee_step_durations
+allottee_transactions
+document_master

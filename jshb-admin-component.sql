@@ -1,0 +1,15 @@
+districts
+divisions
+property_category
+property_sub_type
+property_type
+quarter_type
+quota_types
+roles
+schemes
+scheme_blocks
+scheme_financials
+scheme_quarter_fees
+scheme_unit_quotas
+states
+sub_divisions
