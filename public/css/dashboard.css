@@ -1013,7 +1013,7 @@ a {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 14px;
+    padding: 6px 14px;
     border-radius: 0;
     color: #f2f5f8;
     font-size: 15px;
@@ -3057,8 +3057,9 @@ textarea.form-control {
 }
 
 .tab-btn.active {
-    color: var(--sidebar-active);
-    border-bottom-color: var(--sidebar-active);
+    color: var(--white);
+    background: var(--primary-color);
+    border-radius: 23px;
 }
 
 .tab-btn:hover:not(.active) {
@@ -4041,7 +4042,31 @@ p {
 
 .modern-card-header>* {
     position: relative;
-    z-index: 1;
+    z-index: 1055;
+    /* Higher than header */
+}
+
+/* ─── PASSWORD EXPIRED LOCK (Security UI) ─── */
+body.password-expired-lock {
+    overflow: hidden !important;
+}
+
+body.password-expired-lock .app-header,
+body.password-expired-lock .app-sidebar,
+body.password-expired-lock .app-main,
+body.password-expired-lock .app-footer {
+    pointer-events: none !important;
+    user-select: none !important;
+    opacity: 0.6 !important;
+    filter: blur(3px) !important;
+    transition: all 0.3s ease;
+}
+
+/* Ensure the modal stays interactive */
+body.password-expired-lock #passwordResetModal {
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    filter: none !important;
 }
 
 .modern-card-header-new {

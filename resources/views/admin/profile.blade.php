@@ -9,6 +9,14 @@
 @endphp
 
 <div class="profile-container">
+    <style>
+        .tabs-content .tab-pane {
+            display: none;
+        }
+        .tabs-content .tab-pane.active {
+            display: block;
+        }
+    </style>
     <div class="profile-wrapper">
         <!-- Sidebar -->
         <div class="profile-sidebar">
@@ -24,23 +32,101 @@
                     </button>
                 </div>
 
-                <h3 class="user-name">{{ $user->name }} <span class="user-role">{{ ucfirst($user->role ?? 'Administrator') }}</span></h3>
+                <h3 class="user-name">{{ $user->name }}</h3>
 
                 <div class="about-section">
                     <h5>Contact Info</h5>
-                    <div class="info-list">
+                    <div class="info-list" style="margin-bottom: 20px;">
                         <div class="info-item">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                             <span>{{ $user->email }}</span>
                         </div>
                         <div class="info-item">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                            <span>{{ $userDetail->phone ?? 'Not provided' }}</span>
+                            @php
+                                $phoneStr = $userDetail->phone ?? '';
+                                $maskedPhone = strlen($phoneStr) > 4 ? str_repeat('X', strlen($phoneStr) - 4) . substr($phoneStr, -4) : ($phoneStr ?: 'Not provided');
+                            @endphp
+                            <span>{{ $maskedPhone }}</span>
                         </div>
                         <div class="info-item">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
                             <span>{{ $userDetail->city ?? '—' }}, {{ $userDetail->state ?? '—' }}</span>
                         </div>
+                    </div>
+
+                    <h5>Security Settings</h5>
+                    <style>
+                        .btn-security-navy {
+                            background-color: #0f172a;
+                            color: #f8fafc;
+                            border-radius: 8px;
+                            padding: 12px 16px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            transition: all 0.3s ease;
+                            cursor: pointer;
+                            text-align: left;
+                            width: 100%;
+                            border: none;
+                            outline: none;
+                        }
+                        .btn-security-navy:hover {
+                            transform: translateY(-2px);
+                            color: #ffffff;
+                        }
+                        .btn-quick-pin-style {
+                            border: 1px solid rgba(16, 185, 129, 0.6);
+                            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);
+                        }
+                        .btn-quick-pin-style:hover {
+                            border-color: #10b981;
+                            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25);
+                            background: linear-gradient(135deg, #0f172a 0%, #064e3b 100%);
+                        }
+                        .btn-quick-pin-style i {
+                            color: #facc15;
+                            font-size: 16px;
+                        }
+
+                        .btn-internal-pass-style {
+                            border: 1px solid rgba(234, 179, 8, 0.6);
+                            box-shadow: 0 4px 10px rgba(234, 179, 8, 0.15);
+                        }
+                        .btn-internal-pass-style:hover {
+                            border-color: #facc15;
+                            box-shadow: 0 6px 15px rgba(234, 179, 8, 0.25);
+                            background: linear-gradient(135deg, #0f172a 0%, #713f12 100%);
+                        }
+                        .btn-internal-pass-style i {
+                            color: #10b981;
+                            font-size: 16px;
+                        }
+                    </style>
+                    <div class="security-actions" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+                        <button type="button" class="btn-security-navy btn-quick-pin-style" onclick="openQuickPinModal(event)">
+                            <i class="fa-solid fa-th-large"></i> Update Quick PIN
+                        </button>
+
+                        @php
+                            $roleSlug = $user->roleRelation?->slug ?? '';
+                            $requiresInternalPassword = in_array($roleSlug, [
+                                'estate-officer', 
+                                'revenue-officer', 
+                                'managing-director', 
+                                'chief-accounts-officer', 
+                                'chief-financial-officer', 
+                                'secretary-chief-engineer'
+                            ]);
+                        @endphp
+                        @if($requiresInternalPassword)
+                        <button type="button" class="btn-security-navy btn-internal-pass-style" onclick="openInternalPasswordModal(event)">
+                            <i class="fa-solid fa-user-shield"></i> Update Internal Password
+                        </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -62,7 +148,7 @@
                 </div>
             </div>
 
-            <form action="{{ auth()->user()?->role === 'admin' ? route('admin.profile.update') : route('profile.update') }}" method="POST" enctype="multipart/form-data" id="profileForm">
+            <form action="{{ route(request()->route()->getName() === 'profile' ? 'profile.update' : request()->route()->getName() . '.update') }}" method="POST" enctype="multipart/form-data" id="profileForm">
                 @csrf
                 <input type="hidden" name="active_tab" id="active_tab" value="{{ $activeTab }}">
 
@@ -75,6 +161,7 @@
                             <option value="address" {{ $activeTab === 'address' ? 'selected' : '' }}>Address</option>
                             <option value="personal" {{ $activeTab === 'personal' ? 'selected' : '' }}>Personal</option>
                             <option value="photo" {{ $activeTab === 'photo' ? 'selected' : '' }}>Photo</option>
+                            <option value="logs" {{ $activeTab === 'logs' ? 'selected' : '' }}>Logs</option>
                         </select>
                     </div>
 
@@ -96,6 +183,10 @@
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></svg>
                             Photo
                         </button>
+                        <button type="button" class="tab-btn {{ $activeTab === 'logs' ? 'active' : '' }}" data-tab="logs" role="tab">
+                            <i class="fa-solid fa-terminal"></i>
+                            Logs
+                        </button>
                     </div>
 
                     <!-- Tab Contents -->
@@ -113,26 +204,12 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Phone Number</label>
-                                    <input type="tel" name="phone" class="form-control" value="{{ old('phone', $userDetail->phone) }}" placeholder="+1 234 567 8900">
-                                </div>
-                                <div class="form-group">
-                                    <label>Organization</label>
-                                    <input type="text" name="organization" class="form-control" value="{{ old('organization', $userDetail->organization) }}" placeholder="Company name">
+                                    <input type="tel" name="phone" class="form-control" value="{{ old('phone', $userDetail->phone) }}" placeholder="12345 54321" minlength="10" maxlength="10">
                                 </div>
                                 <div class="form-group">
                                     <label>Designation / Role</label>
                                     <input type="text" name="designation" class="form-control" value="{{ old('designation', $userDetail->designation) }}" placeholder="e.g., Senior Developer">
                                 </div>
-                                @if(($user->role ?? null) === 'admin')
-                                    <div class="form-group">
-                                        <label>Security PIN</label>
-                                        <input type="text" maxlength="5" minlength="5" name="secure_pin" class="form-control" value="" placeholder="Enter new 5 digit PIN">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Confirm Security PIN</label>
-                                        <input type="text" maxlength="5" minlength="5" name="secure_pin_confirmation" class="form-control" value="" placeholder="Confirm new 5 digit PIN">
-                                    </div>
-                                @endif
                             </div>
                         </div>
 
@@ -177,28 +254,20 @@
                         <div class="tab-pane {{ $activeTab === 'personal' ? 'active' : '' }}" data-tab="personal" role="tabpanel">
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label>Date of Birth</label>
-                                    <input type="date" name="date_of_birth" class="form-control" value="{{ old('date_of_birth', $userDetail->date_of_birth) }}">
+                                    <label>Date of Joining (Optional)</label>
+                                    <input type="date" name="date_of_joining" class="form-control" value="{{ old('date_of_joining', $userDetail->date_of_joining?->format('Y-m-d')) }}">
                                 </div>
                                 <div class="form-group">
-                                    <label>Anniversary Date</label>
-                                    <input type="date" name="anniversary_date" class="form-control" value="{{ old('anniversary_date', $userDetail->anniversary_date) }}">
+                                    <label>Date of Retirement (Optional)</label>
+                                    <input type="date" name="date_of_retirement" class="form-control" value="{{ old('date_of_retirement', $userDetail->date_of_retirement?->format('Y-m-d')) }}">
                                 </div>
                                 <div class="form-group">
-                                    <label>Spouse Name</label>
-                                    <input type="text" name="spouse_name" class="form-control" value="{{ old('spouse_name', $userDetail->spouse_name) }}" placeholder="Spouse's full name">
+                                    <label>Date of Contractual (Optional)</label>
+                                    <input type="date" name="date_of_contractual" class="form-control" value="{{ old('date_of_contractual', $userDetail->date_of_contractual?->format('Y-m-d')) }}">
                                 </div>
                                 <div class="form-group">
-                                    <label>Number of Children</label>
-                                    <input type="number" name="no_of_children" class="form-control" value="{{ old('no_of_children', $userDetail->no_of_children) }}" min="0">
-                                </div>
-                                <div class="form-group">
-                                    <label>Boys</label>
-                                    <input type="number" name="boys" class="form-control" value="{{ old('boys', $userDetail->boys) }}" min="0">
-                                </div>
-                                <div class="form-group">
-                                    <label>Girls</label>
-                                    <input type="number" name="girls" class="form-control" value="{{ old('girls', $userDetail->girls) }}" min="0">
+                                    <label>Date of Deputation (Optional)</label>
+                                    <input type="date" name="date_of_deputation" class="form-control" value="{{ old('date_of_deputation', $userDetail->date_of_deputation?->format('Y-m-d')) }}">
                                 </div>
                                 <div class="form-group full-width">
                                     <label>Additional Information</label>
@@ -238,6 +307,62 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Logs Tab -->
+                        <div class="tab-pane {{ $activeTab === 'logs' ? 'active' : '' }}" data-tab="logs" role="tabpanel">
+                            <div class="terminal-logs-container" style="background: #0f172a; color: #10b981; font-family: 'Consolas', 'Courier New', monospace; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+                                <div class="terminal-header" style="color: #64748b; margin-bottom: 15px; font-size: 12px; border-bottom: 1px solid #334155; padding-bottom: 5px;">
+                                    > System Login Logs :: {{ auth()->user()->email }}<br>
+                                    > Showing latest 50 activities
+                                </div>
+                                <div class="terminal-body" style="font-size: 13px; line-height: 1.6;">
+                                    @forelse($loginLogs ?? [] as $log)
+                                        @php
+                                            $color = '#10b981'; // Success Green
+                                            if (str_contains(strtolower($log->status), 'fail') || str_contains(strtolower($log->status), 'block')) {
+                                                $color = '#ef4444'; // Error Red
+                                            } elseif (str_contains(strtolower($log->action), 'logout')) {
+                                                $color = '#f59e0b'; // Warning Yellow
+                                            }
+                                        @endphp
+                                        <div class="log-entry" style="margin-bottom: 8px; border-left: 2px solid {{ $color }}; padding-left: 10px;">
+                                            <span style="color: #94a3b8;">[{{ $log->created_at->format('Y-m-d H:i:s') }}]</span> 
+                                            <span style="color: #38bdf8;">[{{ $log->ip_address }}]</span> 
+                                            <span style="color: #cbd5e1;">Action:</span> <span style="font-weight: bold;">{{ $log->action }}</span> 
+                                            <span style="color: #cbd5e1;">Status:</span> <span style="color: {{ $color }}; font-weight: bold;">{{ $log->status }}</span>
+                                            @if($log->user_agent)
+                                                <div style="color: #64748b; font-size: 11px; margin-top: 2px; padding-left: 2px;">$ {{ \Illuminate\Support\Str::limit($log->user_agent, 80) }}</div>
+                                            @endif
+                                        </div>
+                                    @empty
+                                        <div style="color: #64748b;">> No logs found.</div>
+                                    @endforelse
+                                </div>
+
+                                <br>
+                                <!-- OTP Logs -->
+                                <div class="terminal-header" style="color: #64748b; margin-bottom: 15px; font-size: 12px; border-bottom: 1px solid #334155; padding-bottom: 5px;">
+                                    > System OTP Logs :: {{ auth()->user()->email }}<br>
+                                    > Showing latest 50 requests
+                                </div>
+                                <div class="terminal-body" style="font-size: 13px; line-height: 1.6;">
+                                    @forelse($otpLogs ?? [] as $otpLog)
+                                        @php
+                                            $color = $otpLog->verified ? '#10b981' : '#f59e0b';
+                                        @endphp
+                                        <div class="log-entry" style="margin-bottom: 8px; border-left: 2px solid {{ $color }}; padding-left: 10px;">
+                                            <span style="color: #94a3b8;">[{{ $otpLog->created_at->format('Y-m-d H:i:s') }}]</span> 
+                                            <span style="color: #38bdf8;">[{{ $otpLog->ip_address ?? '127.0.0.1' }}]</span> 
+                                            <span style="color: #cbd5e1;">Purpose:</span> <span style="font-weight: bold;">{{ $otpLog->purpose }}</span> 
+                                            <span style="color: #cbd5e1;">Status:</span> <span style="color: {{ $color }}; font-weight: bold;">{{ $otpLog->verified ? 'Verified' : 'Pending/Expired' }}</span>
+                                        </div>
+                                    @empty
+                                        <div style="color: #64748b;">> No OTP logs found.</div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 

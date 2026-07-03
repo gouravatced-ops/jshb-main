@@ -1,0 +1,72 @@
+Mail direct send to with smtp
+
+QUEUE_CONNECTION=sync
+php artisan config:clear
+
+
+Mail send with Job and Queue and Database
+
+QUEUE_CONNECTION=database
+
+Set worker on linux server
+------------------------------
+php artisan queue:work --queue=emails
+
+
+===========================================================
+
+
+Ek line mein yaad rakho
+Event = "Kuch important ho gaya." (e.g. Allotment Approved)
+Listener = "Us event ke response mein mujhe ye kaam karna hai."
+Job = "Ye specific task background mein execute karo."
+Queue = "Jobs ki waiting line."
+Worker = "Queue se jobs uthakar handle() chalane wala process."
+
+Isliye bade Laravel applications mein pattern aksar aisa hota hai:
+
+Controller
+    │
+    ▼
+Event
+    │
+    ├── Listener → Job (Email)
+    ├── Listener → Job (PDF)
+    ├── Listener → SMS Service
+    ├── Listener → Audit Log
+    └── Listener → Dashboard Update
+
+Ye architecture clean, loosely coupled aur future mein extend karna bahut aasaan bana deta hai.
+
+
+===================================================================================================
+
+Officer Clicks Approve
+          │
+          ▼
+Controller
+          │
+          ▼
+Application Approved
+          │
+          ▼
+event(new AllotmentApproved())
+          │
+          ├─────────────────────────────┬───────────────────────────┬────────────────────┬──────────────────┐
+          ▼                             ▼                           ▼                    ▼
+GeneratePdfListener           SendApprovalMailListener      SendSmsListener     AuditLogListener
+          │                             │                           │                    │
+          ▼                             ▼                           ▼                    ▼
+Generate PDF                 Dispatch Mail Job                  Send SMS              Save Log
+                                            │
+                                            ▼
+                                      Queue (jobs)
+                                            │
+                                            ▼
+                                      Queue Worker
+                                            │
+                                            ▼
+                                       SMTP Server
+                                            │
+                                            ▼
+                                         Email Sent

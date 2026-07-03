@@ -34,12 +34,12 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
             <i class="fa-solid fa-magnifying-glass"></i>
         </button> -->
 
-        @if($authUser?->user_type === 'engineer')
+        {{-- @if($authUser?->user_type === 'engineer' || $authUser?->user_type === 'accountant' || $authUser?->user_type === 'administration') --}}
             <span style="font-size: 13px; color: var(--text-dark); margin-right: 15px; font-weight: 600; display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
                 <i class="fa-solid fa-user-gear" style="margin-right: 8px; color: var(--pink-color);"></i>
-                {{ $authUser->roleRelation?->name ?: 'Engineer' }} &nbsp; <strong>({{ $authUser->division?->name ?: 'No Division' }})</strong>
+                {{ $authUser->roleRelation?->name ?: ucfirst($authUser?->user_type) }} &nbsp; <strong>({{ $authUser->division?->name ?: 'Administration' }})</strong>
             </span>
-        @endif
+        {{-- @endif --}}
 
         <!-- Lock Screen -->
         <button class="header-icon-btn" title="Lock Screen" onclick="activateLockScreen()">
@@ -125,6 +125,8 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
                 <a class="profile-drop-item" href="{{ $profileRoute }}"><i class="fa-solid fa-user"></i> My Profile</a>
                 <!-- <a class="profile-drop-item" href="{{ $profileRoute }}"><i class="fa-solid fa-id-card"></i> Account Details</a> -->
                 <a class="profile-drop-item" href="javascript:void(0)" onclick="openPasswordResetModal(event); return false;"><i class="fa-solid fa-lock"></i> Change Password</a>
+                <a class="profile-drop-item" href="javascript:void(0)" onclick="openQuickPinModal(event); return false;"><i class="fa-solid fa-th-large"></i> Set Quick PIN</a>
+                <a class="profile-drop-item" href="{{ route('my-activity') }}"><i class="fa-solid fa-user-clock"></i> My Acitivity</a>
                 <!-- <a class="profile-drop-item" href="#"><i class="fa-solid fa-gear"></i> Preferences</a> -->
                 <!-- <a class="profile-drop-item" href="#"><i class="fa-solid fa-circle-question"></i> Help & Support</a> -->
                 <a class="profile-drop-item danger" href="{{ route('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Sign

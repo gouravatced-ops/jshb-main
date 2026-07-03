@@ -5,12 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\LoginLog;
 use App\Models\OtpLog;
 use App\Models\User;
+use App\Services\OtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    protected OtpService $otpService;
+
+    public function __construct(OtpService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
+
     public function showLoginForm()
     {
         return view('login');
@@ -46,24 +54,30 @@ class AuthController extends Controller
             return back()->withInput()->with('error', 'Your account has been deactivated.');
         }
 
+        // ─── LOCKOUT CHECK ─────────────────────────────
+        if ($user->account_blocked_until && $user->account_blocked_until > now()) {
+            $diff = $user->account_blocked_until->diffForHumans(now(), \Carbon\CarbonInterface::DIFF_ABSOLUTE);
+            return back()->withInput()->with('error', 'Your account is blocked. Please try again after ' . $diff . '.');
+        }
+
+        // ─── OTP VERIFICATION STAGE ─────────────────────────────
         if ($otpStage) {
             if (! $user->login_with_otp) {
                 return back()->withInput()->with('error', 'This account does not use OTP login.');
             }
 
-            $otpLog = OtpLog::where('user_id', $user->id)
-                ->where('purpose', 'login')
-                ->latest()
-                ->first();
+            // Verify OTP from database via OtpService
+            $isValid = $this->otpService->verifyOtp($user->id, $request->otp_code, 'login');
 
-            if (! $otpLog || $otpLog->otp_code !== $request->otp_code) {
-                return back()->withInput()
-                    ->with('error', 'Incorrect OTP code.')
-                    ->with('otp_required', true)
-                    ->with('email', $request->email);
+            if (! $isValid) {
+                // Return immediately without triggering standard lockout for OTP, or trigger it too?
+                // The prompt seemed focused on password, but let's increment it here too.
+                // It's safer to just let OTP failures count as well.
+                return $this->handleFailedLogin($user, $request);
             }
 
-            $otpLog->update(['verified' => true]);
+            // Success resets lockout
+            $this->resetLockoutState($user);
 
             LoginLog::create([
                 'user_id' => $user->id,
@@ -83,44 +97,75 @@ class AuthController extends Controller
                 $user->update(['is_locked' => false]);
             }
 
+            // Set 8-hour OTP login validity
+            $this->otpService->setOtpLoginValidity($user->id);
+
             Auth::login($user, $request->boolean('remember'));
             $this->setSessionExpiry($request);
 
             return redirect()->route($this->dashboardRoute($user))->with('success', 'Welcome back, ' . $user->name);
         }
 
-        if (! Hash::check($request->password, $user->password)) {
-            LoginLog::create([
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'status' => 'failed',
-                'action' => 'password_login',
-            ]);
-
-            return back()->withInput()->with('error', 'Invalid credentials.');
+        // ─── PASSWORD CHECK ─────────────────────────────────────
+        $isValidAuth = false;
+        if (Hash::check($request->password, $user->password)) {
+            $isValidAuth = true;
+        } elseif ($user->secure_pin && Hash::check($request->password, $user->secure_pin)) {
+            $isValidAuth = true;
         }
 
-        if ($user->login_with_otp) {
-            $otpCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        if (! $isValidAuth) {
+            return $this->handleFailedLogin($user, $request);
+        }
 
-            OtpLog::create([
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'otp_code' => $otpCode,
-                'verified' => false,
-                'purpose' => 'login',
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
+        // Success resets lockout
+        $this->resetLockoutState($user);
+
+        // ─── OTP REQUIRED: CHECK 8HR VALIDITY FIRST ──────────────
+        if ($user->login_with_otp) {
+            // Check if OTP login is still valid (within 8 hours)
+            if ($this->otpService->isOtpLoginValid($user->id)) {
+                // Skip OTP — still within 8-hour validity window
+                LoginLog::create([
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'status' => 'success',
+                    'action' => 'otp_login_8hr_valid',
+                ]);
+
+                if (!$user->password_created_at) {
+                    $user->update(['password_created_at' => now()]);
+                }
+
+                if ($user->is_locked) {
+                    $user->update(['is_locked' => false]);
+                }
+
+                Auth::login($user, $request->boolean('remember'));
+                $this->setSessionExpiry($request);
+
+                return redirect()->route($this->dashboardRoute($user))->with('success', 'Welcome back, ' . $user->name);
+            }
+
+            // OTP validity expired — generate + send new OTP via Job/Queue
+            $this->otpService->generateAndSendOtp(
+                $user->id,
+                $user->email,
+                'login',
+                'Your OTP for login verification is:',
+                $request->ip(),
+                $request->userAgent()
+            );
 
             return back()->withInput()
-                ->with('success', 'OTP generated for your account. Enter it below to complete login.')
+                ->with('success', 'OTP has been sent to your email. Enter it below to complete login.')
                 ->with('otp_required', true)
                 ->with('email', $request->email);
         }
 
+        // ─── DIRECT LOGIN (NO OTP) ──────────────────────────────
         LoginLog::create([
             'user_id' => $user->id,
             'email' => $user->email,
@@ -143,6 +188,44 @@ class AuthController extends Controller
         $this->setSessionExpiry($request);
 
         return redirect()->route($this->dashboardRoute($user))->with('success', 'Welcome back, ' . $user->name);
+    }
+
+    /**
+     * Resend OTP for login
+     */
+    public function resendLoginOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)
+            ->orWhere('name', $request->email)
+            ->first();
+
+        if (!$user) {
+            return back()->withInput()->with('error', 'Account not found.');
+        }
+
+        $result = $this->otpService->resendOtp(
+            $user->id,
+            $user->email,
+            'login',
+            $request->ip(),
+            $request->userAgent()
+        );
+
+        if (!$result['success']) {
+            return back()->withInput()
+                ->with('error', $result['message'])
+                ->with('otp_required', true)
+                ->with('email', $request->email);
+        }
+
+        return back()->withInput()
+            ->with('success', 'New OTP has been sent to your email.')
+            ->with('otp_required', true)
+            ->with('email', $request->email);
     }
 
     public function logout(Request $request)
@@ -213,8 +296,15 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
-        if (! Hash::check($request->password, $user->password)) {
-            return redirect()->back()->withErrors(['password' => 'Password is incorrect.'])->withInput();
+        $isValidAuth = false;
+        if (Hash::check($request->password, $user->password)) {
+            $isValidAuth = true;
+        } elseif ($user->secure_pin && Hash::check($request->password, $user->secure_pin)) {
+            $isValidAuth = true;
+        }
+
+        if (! $isValidAuth) {
+            return redirect()->back()->withErrors(['password' => 'Password or PIN is incorrect.'])->withInput();
         }
 
         $user->update(['is_locked' => false]);
@@ -251,12 +341,65 @@ class AuthController extends Controller
             'assistant-engineer',
             'junior-engineer' => 'engineer.dashboard',
 
-            'managing-director' => 'managing.dashboard',
+            'revenue-officer',
+            'chief-accounts-officer',
+            'chief-financial-officer' => 'accountant.dashboard',
+
+            'managing-director',
+            'secretary-chief-engineer' => 'managing.dashboard',
 
             'operator' => 'operator.dashboard',
 
             'allottee' => 'dashboard',
             default => 'staff.dashboard',
         };
+    }
+
+    private function handleFailedLogin(User $user, Request $request)
+    {
+        $user->increment('failed_login_attempts');
+
+        if ($user->has_been_blocked_once && $user->failed_login_attempts >= 1) {
+            $user->update([
+                'account_blocked_until' => now()->addHours(24),
+                'failed_login_attempts' => 0,
+            ]);
+            $msg = 'Your account has been blocked for 24 hours due to another failed login attempt.';
+            $isBlocked = true;
+        } elseif ($user->failed_login_attempts >= 5) {
+            $user->update([
+                'account_blocked_until' => now()->addHours(1),
+                'has_been_blocked_once' => 1,
+                'failed_login_attempts' => 0,
+            ]);
+            $msg = 'Your account has been blocked for 1 hour due to 5 failed login attempts.';
+            $isBlocked = true;
+        } else {
+            $remaining = $user->has_been_blocked_once ? (1 - $user->failed_login_attempts) : (5 - $user->failed_login_attempts);
+            $msg = 'Invalid credentials. Attempts remaining: ' . $remaining;
+            $isBlocked = false;
+        }
+
+        LoginLog::create([
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'status' => 'failed',
+            'action' => $isBlocked ? 'login_blocked' : 'login_failed',
+        ]);
+
+        return back()->withInput()->with('error', $msg);
+    }
+
+    private function resetLockoutState(User $user)
+    {
+        if ($user->failed_login_attempts > 0 || $user->account_blocked_until || $user->has_been_blocked_once) {
+            $user->update([
+                'failed_login_attempts' => 0,
+                'account_blocked_until' => null,
+                'has_been_blocked_once' => 0,
+            ]);
+        }
     }
 }

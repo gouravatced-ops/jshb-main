@@ -255,7 +255,7 @@
         <div class="lock-screen-logo">
             <i class="fa-solid fa-lock"></i>
             <div class="lock-screen-title">Session Locked</div>
-            <p class="lock-screen-subtitle">Enter password to unlock your dashboard</p>
+            <p class="lock-screen-subtitle">Enter password or PIN to unlock your dashboard</p>
         </div>
 
         <div class="lock-avatar">
@@ -271,8 +271,12 @@
 
         <form action="{{ route('lock.unlock') }}" method="POST" class="lock-screen-form">
             @csrf
-            <input type="password" name="password" placeholder="Enter your password" autocomplete="current-password"
-                required>
+            <div style="position: relative;">
+                <input type="password" id="lockScreenPassword" name="password" placeholder="Enter your password or PIN" autocomplete="current-password" required style="padding-right: 40px;">
+                <button type="button" onclick="const p = document.getElementById('lockScreenPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; left: 350px; top: 38%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0; width: 50px;">
+                    <i class="fa-regular fa-eye"></i>
+                </button>
+            </div>
             @if ($errors->has('password'))
                 <div class="lock-screen-error">{{ $errors->first('password') }}</div>
             @endif

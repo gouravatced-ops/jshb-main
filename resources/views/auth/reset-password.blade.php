@@ -105,7 +105,12 @@
 
                     <div class="field">
                         <label for="password_confirmation">Confirm Password</label>
-                        <input id="password_confirmation" name="password_confirmation" type="password" placeholder="Confirm new password" required>
+                        <div style="position: relative;">
+                            <input id="password_confirmation" name="password_confirmation" type="password" placeholder="Confirm new password" required style="padding-right: 40px; width: 100%;">
+                            <button type="button" onclick="const p = document.getElementById('password_confirmation'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0;">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn-submit">Reset Password</button>

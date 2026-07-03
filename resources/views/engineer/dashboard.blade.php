@@ -26,7 +26,8 @@
         </div>
 
         <div class="dashboard-hero-meta">
-            <div class="hero-time">{{ now()->format('g:i A') }}</div>
+            <div class="hero-time">{{ now()->format('g:i') }} <span
+                    style="color:#f5c518;">{{ now()->format('A') }}</span></div>
             <div class="hero-date">{{ now()->format('l, d M Y') }}</div>
         </div>
     </div>

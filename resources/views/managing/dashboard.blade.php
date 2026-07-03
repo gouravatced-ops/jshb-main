@@ -1,16 +1,16 @@
 @extends('layouts.main')
 
-@section('title', 'Managing Director Dashboard | JSHB')
+@section('title', 'Administration Dashboard | JSHB')
 
 @section('content')
 <div id="page-dashboard" class="admin-dashboard-page">
     <div class="dashboard-hero-card">
         <div>
             <div class="dashboard-hero-kicker">
-                Managing Director Quick View
+                Quick View
             </div>
 
-            <h2 class="dashboard-hero-title">Managing Director Dashboard</h2>
+            <h2 class="dashboard-hero-title">Administration Dashboard</h2>
 
             @if($latestLogin)
                 <div class="login-meta" style="margin-top:15px;">
@@ -26,7 +26,8 @@
         </div>
 
         <div class="dashboard-hero-meta">
-            <div class="hero-time">{{ now()->format('g:i A') }}</div>
+            <div class="hero-time">{{ now()->format('g:i') }} <span
+                    style="color:#f5c518;">{{ now()->format('A') }}</span></div>
             <div class="hero-date">{{ now()->format('l, d M Y') }}</div>
         </div>
     </div>

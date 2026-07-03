@@ -25,7 +25,12 @@
                         <span class="required">*</span>
                     @endunless
                 </label>
-                <input type="password" name="password" class="form-control" placeholder="{{ $engineer->exists ? 'Leave blank to keep current password' : 'Enter password' }}" {{ $engineer->exists ? '' : 'required' }}>
+                <div style="position: relative;">
+                    <input type="password" id="engineerFormPassword" name="password" class="form-control" placeholder="{{ $engineer->exists ? 'Leave blank to keep current password' : 'Enter password' }}" {{ $engineer->exists ? '' : 'required' }} style="padding-right: 40px;">
+                    <button type="button" onclick="const p = document.getElementById('engineerFormPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0; z-index: 5;">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -263,7 +268,12 @@
             <h5 style="margin:0 0 8px;font-weight:700;">Verify Security PIN</h5>
             <p style="margin:0 0 16px;color:var(--text-light);">Enter your 5 digit admin PIN to view or edit encrypted employee details.</p>
             <div id="sensitivePinError" style="display:none;margin-bottom:14px;color:#dc2626;font-size:14px;"></div>
-            <input type="password" id="sensitivePinInput" class="form-control" maxlength="5" placeholder="Enter 5 digit PIN">
+            <div style="position: relative;">
+                <input type="password" id="sensitivePinInput" class="form-control" maxlength="5" placeholder="Enter 5 digit PIN" style="padding-right: 40px;">
+                <button type="button" onclick="const p = document.getElementById('sensitivePinInput'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0; z-index: 5;">
+                    <i class="fa-regular fa-eye"></i>
+                </button>
+            </div>
             <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
                 <button type="button" class="btn-reset" id="closeSensitivePinModal">Cancel</button>
                 <button type="button" class="btn-submit" id="verifySensitivePinBtn">Verify</button>

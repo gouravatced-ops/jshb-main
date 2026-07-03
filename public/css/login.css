@@ -622,3 +622,59 @@ body {
 .login-side {
     animation: fadeSlideIn 0.5s ease-out;
 }
+
+.otp-note {
+    font-size: 0.8rem;
+    color: var(--gray-mid);
+    text-align: center;
+    margin-top: 0.4rem;
+}
+
+/* Resend OTP button */
+.otp-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.btn-resend {
+    background: none;
+    border: 2px solid var(--green-primary);
+    color: var(--green-primary);
+    padding: 0.5rem 1.2rem;
+    border-radius: 2rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-resend:hover {
+    background: var(--green-primary);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(31, 123, 77, 0.25);
+}
+
+.btn-resend:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-resend i {
+    font-size: 0.85rem;
+}
+
+.resend-timer {
+    font-size: 0.78rem;
+    color: var(--gray-mid);
+    font-weight: 500;
+}
+

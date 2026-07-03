@@ -61,10 +61,17 @@ class MemberController extends Controller
             return $redirect;
         }
 
+        $takenRoleIds = User::whereNotNull('role_id')->pluck('role_id')->toArray();
+        $restrictedSlugs = ['managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer'];
+
         $roles = Role::where('status', true)
             ->whereNotIn('slug', ['admin', 'super-admin', 'allottee'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->filter(function ($role) use ($takenRoleIds, $restrictedSlugs) {
+                return !(in_array($role->slug, $restrictedSlugs) && in_array($role->id, $takenRoleIds));
+            })
+            ->values();
 
         $divisions = Division::where('status', true)->orderBy('name')->get();
 
@@ -89,6 +96,16 @@ class MemberController extends Controller
         ]);
 
         $role = Role::findOrFail($request->role_id);
+
+        // Restrict specific roles to a single account
+        $restrictedSlugs = ['managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer', 'super-admin'];
+        if (in_array($role->slug, $restrictedSlugs)) {
+            $exists = User::where('role_id', $role->id)->exists();
+            if ($exists) {
+                return back()->withInput()->withErrors(['role_id' => 'An account for ' . $role->name . ' already exists. Only one is allowed.']);
+            }
+        }
+
         if (in_array($role->slug, ['executive-engineer', 'division-officer']) && !$request->division_id) {
             return back()->withInput()->withErrors(['division_id' => 'The division field is required for the selected role.']);
         }
@@ -99,7 +116,7 @@ class MemberController extends Controller
             'username' => $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername(),
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
-            'division_id' => in_array($role->slug, ['operator', 'managing-director']) ? null : $request->division_id,
+            'division_id' => in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id,
             'login_with_otp' => $request->boolean('login_with_otp'),
             'password_created_at' => now(),
             'status' => true,
@@ -121,10 +138,17 @@ class MemberController extends Controller
         }
 
         $member = User::with('detail')->findOrFail($id);
+        $takenRoleIds = User::whereNotNull('role_id')->where('id', '!=', $id)->pluck('role_id')->toArray();
+        $restrictedSlugs = ['managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer'];
+
         $roles = Role::where('status', true)
             ->whereNotIn('slug', ['admin', 'super-admin', 'allottee'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->filter(function ($role) use ($takenRoleIds, $restrictedSlugs) {
+                return !(in_array($role->slug, $restrictedSlugs) && in_array($role->id, $takenRoleIds));
+            })
+            ->values();
 
         $divisions = Division::where('status', true)->orderBy('name')->get();
 
@@ -151,16 +175,29 @@ class MemberController extends Controller
         ]);
 
         $role = Role::findOrFail($request->role_id);
+
+        // Restrict specific roles to a single account
+        $restrictedSlugs = ['managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer', 'super-admin'];
+        if (in_array($role->slug, $restrictedSlugs)) {
+            $exists = User::where('role_id', $role->id)->where('id', '!=', $id)->exists();
+            if ($exists) {
+                return back()->withInput()->withErrors(['role_id' => 'An account for ' . $role->name . ' already exists. Only one is allowed.']);
+            }
+        }
+
         if (in_array($role->slug, ['executive-engineer', 'division-officer']) && !$request->division_id) {
             return back()->withInput()->withErrors(['division_id' => 'The division field is required for the selected role.']);
+        }
+
+        if($member->username == NULL){
+            $member->username = $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername();
         }
 
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $request->role_id,
-            'username' => $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername(),
-            'division_id' => in_array($role->slug, ['operator', 'managing-director']) ? null : $request->division_id,
+            'division_id' => in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id,
             'login_with_otp' => $request->boolean('login_with_otp'),
         ];
 

@@ -34,6 +34,10 @@ class RoleMiddleware
             'staff'       => 'staff.dashboard',
             'division'    => 'division.dashboard',
             'subdivision' => 'subdivision.dashboard',
+            'engineer'    => 'engineer.dashboard',
+            'accountant'  => 'accountant.dashboard',
+            'managing'    => 'managing.dashboard',
+            'operator'    => 'operator.dashboard',
             default       => 'dashboard',
         };
     }

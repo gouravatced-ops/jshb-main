@@ -1,0 +1,20 @@
+php artisan make:controller AuthController
+php artisan make:model User
+php artisan make:mail OtpMail
+php artisan make:job SendOtpJob
+php artisan make:notification OtpNotification
+php artisan make:event UserLoggedIn
+php artisan make:listener SendWelcomeMail
+
+
+==============================================================================
+
+
+php artisan make:job SendOtpEmail
+php artisan make:mail OtpMail
+php artisan make:notification OtpNotification
+php artisan make:event UserLoggedIn
+php artisan make:listener SendOtpListener
+php artisan make:controller AuthController
+php artisan make:model User
+php artisan make:request LoginRequest

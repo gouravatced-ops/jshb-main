@@ -27,14 +27,17 @@ class User extends Authenticatable
                 if ($role) {
                     $slug = $role->slug;
                     $user->user_type = match ($slug) {
-                        'admin', 'super-admin', 'managing-director' => 'administration',
-                        'division-officer',
+                        'admin', 'super-admin', 'secretary-chief-engineer', 'managing-director' => 'administration',
                         'dealing-assistant',
-                        'office-superintendent',
+                        'division-officer',
                         'estate-officer',
+                        'office-superintendent',
                         'executive-engineer',
                         'assistant-engineer',
                         'junior-engineer' => 'engineer',
+                        'revenue-officer',
+                        'chief-accounts-officer',
+                        'chief-financial-officer' => 'accountant',
                         'allottee' => 'allottee',
                         'operator' => 'operator',
                         default => 'staff',
@@ -59,11 +62,17 @@ class User extends Authenticatable
         'division_id',
         'user_type',
         'login_with_otp',
+        'otp_login_valid_until',
         'password_created_at',
         'photo',
         'is_locked',
         'status',
         'secure_pin',
+        'is_first_login',
+        'internal_password',
+        'failed_login_attempts',
+        'account_blocked_until',
+        'has_been_blocked_once',
     ];
 
     /**
@@ -73,6 +82,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'internal_password',
         'secure_pin',
         'remember_token',
     ];
@@ -88,10 +98,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password_created_at' => 'datetime',
             'login_with_otp' => 'boolean',
+            'otp_login_valid_until' => 'datetime',
             'is_locked' => 'boolean',
             'status' => 'boolean',
+            'is_first_login' => 'boolean',
             'password' => 'hashed',
+            'internal_password' => 'hashed',
             'secure_pin' => 'hashed',
+            'account_blocked_until' => 'datetime',
+            'has_been_blocked_once' => 'boolean',
+            'failed_login_attempts' => 'integer',
         ];
     }
 
@@ -149,14 +165,17 @@ class User extends Authenticatable
 
         return match ($slug) {
             'admin', 'super-admin' => 'admin',
-            'division-officer'     => 'division',
-            'executive-engineer',
             'dealing-assistant',
             'office-superintendent',
-            'estate-officer',
+            'executive-engineer',
             'assistant-engineer',
-            'junior-engineer'      => 'engineer',
-            'managing-director'    => 'managing',
+            'division-officer',
+            'estate-officer',
+            'junior-engineer' => 'engineer',
+            'revenue-officer',
+            'chief-accounts-officer',
+            'chief-financial-officer' => 'accountant',
+            'managing-director', 'secretary-chief-engineer'    => 'managing',
             'operator'             => 'operator',
             'allottee'             => 'user',
             default                => 'staff',

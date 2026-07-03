@@ -42,6 +42,8 @@
         @include('components.partials.subdivision-sidebar')
     @elseif($sidebarUser?->role === 'engineer')
         @include('components.partials.engineer-sidebar')
+    @elseif($sidebarUser?->role === 'accountant')
+        @include('components.partials.accountant-sidebar')
     @elseif($sidebarUser?->role === 'managing')
         @include('components.partials.managing-sidebar')
     @elseif($sidebarUser?->role === 'operator')

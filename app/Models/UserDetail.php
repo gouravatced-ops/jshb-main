@@ -21,16 +21,20 @@ class UserDetail extends Model
         'state',
         'postal_code',
         'country',
-        'organization',
         'designation',
         'additional_info',
-        'anniversary_date',
-        'date_of_birth',
-        'spouse_name',
-        'no_of_children',
-        'boys',
-        'girls',
+        'date_of_joining',
+        'date_of_retirement',
+        'date_of_contractual',
+        'date_of_deputation',
         'phone_hash',
+    ];
+
+    protected $casts = [
+        'date_of_joining' => 'date',
+        'date_of_retirement' => 'date',
+        'date_of_contractual' => 'date',
+        'date_of_deputation' => 'date',
     ];
 
     public function user()

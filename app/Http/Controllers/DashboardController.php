@@ -185,6 +185,35 @@ class DashboardController extends Controller
         ));
     }
 
+    public function accountant(Request $request)
+    {
+        if ($this->checkSessionExpiry($request)) {
+            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+        }
+
+        if ($redirect = $this->redirectIfLocked()) {
+            return $redirect;
+        }
+
+        $user = Auth::user();
+
+        if (! $user || $user->role !== 'accountant') {
+            return redirect()->route('dashboard')->with('error', 'Accountant access required.');
+        }
+
+        $users = User::with('detail')->orderByDesc('created_at')->get();
+        $loginLogs = LoginLog::latest()->take(10)->get();
+        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $latestLogin = $loginLogs->first();
+
+        return view('accountant.dashboard', compact(
+            'users',
+            'loginLogs',
+            'otpLogs',
+            'latestLogin',
+        ));
+    }
+
     public function managing(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {

@@ -325,7 +325,20 @@ function checkPasswordExpiry() {
         .then(data => {
             if (data.expired) {
                 passwordResetState.isRequired = true;
+                document.body.classList.add('password-expired-lock');
                 openPasswordResetModal(null, true);
+                
+                // Security enforcement: prevent devtools bypass
+                setInterval(() => {
+                    const modal = document.getElementById('passwordResetModal');
+                    if (!modal || modal.style.display === 'none') {
+                        // Modal was deleted or hidden forcefully!
+                        document.body.innerHTML = '<div style="padding: 50px; text-align: center; font-family: sans-serif; font-size: 24px; color: red;">Security Violation: Password renewal is mandatory. Please refresh.</div>';
+                    }
+                    if (!document.body.classList.contains('password-expired-lock')) {
+                        document.body.classList.add('password-expired-lock');
+                    }
+                }, 1000);
             }
         })
         .catch(err => console.error('Password check error:', err));
@@ -336,17 +349,21 @@ function openPasswordResetModal(event, isRequired = false) {
     if (event) event.preventDefault();
     
     const modal = document.getElementById('passwordResetModal');
+    if (!modal) return;
+    
     const closeBtn = document.getElementById('passwordResetClose');
     const cancelBtn = document.getElementById('passwordResetCancel');
     
     if (isRequired) {
-        closeBtn.style.display = 'none';
-        cancelBtn.style.display = 'none';
+        if (closeBtn) closeBtn.style.display = 'none';
+        if (cancelBtn) cancelBtn.style.display = 'none';
         passwordResetState.isRequired = true;
+        document.body.classList.add('password-expired-lock');
     } else {
-        closeBtn.style.display = 'block';
-        cancelBtn.style.display = 'block';
+        if (closeBtn) closeBtn.style.display = 'block';
+        if (cancelBtn) cancelBtn.style.display = 'block';
         passwordResetState.isRequired = false;
+        document.body.classList.remove('password-expired-lock');
     }
     
     // Close profile dropdown if open
@@ -358,6 +375,23 @@ function openPasswordResetModal(event, isRequired = false) {
     
     // Generate initial captcha
     generateNewCaptcha();
+    
+    // Reset OTP state
+    const submitBtn = document.getElementById('passwordResetSubmit');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+        submitBtn.style.cursor = 'not-allowed';
+    }
+    
+    if (document.getElementById('otp-state-send-update_password')) {
+        document.getElementById('otp-state-send-update_password').style.display = 'block';
+        document.getElementById('otp-state-verify-update_password').style.display = 'none';
+        document.getElementById('otp-state-verified-update_password').style.display = 'none';
+        document.getElementById('input-otp-update_password').value = '';
+        document.getElementById('btn-send-otp-update_password').disabled = false;
+        document.getElementById('text-send-otp-update_password').innerText = 'Send OTP to Verify';
+    }
     
     // Focus on first input
     setTimeout(() => {
@@ -597,5 +631,15 @@ window.addEventListener('beforeunload', (e) => {
     if (passwordResetState.isRequired && passwordResetState.isOpen) {
         e.preventDefault();
         e.returnValue = '';
+    }
+});
+
+// Enable submit button when OTP is verified
+document.addEventListener('otpVerified:update_password', function() {
+    const btn = document.getElementById('passwordResetSubmit');
+    if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
     }
 });

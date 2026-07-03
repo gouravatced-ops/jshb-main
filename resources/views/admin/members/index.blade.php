@@ -49,7 +49,6 @@
                         <th>#</th>
                         <th>Name</th>
                         <th>Email</th>
-                        <th>Role</th>
                         <th>Division</th>
                         <th>Designation</th>
                         <th>Phone</th>
@@ -66,7 +65,11 @@
                                 <div class="table-user">
                                     <div>
                                         <div class="table-name">{{ $member->name }}</div>
-                                        {{-- <div class="table-email">{{ $member->username }}</div> --}}
+                                        <div class="table-email">
+                                            <span class="badge-status active" title="{{ $member->roleRelation?->short_name ?: 'No Role' }}" style="background:#e0f2fe;color:#0369a1;font-size: 14px;">
+                                                {{ $member->roleRelation?->name ?: 'No Role' }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -79,11 +82,18 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge-status active" style="background:#e0f2fe;color:#0369a1;">
-                                    {{ $member->roleRelation?->name ?: 'No Role' }}
+                                <span
+                                    class="badge-status {{ $member->division ? 'active' : '' }}"
+                                    title="{{ $member->division?->name ?? 'N/A' }}"
+                                    style="
+                                        background: {{ $member->division ? '#114466' : 'transparent' }};
+                                        color: {{ $member->division ? '#e8f5fc' : '#000' }};
+                                        font-size:14px;
+                                    "
+                                >
+                                    {{ $member->division?->division_code ?: 'N/A' }}
                                 </span>
                             </td>
-                            <td>{{ $member->division?->name ?: '-' }}</td>
                             <td>{{ $member->detail?->designation ?: '-' }}</td>
                             <td>{{ $member->detail?->phone ?: '-' }}</td>
                             <td>

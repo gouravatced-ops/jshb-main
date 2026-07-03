@@ -15,7 +15,7 @@
 </div>
 
 <div class="nav-item-wrap">
-    <a class="nav-link-custom" href="#">
+    <a class="nav-link-custom {{ request()->routeIs('my-activity') ? 'active' : '' }}" href="{{ route('my-activity') }}">
         <div class="nav-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
         <span class="nav-text">My Activity</span>
     </a>

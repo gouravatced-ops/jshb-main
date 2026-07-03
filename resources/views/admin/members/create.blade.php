@@ -46,12 +46,22 @@
 
                             <div class="form-group">
                                 <label>Password <span class="required">*</span></label>
-                                <input type="password" name="password" class="form-control" placeholder="Minimum 6 characters" required>
+                                <div style="position: relative;">
+                                    <input type="password" id="memberPassword" name="password" class="form-control" placeholder="Minimum 6 characters" required style="padding-right: 40px;">
+                                    <button type="button" onclick="const p = document.getElementById('memberPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0; z-index: 5;">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Confirm Password <span class="required">*</span></label>
-                                <input type="password" name="password_confirmation" class="form-control" placeholder="Confirm password" required>
+                                <div style="position: relative;">
+                                    <input type="password" id="memberPasswordConfirm" name="password_confirmation" class="form-control" placeholder="Confirm password" required style="padding-right: 40px;">
+                                    <button type="button" onclick="const p = document.getElementById('memberPasswordConfirm'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0; z-index: 5;">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -123,7 +133,7 @@
             const selectedOption = roleSelect.options[roleSelect.selectedIndex];
             const slug = selectedOption ? selectedOption.getAttribute('data-slug') : '';
             
-            if (slug === 'operator' || slug === 'managing-director') {
+            if (slug === 'operator' || slug === 'managing-director' || slug === 'revenue-officer' || slug === 'chief-accounts-officer' || slug === 'chief-financial-officer' || slug === 'secretary-chief-engineer') {
                 divisionGroup.style.display = 'none';
                 divisionSelect.removeAttribute('required');
                 divisionSelect.value = '';

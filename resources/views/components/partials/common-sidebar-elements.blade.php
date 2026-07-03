@@ -14,6 +14,11 @@
             <i class="fa-solid fa-key"></i> Change Password
         </a>
 
+        <!-- Set/Change Quick PIN -->
+        <a class="submenu-item" href="javascript:void(0)" onclick="openQuickPinModal(event); return false;">
+            <i class="fa-solid fa-th-large"></i> Set Quick PIN
+        </a>
+
         <!-- Logout -->
         <a class="submenu-item" href="{{ route('logout') }}">
             <i class="fa-solid fa-right-from-bracket"></i> Sign Out
