@@ -80,6 +80,31 @@ if (togglePassword && password) {
             }
         }
     }
+
+    const allLoginForms = document.querySelectorAll('.login-form');
+    allLoginForms.forEach(form => {
+        form.addEventListener('submit', function() {
+            if (this.checkValidity()) {
+                // Find the submit button within this form
+                const btn = this.querySelector('.btn-submit');
+                if (btn) {
+                    const originalText = btn.innerHTML;
+                    let loadingText = 'Processing...';
+                    if (originalText.includes('Login')) loadingText = 'Logging in...';
+                    else if (originalText.includes('Verify')) loadingText = 'Verifying...';
+                    else if (originalText.includes('Send')) loadingText = 'Sending...';
+                    else if (originalText.includes('Reset')) loadingText = 'Resetting...';
+
+                    // Using setTimeout ensures the form still submits correctly in all browsers
+                    // even if the button gets disabled.
+                    setTimeout(() => {
+                        btn.disabled = true;
+                        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${loadingText}`;
+                    }, 10);
+                }
+            }
+        });
+    });
 })();
 
 // ─── RESEND OTP COOLDOWN TIMER ────────────────────────────────

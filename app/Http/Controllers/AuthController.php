@@ -319,7 +319,7 @@ class AuthController extends Controller
             return;
         }
 
-        $minutesOfSession = (int) env('SESSION_LIFETIME', 60);
+        $minutesOfSession = (int) env('SESSION_LIFETIME', 90);
         $expiry = now()->addMinutes($minutesOfSession);
         $request->session()->put('session_expires_at_ts', $expiry->timestamp);
         $request->session()->put('session_expires_at', $expiry->toDateTimeString());
