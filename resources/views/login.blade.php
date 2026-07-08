@@ -109,7 +109,7 @@
 
           @if (! $otpRequired)
           <div class="field">
-            <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
+            <label for="password"><i class="fa-solid fa-lock"></i> Password / PIN</label>
             <input id="password" name="password" type="password" placeholder="··········" required>
             <!-- Eye Icon -->
             <i id="togglePassword" class="fa-solid fa-eye"></i>
@@ -128,10 +128,17 @@
           @if ($otpRequired)
           <div class="field">
             <label for="otp_code"><i class="fa-solid fa-key"></i> OTP Verification</label>
-            <input id="otp_code" name="otp_code" type="text" placeholder="6-digit OTP" inputmode="numeric" pattern="\d*" required>
+            <input id="otp_code" name="otp_code" type="text" placeholder="6-digit OTP" inputmode="numeric" pattern="\d*" required autofocus>
           </div>
           <p class="login-note" style="font-size:0.8rem">A secure OTP has been sent to your registered email.</p>
+          <div class="otp-actions">
+            <button type="submit" formaction="{{ route('login.resend-otp') }}" formnovalidate class="btn-resend" id="btnResendLogin">
+              <i class="fa-solid fa-arrows-rotate"></i> Resend OTP
+            </button>
+            <span class="resend-timer" id="resendTimerLogin"></span>
+          </div>
           @endif
+
 
           <div class="form-foot">
             <a href="{{ route('password.request') }}" class="forgot-link">Forgot password?</a>

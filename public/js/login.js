@@ -2,17 +2,19 @@ const togglePassword = document.getElementById("togglePassword");
 const password = document.getElementById("password");
 const passwordcnfirm = document.getElementById("password_confirmation");
 
-togglePassword.addEventListener("click", function () {
-    const type = password.getAttribute("type") === "password" ? "text" : "password";
-    password.setAttribute("type", type);
-    if(passwordcnfirm){
-        passwordcnfirm.setAttribute("type", type);
-    }
+if (togglePassword && password) {
+    togglePassword.addEventListener("click", function () {
+        const type = password.getAttribute("type") === "password" ? "text" : "password";
+        password.setAttribute("type", type);
+        if(passwordcnfirm){
+            passwordcnfirm.setAttribute("type", type);
+        }
 
-    // Toggle icon
-    this.classList.toggle("fa-eye");
-    this.classList.toggle("fa-eye-slash");
-});
+        // Toggle icon
+        this.classList.toggle("fa-eye");
+        this.classList.toggle("fa-eye-slash");
+    });
+}
 
 (function () {
     // CAPTCHA GENERATOR (fully functional)
@@ -78,4 +80,60 @@ togglePassword.addEventListener("click", function () {
             }
         }
     }
+
+    const allLoginForms = document.querySelectorAll('.login-form');
+    allLoginForms.forEach(form => {
+        form.addEventListener('submit', function() {
+            if (this.checkValidity()) {
+                // Find the submit button within this form
+                const btn = this.querySelector('.btn-submit');
+                if (btn) {
+                    const originalText = btn.innerHTML;
+                    let loadingText = 'Processing...';
+                    if (originalText.includes('Login')) loadingText = 'Logging in...';
+                    else if (originalText.includes('Verify')) loadingText = 'Verifying...';
+                    else if (originalText.includes('Send')) loadingText = 'Sending...';
+                    else if (originalText.includes('Reset')) loadingText = 'Resetting...';
+
+                    // Using setTimeout ensures the form still submits correctly in all browsers
+                    // even if the button gets disabled.
+                    setTimeout(() => {
+                        btn.disabled = true;
+                        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${loadingText}`;
+                    }, 10);
+                }
+            }
+        });
+    });
 })();
+
+// ─── RESEND OTP COOLDOWN TIMER ────────────────────────────────
+(function () {
+    function startResendTimer(btnId, timerId, seconds) {
+        const btn = document.getElementById(btnId);
+        const timer = document.getElementById(timerId);
+        if (!btn) return;
+
+        let remaining = seconds;
+        btn.disabled = true;
+
+        const interval = setInterval(() => {
+            if (timer) timer.textContent = `Wait ${remaining}s`;
+            remaining--;
+
+            if (remaining < 0) {
+                clearInterval(interval);
+                btn.disabled = false;
+                if (timer) timer.textContent = '';
+            }
+        }, 1000);
+    }
+
+    // Start 60s cooldown on page load if Resend button is present (prevents spam)
+    if (document.getElementById('btnResendLogin')) {
+        startResendTimer('btnResendLogin', 'resendTimerLogin', 60);
+    }
+    if (document.getElementById('btnResendForgot')) {
+        startResendTimer('btnResendForgot', 'resendTimerForgot', 60);
+    }
+})();

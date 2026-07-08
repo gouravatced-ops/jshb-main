@@ -15,7 +15,7 @@
             <h1 class="page-title"> Payment History </h1>
             <p class="page-subtitle">
                 One Time Payment Transactions ·
-                Application
+                Application :
                 {{ $allottee->application_no ?? '-' }}
             </p>
         </div>
@@ -129,7 +129,7 @@
     @else
         <div class="alert alert-warning">
             <i class="fa-solid fa-circle-exclamation me-2"></i>
-            No lottery payment transactions found.
+            No payment transactions found.
         </div>
     @endif
 </div>

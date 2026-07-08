@@ -155,7 +155,7 @@ class AllotteePaymentController extends Controller
             AllotteeProcessStep::where([
                 'allottee_id' =>
                 $payment->allottee_id,
-                'step_no'     => 5,
+                'step_no'     => 6,
             ])->update([
                 'status'       => 'completed',
                 'completed_at' => now(),
@@ -166,7 +166,7 @@ class AllotteePaymentController extends Controller
             AllotteeProcessStep::where([
                 'allottee_id' =>
                 $payment->allottee_id,
-                'step_no'     => 6,
+                'step_no'     => 7,
             ])->update([
                 'status' => 'pending',
             ]);
@@ -341,24 +341,16 @@ class AllotteePaymentController extends Controller
             ]);
 
             // COMPLETE STEP
-            AllotteeProcessStep::where([
-                'allottee_id' =>
-                $payment->allottee_id,
-                'step_no'     => 8,
-            ])->update([
-                'status'       => 'completed',
-                'completed_at' => now(),
-                'completed_by' => Auth::id(),
-            ]);
+            $now = now();
+            $userId = Auth::id();
 
-            // UNLOCK NEXT STEP
-            AllotteeProcessStep::where([
-                'allottee_id' =>
-                $payment->allottee_id,
-                'step_no'     => 9,
-            ])->update([
-                'status' => 'pending',
-            ]);
+            AllotteeProcessStep::where('allottee_id', $payment->allottee_id)
+                ->whereIn('step_no', [10, 11])
+                ->update([
+                    'status'       => 'completed',
+                    'completed_at' => $now,
+                    'completed_by' => $userId,
+                ]);
 
             DB::commit();
             return response()->json([

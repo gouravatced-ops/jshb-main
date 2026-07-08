@@ -2,20 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OtpLog;
 use App\Models\User;
+use App\Services\OtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class ForgotPasswordController extends Controller
 {
+    protected OtpService $otpService;
+
+    public function __construct(OtpService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
+
     public function showLinkRequestForm()
     {
         return view('auth.forgot-password');
     }
 
+    /**
+     * Send OTP for password reset via Job/Queue
+     */
     public function sendOtp(Request $request)
     {
         $request->validate([
@@ -28,35 +37,30 @@ class ForgotPasswordController extends Controller
             return back()->withInput()->withErrors(['email' => 'We could not find a user with that email address.']);
         }
 
-        $otpCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-
-        OtpLog::create([
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'otp_code' => $otpCode,
-            'verified' => false,
-            'purpose' => 'password_reset',
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+        // Use OtpService: generate + store in DB + send via queue
+        $this->otpService->generateAndSendOtp(
+            $user->id,
+            $user->email,
+            'password_reset',
+            'Your OTP for password reset is:',
+            $request->ip(),
+            $request->userAgent()
+        );
 
         session([
             'password_reset_email' => $user->email,
             'password_reset_otp_required' => true,
         ]);
 
-        /*
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
-        */
-
         return back()
-            ->with('success', 'OTP generated successfully. Enter the OTP below to verify and reset your password.')
+            ->with('success', 'OTP has been sent to your email. Enter the OTP below to verify and reset your password.')
             ->with('otp_required', true)
             ->with('email', $user->email);
     }
 
+    /**
+     * Verify OTP from database via OtpService
+     */
     public function verifyOtp(Request $request)
     {
         $request->validate([
@@ -70,20 +74,16 @@ class ForgotPasswordController extends Controller
             return back()->withInput()->withErrors(['email' => 'We could not find a user with that email address.']);
         }
 
-        $otpLog = OtpLog::where('user_id', $user->id)
-            ->where('purpose', 'password_reset')
-            ->latest()
-            ->first();
+        // Verify OTP from database
+        $isValid = $this->otpService->verifyOtp($user->id, $request->otp_code, 'password_reset');
 
-        if (! $otpLog || $otpLog->otp_code !== $request->otp_code) {
+        if (! $isValid) {
             return back()
                 ->withInput()
                 ->with('otp_required', true)
                 ->with('email', $request->email)
-                ->withErrors(['otp_code' => 'Invalid OTP. Please try again.']);
+                ->withErrors(['otp_code' => 'Invalid or expired OTP. Please try again.']);
         }
-
-        $otpLog->update(['verified' => true]);
 
         session([
             'password_reset_verified_email' => $user->email,
@@ -93,6 +93,44 @@ class ForgotPasswordController extends Controller
         return redirect()
             ->route('password.reset')
             ->with('success', 'OTP verified successfully. You can now set a new password.');
+    }
+
+    /**
+     * Resend OTP for password reset
+     */
+    public function resendOtp(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            return back()->withInput()->withErrors(['email' => 'We could not find a user with that email address.']);
+        }
+
+        // Resend via OtpService (includes cooldown check)
+        $result = $this->otpService->resendOtp(
+            $user->id,
+            $user->email,
+            'password_reset',
+            $request->ip(),
+            $request->userAgent()
+        );
+
+        if (! $result['success']) {
+            return back()
+                ->withInput()
+                ->with('otp_required', true)
+                ->with('email', $request->email)
+                ->with('error', $result['message']);
+        }
+
+        return back()
+            ->with('success', 'New OTP has been sent to your email.')
+            ->with('otp_required', true)
+            ->with('email', $user->email);
     }
 
     public function showResetForm(Request $request)

@@ -21,7 +21,7 @@
         ->first();
 @endphp
 
-<div class="letter-hero2">
+<div class="letter-hero letter-hero2">
     <p class="letter-hero-title">
         <i class="fa-solid fa-envelope-open-text me-2"></i>
         Possession Letter

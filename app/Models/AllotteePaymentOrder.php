@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class AllotteePaymentOrder extends Model
 {
     use HasFactory;
+    protected $connection = 'adms_allottees';
 
     protected $table = 'allottee_payment_orders';
 

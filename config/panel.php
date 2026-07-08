@@ -20,7 +20,7 @@ return [
     'govermentLogo' => 'img/logo.png',
     'patrnterLogo' => 'img/indian-bank.png',
     'calendarType' => 'financialYear', // calendarYear,
-    'password_expiry_days' => 30,
+    'password_expiry_days' => 90,
     'theme' => 'forest-green',
     'themes' => [
         'gov-indigo' => [

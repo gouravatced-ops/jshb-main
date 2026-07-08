@@ -14,110 +14,91 @@
             box-sizing: border-box;
         }
 
-        /* MODERN DESIGN SYSTEM — GREEN THEME, GLASS + BLUR, SMOOTH */
+        /* CLASSIC NAVY BLUE & DARK YELLOW THEME - SOLID COLORS */
         body {
             margin: 0;
             min-height: 100vh;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            position: relative;
-            background: url('/img/background.png') no-repeat center center/cover;
+            background: #0a1a2f;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            color: white;
+            color: #ffffff;
+            position: relative;
         }
 
-        /* Main card container — elevated with glassmorphic features */
+        /* Simple background pattern */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                repeating-linear-gradient(45deg, rgba(245, 197, 24, 0.02) 0px, rgba(245, 197, 24, 0.02) 2px, transparent 2px, transparent 8px);
+            pointer-events: none;
+        }
+
+        /* Main card container - solid navy */
         .lock-screen-card {
             position: relative;
             z-index: 2;
             width: min(480px, calc(100% - 32px));
-            padding: 36px 32px 42px;
-            border-radius: 40px;
-            background: radial-gradient(circle at 30% 10%, rgba(16, 185, 129, 0.12), rgba(4, 120, 87, 0.08) 70%),
-                linear-gradient(135deg, rgba(2, 44, 34, 0.78), rgba(6, 78, 59, 0.82));
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            box-shadow: 0 35px 70px -20px rgba(0, 0, 0, 0.45), 0 0 0 0.5px rgba(16, 185, 129, 0.2) inset;
+            padding: 40px 36px 48px;
+            background: #0d1f36;
+            border: 2px solid #d4a800;
+            box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.2);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .lock-screen-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 40px 80px -18px rgba(0, 0, 0, 0.55);
-            border-color: rgba(16, 185, 129, 0.5);
+            transform: translate(-2px, -2px);
+            box-shadow: 16px 16px 0 rgba(0, 0, 0, 0.25);
         }
 
         /* Logo / brand area */
         .lock-screen-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 28px;
-            background: rgba(0, 0, 0, 0.2);
-            width: fit-content;
-            padding: 8px 20px;
-            border-radius: 60px;
-            margin-left: auto;
-            margin-right: auto;
-            backdrop-filter: blur(4px);
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #d4a800;
         }
 
         .lock-screen-logo i {
-            font-size: 1.9rem;
-            color: #6ee7b7;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            font-size: 2.5rem;
+            color: #d4a800;
+            margin-bottom: 12px;
+            display: inline-block;
         }
 
-        .lock-screen-logo span {
-            font-weight: 700;
-            font-size: 1.25rem;
-            letter-spacing: -0.2px;
-            background: linear-gradient(135deg, #e2f3e8, #a7f3d0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        /* title & subtitle group */
         .lock-screen-title {
-            margin: 0 0 8px;
-            font-size: 32px;
-            font-weight: 800;
+            font-size: 28px;
+            font-weight: 700;
             letter-spacing: -0.5px;
-            background: linear-gradient(130deg, #ffffff, #bef5d5);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            color: #d4a800;
+            margin: 0 0 8px;
         }
 
         .lock-screen-subtitle {
-            margin: 0 0 16px;
-            color: #cbd5e6;
-            font-size: 14px;
+            font-size: 13px;
+            color: #8a9bb0;
             font-weight: 500;
-            opacity: 0.85;
         }
 
-        /* avatar with modern presence */
+        /* Avatar - classic circle */
         .lock-avatar {
-            width: 102px;
-            height: 102px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            background: linear-gradient(145deg, #10b98130, #064e3b80);
-            display: grid;
-            place-items: center;
-            font-size: 38px;
+            background: #d4a800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
             font-weight: 700;
-            color: white;
-            margin: 8px auto 20px;
+            color: #0a1a2f;
+            margin: 0 auto 20px;
             overflow: hidden;
-            border: 2px solid rgba(16, 185, 129, 0.6);
-            box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(2px);
+            border: 3px solid #d4a800;
         }
 
         .lock-avatar img {
@@ -126,88 +107,68 @@
             object-fit: cover;
         }
 
-        /* user info */
+        /* User info */
         .lock-user-name {
             text-align: center;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             margin: 0 0 6px;
-            letter-spacing: -0.2px;
+            color: #ffffff;
         }
 
         .lock-user-email {
             text-align: center;
-            margin: 0;
+            font-size: 13px;
+            color: #8a9bb0;
+            margin: 0 0 8px;
         }
 
-        /* form modern & sleek */
+        /* Form */
         .lock-screen-form {
-            display: grid;
-            gap: 18px;
             margin-top: 28px;
         }
 
-        /* input wrapper with icon */
-        .input-icon-group {
-            position: relative;
-            width: 100%;
-        }
-
-        .input-icon-group i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ae6b4;
-            font-size: 1.1rem;
-            pointer-events: none;
-            transition: color 0.2s;
-        }
-
+        /* Input field */
         .lock-screen-form input {
             width: 100%;
-            padding: 15px 16px 15px 46px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 44px;
-            background: rgba(10, 30, 24, 0.5);
-            color: white;
+            padding: 14px 18px;
+            border: 2px solid #2a3f5a;
+            background: #061220;
+            color: #ffffff;
             font-size: 15px;
             font-weight: 500;
-            backdrop-filter: blur(8px);
-            transition: all 0.2s ease;
             font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
         }
 
         .lock-screen-form input:focus {
             outline: none;
-            border-color: #34d399;
-            background: rgba(16, 185, 129, 0.2);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+            border-color: #d4a800;
+            background: #0a1a2f;
         }
 
         .lock-screen-form input::placeholder {
-            color: rgba(220, 252, 231, 0.75);
+            color: #5a6e85;
             font-weight: 400;
         }
 
-        /* modern button with shine and hover */
+        /* Button - solid dark yellow */
         .lock-screen-form button {
             width: 100%;
-            padding: 15px 16px;
+            padding: 14px 18px;
             border: none;
-            border-radius: 44px;
+            background: #d4a800;
+            color: #0a1a2f;
             font-size: 16px;
             font-weight: 700;
-            color: white;
-            background: linear-gradient(105deg, #10b981 0%, #059669 100%);
             cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            letter-spacing: 0.2px;
         }
 
         .lock-screen-form button i {
@@ -216,72 +177,75 @@
         }
 
         .lock-screen-form button:hover {
-            background: linear-gradient(105deg, #16c48a 0%, #0a855e 100%);
-            transform: scale(1.01);
-            box-shadow: 0 12px 22px -8px #0a3b2e;
-        }
-
-        .lock-screen-form button:hover i {
-            transform: translateX(3px);
+            background: #b89200;
+            transform: translateY(-1px);
         }
 
         .lock-screen-form button:active {
-            transform: scale(0.98);
+            transform: translateY(1px);
         }
 
-        /* error alert (emerald tone) */
+        /* Error message */
         .lock-screen-error {
-            color: #fecaca;
+            color: #d4a800;
             font-size: 13px;
             text-align: center;
-            background: rgba(185, 28, 28, 0.18);
-            backdrop-filter: blur(4px);
-            padding: 8px 12px;
-            border-radius: 60px;
-            margin-top: 8px;
+            background: rgba(212, 168, 0, 0.1);
+            padding: 10px 12px;
+            margin-top: 12px;
+            border-left: 3px solid #d4a800;
             font-weight: 500;
         }
 
-        /* additional micro-interactions & responsiveness */
+        /* Simple divider */
+        .lock-divider {
+            height: 1px;
+            background: #2a3f5a;
+            margin: 24px 0 0;
+        }
+
+        /* Responsive */
         @media (max-width: 540px) {
             .lock-screen-card {
-                padding: 28px 22px 36px;
-                border-radius: 32px;
+                padding: 28px 24px 36px;
             }
 
             .lock-screen-title {
-                font-size: 26px;
+                font-size: 24px;
             }
 
             .lock-avatar {
-                width: 82px;
-                height: 82px;
-                font-size: 30px;
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
             }
 
             .lock-user-name {
                 font-size: 20px;
             }
 
-            .lock-screen-form input {
-                padding: 13px 16px 13px 44px;
+            .lock-screen-form input,
+            .lock-screen-form button {
+                padding: 12px 16px;
             }
         }
 
-        /* nice animated background shift (optional vignette) */
-        @keyframes subtleBreathing {
-            0% {
-                backdrop-filter: blur(10px);
-            }
-
-            100% {
-                backdrop-filter: blur(11px);
-            }
-        }
-
-        /* custom scroll (just in case) */
+        /* Classic scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a1a2f;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d4a800;
+            border-radius: 0;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b89200;
         }
     </style>
 </head>
@@ -290,17 +254,15 @@
     <div class="lock-screen-card">
         <div class="lock-screen-logo">
             <i class="fa-solid fa-lock"></i>
-            <div>
-                <div class="lock-screen-title">Session Locked</div>
-                <p class="lock-screen-subtitle">Enter password to unlock your dashboard.</p>
-            </div>
+            <div class="lock-screen-title">Session Locked</div>
+            <p class="lock-screen-subtitle">Enter password or PIN to unlock your dashboard</p>
         </div>
 
         <div class="lock-avatar">
-            @if($user->photo)
-            <img src="{{ asset('storage/photos/' . $user->photo) }}" alt="{{ $user->name }}">
+            @if ($user->photo)
+                <img src="{{ asset('storage/photos/' . $user->photo) }}" alt="{{ $user->name }}">
             @else
-            {{ strtoupper(substr($user->name, 0, 2)) }}
+                {{ strtoupper(substr($user->name, 0, 2)) }}
             @endif
         </div>
 
@@ -309,15 +271,24 @@
 
         <form action="{{ route('lock.unlock') }}" method="POST" class="lock-screen-form">
             @csrf
-            <input type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
-            @if($errors->has('password'))
-            <div class="lock-screen-error">{{ $errors->first('password') }}</div>
+            <div style="position: relative;">
+                <input type="password" id="lockScreenPassword" name="password" placeholder="Enter your password or PIN" autocomplete="current-password" required style="padding-right: 40px;">
+                <button type="button" onclick="const p = document.getElementById('lockScreenPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; left: 350px; top: 38%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0; width: 50px;">
+                    <i class="fa-regular fa-eye"></i>
+                </button>
+            </div>
+            @if ($errors->has('password'))
+                <div class="lock-screen-error">{{ $errors->first('password') }}</div>
             @endif
-            @if(session('error'))
-            <div class="lock-screen-error">{{ session('error') }}</div>
+            @if (session('error'))
+                <div class="lock-screen-error">{{ session('error') }}</div>
             @endif
-            <button type="submit">Unlock</button>
+            <button type="submit">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                Unlock Dashboard
+            </button>
         </form>
+        <div class="lock-divider"></div>
     </div>
 </body>
 

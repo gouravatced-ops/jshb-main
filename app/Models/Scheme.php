@@ -9,6 +9,7 @@ use App\Traits\EncryptedRouteKey;
 class Scheme extends Model
 {
     use SoftDeletes, EncryptedRouteKey;
+    protected $connection = 'adms_jshb';
     protected $table = 'schemes';
 
     public $timestamps = true;

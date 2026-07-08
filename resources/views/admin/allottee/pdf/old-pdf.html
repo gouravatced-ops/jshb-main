@@ -1,0 +1,506 @@
+{{-- PDF Blade: verification_report.blade.php --}}
+{{-- Designed for Laravel with KrutiDev font & Logo Support --}}
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Verification Report</title>
+    <style>
+        /* ===== FONT ===== */
+        @font-face {
+            font-family: 'KrutiDev';
+            src: url("{{ public_path('font/KrutiDev011.ttf') }}") format('truetype');
+        }
+
+        /* ===== BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'freeserif', 'DejaVu Sans', sans-serif;
+            font-size: 12px;
+            color: #1e1e1e;
+            background: #fff;
+            padding: 12px 16px;
+            line-height: 1.4;
+        }
+
+        /* ===== PAGE BREAK ===== */
+        .page-break {
+            page-break-before: always;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px dashed #aaa;
+        }
+
+        /* ===== LAYOUT ===== */
+        .compact {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header - Page 1 */
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .header-left {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .header-left img {
+            width: 55px;
+            height: auto;
+            max-height: 60px;
+            object-fit: contain;
+        }
+
+        .header-center {
+            text-align: center;
+            padding: 0 70px;
+        }
+
+        .header-center .sub {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 2px;
+            border-top: 1px dashed #b0b0b0;
+            padding-top: 4px;
+        }
+
+        .header-right {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .header-right img {
+            width: 45px;
+            height: auto;
+            max-height: 50px;
+            object-fit: contain;
+        }
+
+        /* Header - Page 2 (compact) */
+        .header-row-page2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .header-row-page2 .header-left {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .header-row-page2 .header-left img {
+            width: 30px;
+            height: auto;
+        }
+
+        .header-row-page2 .header-center {
+            text-align: center;
+            padding: 0 50px;
+        }
+
+        .header-row-page2 .header-center .page-label {
+            font-size: 11px;
+            color: #555;
+        }
+
+        .header-row-page2 .header-right {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .header-row-page2 .header-right img {
+            width: 28px;
+            height: auto;
+        }
+
+        /* Info Table */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0 6px 0;
+            font-size: 13px;
+        }
+
+        .info-table td {
+            padding: 4px 8px;
+            border: 1px solid #3d3d3d;
+            vertical-align: middle;
+        }
+
+        .info-table .label-cell {
+            width: 42%;
+            background-color: #f2f3f4;
+            color: #1a2a3a;
+        }
+
+        .info-table .value-cell {
+            width: 58%;
+            background-color: #ffffff;
+        }
+
+        /* Section Blocks */
+        .section-block {
+            margin: 10px 0 6px 0;
+            border: 1px solid #2c3e50;
+            border-radius: 2px;
+        }
+
+        .section-title {
+            background: #d6dadd;
+            padding: 4px 10px;
+            border-bottom: 1px solid #2c3e50;
+            color: #1a2a3a;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: #fff;
+        }
+
+        .grid-item {
+            padding: 3px 8px;
+            border-bottom: 1px solid #b8b8b8;
+            border-right: 1px solid #b8b8b8;
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+
+        .grid-item:nth-child(even) {
+            border-right: none;
+        }
+
+        .grid-item .glabel {
+            min-width: 100px;
+            color: #1f2a36;
+        }
+
+        .grid-item .gvalue {
+            color: #0f1a2a;
+            padding-left: 4px;
+            word-break: break-word;
+        }
+
+        .grid-item.full {
+            grid-column: 1 / -1;
+            border-right: none;
+        }
+
+        /* Map Section - Compact */
+        .map-section {
+            margin: 8px 0 6px 0;
+            border: 2px dashed #4a5c6b;
+            padding: 10px 8px;
+            text-align: center;
+            background: #fafcfc;
+        }
+
+        .map-section .map-title {
+            margin-bottom: 6px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .map-section img {
+            max-width: 100%;
+            max-height: 300px;
+            border: 1px solid #a0a0a0;
+            background: #fff;
+            padding: 3px;
+        }
+
+        .no-map {
+            color: #7a7a7a;
+            font-size: 13px;
+        }
+
+        /* Signatures - Compact */
+        .signature-area {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            border-top: 1px solid #2c3e50;
+            padding-top: 12px;
+        }
+
+        .signature-box {
+            text-align: center;
+            width: 250px;
+        }
+
+        .signature-box .designation {
+            font-size: 12px;
+            color: #2e4053;
+        }
+
+        .signature-box .small-note {
+            font-size: 10px;
+            color: #4d4d4d;
+            margin-top: 2px;
+        }
+
+        /* Footer */
+        .footer-note {
+            margin-top: 12px;
+            font-size: 10px;
+            color: #6a6a6a;
+            text-align: center;
+            border-top: 1px solid #ccc;
+            padding-top: 6px;
+        }
+
+        /* Utilities */
+        .mt-1 {
+            margin-top: 4px;
+        }
+
+        .mb-1 {
+            margin-bottom: 4px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: #5d5d5d;
+        }
+
+        .fw-bold {
+            font-weight: 700;
+        }
+
+        /* Compact tweaks */
+        .compact .info-table td {
+            padding: 3px 6px;
+        }
+
+        .compact .grid-item {
+            padding: 2px 6px;
+        }
+
+        /* Print */
+        @media print {
+            body {
+                padding: 8px 12px;
+            }
+
+            .header-row {
+                border-bottom-width: 1.5px;
+            }
+
+            .section-block {
+                border-color: #1f2a36;
+            }
+
+            .grid-item {
+                border-bottom: 1px solid #a0a0a0;
+            }
+
+            .page-break {
+                border-top: none;
+                margin-top: 0;
+                padding-top: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="compact">
+
+        {{-- ============================================================ --}}
+        {{-- ===== PAGE 1: HEADER + TABLE + SECTIONS ===== --}}
+        {{-- ============================================================ --}}
+
+        {{-- HEADER with Logo (Page 1 only) --}}
+        <div class="header-row">
+            <div class="header-center">
+                <div style="font-family: 'KrutiDev'; font-size:20px; font-weight:700;">
+                    >kj[k.M jkT; vkokl cksMZ] jk¡ph çe.My
+                </div>
+                <div style="font-family: 'KrutiDev'; font-size:18px; font-weight:700;">
+                    tk¡p çi= ¼psd fyLV½
+                </div>
+                <div class="sub" style="font-family: 'KrutiDev'; font-size:14px;">
+                    vfUre gLrkUrj.k ls lEcfU/kr dk;Zikyd vfHk;ark dk LFky fujh{k.k çfrosnu
+                </div>
+            </div>
+        </div>
+
+        {{-- INFO TABLE (1-4) --}}
+        <table class="info-table">
+            <tr>
+                <td class="label-cell" style="font-family: 'KrutiDev'; font-size:14px; font-weight:600;">1) आवासीय
+                    कालोनी का नाम</td>
+                <td class="value-cell" style="font-weight:500;">{{ $verification->colony_name ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell" style="font-family: 'KrutiDev'; font-size:14px; font-weight:600;">2) आवंटी का नाम
+                </td>
+                <td class="value-cell" style="font-weight:500;">{{ $verification->allottee_name ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell" style="font-family: 'KrutiDev'; font-size:14px; font-weight:600;">3) आवंटित ईकाई
+                    की संख्या</td>
+                <td class="value-cell" style="font-weight:500;">{{ $verification->unit_number ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell" style="font-family: 'KrutiDev'; font-size:14px; font-weight:600;">4) आवंटित ईकाई
+                    का प्रयोग (आवासीय या व्यवसायिक)</td>
+                <td class="value-cell" style="font-weight:500;">{{ $verification->unit_use ?? '—' }}</td>
+            </tr>
+        </table>
+
+        {{-- SECTION 5: सड़क का आकार --}}
+        <div class="section-block">
+            <div class="section-title" style="font-family: 'KrutiDev'; font-size:15px; font-weight:600;">5) सड़क का आकार
+            </div>
+            <div class="section-grid">
+                <div class="grid-item">
+                    <span class="glabel" style="font-family: 'KrutiDev'; font-size:13px; font-weight:600;">(क) आवंटित
+                        ईकाई की तरफ</span>
+                    <span class="gvalue" style="font-weight:500;">{{ $verification->road_front ?? '—' }}</span>
+                </div>
+                <div class="grid-item">
+                    <span class="glabel" style="font-family: 'KrutiDev'; font-size:13px; font-weight:600;">(ख) आवंटित
+                        ईकाई का पिछला भाग</span>
+                    <span class="gvalue" style="font-weight:500;">{{ $verification->road_back ?? '—' }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 6: भूखण्ड का आकार --}}
+        <div class="section-block">
+            <div class="section-title" style="font-family: 'KrutiDev'; font-size:15px; font-weight:600;">6) भूखण्ड का
+                आकार</div>
+            <div class="section-grid">
+                <div class="grid-item">
+                    <span class="glabel" style="font-family: 'KrutiDev'; font-size:13px; font-weight:600;">(क) आवंटनादेश
+                        के अनुसार</span>
+                    <span class="gvalue" style="font-weight:500;">{{ $verification->plot_allotment ?? '—' }}</span>
+                </div>
+                <div class="grid-item">
+                    <span class="glabel" style="font-family: 'KrutiDev'; font-size:13px; font-weight:600;">(ख) निर्धारित
+                        ए.ए.राजनामा के अनुसार</span>
+                    <span class="gvalue" style="font-weight:500;">{{ $verification->plot_aa ?? '—' }}</span>
+                </div>
+                <div class="grid-item">
+                    <span class="glabel" style="font-family: 'KrutiDev'; font-size:13px; font-weight:600;">(ग) दिए गए
+                        दखल कब्जा के अनुसार</span>
+                    <span class="gvalue" style="font-weight:500;">{{ $verification->plot_possession ?? '—' }}</span>
+                </div>
+                <div class="grid-item">
+                    <span class="glabel" style="font-family: 'KrutiDev'; font-size:13px; font-weight:600;">(घ) अगर कोई
+                        संख्या हो तो इसका कारण</span>
+                    <span class="gvalue" style="font-weight:500;">{{ $verification->plot_reason ?? '—' }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 7: अतिक्रमण --}}
+        <div class="section-block">
+            <div class="section-title" style="font-family: 'KrutiDev'; font-size:15px; font-weight:600;">7) यदि कोई
+                अतिक्रमण हो तो उसका व्योरा</div>
+            <div class="section-grid">
+                <div class="grid-item">
+                    <span class="glabel" style="font-family: 'KrutiDev'; font-size:13px; font-weight:600;">(क)
+                        रकबा</span>
+                    <span class="gvalue" style="font-weight:500;">{{ $verification->encroachment_area ?? '—' }}</span>
+                </div>
+                <div class="grid-item">
+                    <span class="glabel" style="font-family: 'KrutiDev'; font-size:13px; font-weight:600;">(ख) अतिक्रमित
+                        भाग</span>
+                    <span class="gvalue" style="font-weight:500;">{{ $verification->encroachment_part ?? '—' }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ============================================================ --}}
+        {{-- ===== PAGE BREAK: Map & Signature on new page ===== --}}
+        {{-- ============================================================ --}}
+
+        <div class="page-break"></div>
+
+        {{-- ===== PAGE 2: MAP + SIGNATURE (Compact, no logo) ===== --}}
+
+        {{-- Compact header on page 2 (minimal) --}}
+        <div class="header-row-page2">
+            <div class="header-center">
+                <span style="font-family: 'KrutiDev'; font-size:13px; font-weight:600;">
+                    झारखण्ड राज्य आवास बोर्ड, राँची प्रमण्डल
+                </span>
+                <span class="page-label" style="display:block; font-size:10px; color:#777;">स्थल निरीक्षण प्रतिवेदन
+                    (पृष्ठ 2/2)</span>
+            </div>
+        </div>
+
+        {{-- MAP SECTION --}}
+        <div class="map-section">
+            <div class="map-title" style="font-family: 'KrutiDev'; font-size:16px; font-weight:700;">📍 स्थल मानचित्र
+            </div>
+
+            @if($verification->map_image)
+            @php
+            $src = $verification->map_image;
+            if (!str_starts_with($src, 'data:image')) {
+            $src = public_path($src);
+            }
+            @endphp
+            <img src="{{ $src }}" alt="Site Map Image" />
+            @else
+            <div class="no-map" style="font-family: 'KrutiDev'; font-size:13px;">— कोई मानचित्र उपलब्ध नहीं —</div>
+            @endif
+        </div>
+
+        {{-- SIGNATURE --}}
+        <div class="signature-area">
+            <div class="signature-box">
+                <div style="font-family: 'KrutiDev'; font-size:17px; font-weight:700;">कार्यपालक अभियंता</div>
+                <div class="designation" style="font-family: 'KrutiDev'; font-size:12px;">झारखण्ड राज्य आवास बोर्ड
+                    (JSHB)</div>
+                <div class="small-note" style="font-family: 'KrutiDev'; font-size:10px;">(हस्ताक्षर एवं मुहर / Signature
+                    &amp; Stamp)</div>
+            </div>
+        </div>
+
+        {{-- FOOTER --}}
+        <div class="footer-note" style="font-family: 'KrutiDev'; font-size:10px;">
+            प्रपत्र सं. JSHB/SVR/2026 • निरीक्षण तिथि: {{ date('d-m-Y') }}
+        </div>
+
+    </div>
+</body>
+
+</html>

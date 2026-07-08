@@ -65,13 +65,24 @@
                         <td>
                             <div class="action-btns">
                                 <a class="action-btn edit" href="{{ route('admin.sub-divisions.edit', $subDivision) }}" title="Edit">
-                                    <i class="fa-solid fa-pen"></i>
+                                    <i class="fa-solid fa-pen text-primary"></i>
                                 </a>
+                                <form action="{{ route('admin.sub-divisions.toggle-status', $subDivision) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('POST')
+                                    <button class="action-btn toggle-status" type="submit" title="Toggle Status">
+                                        @if($subDivision->status)
+                                            <i class="fa-solid fa-toggle-on text-success"></i>
+                                        @else
+                                            <i class="fa-solid fa-toggle-off text-danger"></i>
+                                        @endif
+                                    </button>
+                                </form>
                                 <form action="{{ route('admin.sub-divisions.destroy', $subDivision) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button class="action-btn del" type="submit" title="Delete">
-                                        <i class="fa-solid fa-trash"></i>
+                                        <i class="fa-solid fa-trash text-danger"></i>
                                     </button>
                                 </form>
                             </div>

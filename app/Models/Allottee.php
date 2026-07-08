@@ -9,6 +9,7 @@ use App\Traits\EncryptedRouteKey;
 class Allottee extends Model
 {
     use HasFactory, EncryptedRouteKey;
+    protected $connection = 'adms_allottees';
     protected $table = 'allottees';
     public $timestamps = true;
 
@@ -54,6 +55,7 @@ class Allottee extends Model
         'allottee_remarks',
         'current_step',
         'step_remarks',
+        'payment_option',
         'allottee_create_date',
         'create_ip_address',
         'update_ip_address',
@@ -161,11 +163,6 @@ class Allottee extends Model
         return $this->hasMany(AllotteeGeneratedDocument::class, 'allottee_id', 'id');
     }
 
-    public function emiAccount()
-    {
-        return $this->hasMany(AllotteeEmiLedger::class, 'allottee_id', 'id');
-    }
-
     public function allotteeOrders()
     {
         return $this->hasMany(AllotteePaymentOrder::class, 'allottee_id', 'id');
@@ -174,5 +171,38 @@ class Allottee extends Model
     public function allotteeTransaction()
     {
         return $this->hasMany(AllotteeTransaction::class, 'allottee_id', 'id');
+    }
+
+    public function emiAccount()
+    {
+        return $this->hasMany(AllotteeEmiAccount::class, 'allottee_id', 'id');
+    }
+
+    public function emiSchedule()
+    {
+        return $this->hasMany(AllotteeEmiSchedule::class, 'allottee_id', 'id');
+    }
+
+    public function emiDemand()
+    {
+        return $this->hasMany(AllotteeMonthlyDemand::class, 'allottee_id', 'id');
+    }
+
+    public function siteVerification()
+    {
+        return $this->hasOne(AllotteeSiteVerification::class, 'allottee_id', 'id');
+    }
+
+    public static function generateUniquePropertyNumber(): string
+    {
+        do {
+            $propertyNumber = chr(rand(65, 72))
+                . '-'
+                . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        } while (
+            self::where('property_number', $propertyNumber)->exists()
+        );
+
+        return $propertyNumber;
     }
 }

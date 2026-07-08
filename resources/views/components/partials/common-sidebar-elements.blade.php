@@ -14,6 +14,11 @@
             <i class="fa-solid fa-key"></i> Change Password
         </a>
 
+        <!-- Set/Change Quick PIN -->
+        <a class="submenu-item" href="javascript:void(0)" onclick="openQuickPinModal(event); return false;">
+            <i class="fa-solid fa-th-large"></i> Set Quick PIN
+        </a>
+
         <!-- Logout -->
         <a class="submenu-item" href="{{ route('logout') }}">
             <i class="fa-solid fa-right-from-bracket"></i> Sign Out
@@ -31,15 +36,16 @@
 <div class="sidebar-footer">
     <div class="sidebar-user">
         <div class="sidebar-avatar">
-            @if($sidebarUser && $sidebarUser->photo)
-            <img src="{{ asset('storage/photos/' . $sidebarUser->photo) }}" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+            @if ($sidebarUser && $sidebarUser->photo)
+                <img src="{{ asset('storage/photos/' . $sidebarUser->photo) }}" alt="Profile Photo"
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
             @else
-            {{ $sidebarInitials }}
+                {{ $sidebarInitials }}
             @endif
         </div>
         <div class="sidebar-user-info">
             <div class="sidebar-user-name">{{ $sidebarUser->name ?? 'Guest User' }}</div>
-            <span>{{ $sidebarUser->email ?? 'guest@domain.com' }}</span>
+            <span class="sidebar-user-name">{{ $sidebarUser->email ?? 'guest@domain.com' }}</span>
         </div>
     </div>
 </div>

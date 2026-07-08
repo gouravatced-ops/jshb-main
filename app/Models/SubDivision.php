@@ -11,6 +11,7 @@ class SubDivision extends Model
 {
     use SoftDeletes, EncryptedRouteKey;
 
+    protected $connection = 'adms_jshb';
     protected $table = 'sub_divisions';
 
     protected $fillable = [

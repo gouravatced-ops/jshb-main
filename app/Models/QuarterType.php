@@ -4,16 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\EncryptedRouteKey;
 
 class QuarterType extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes, EncryptedRouteKey;
 
     /**
      * The table associated with the model.
      *
      * @var string
      */
+    protected $connection = 'adms_jshb';
     protected $table = 'quarter_type';
 
     /**

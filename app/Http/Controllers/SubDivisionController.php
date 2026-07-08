@@ -73,6 +73,7 @@ class SubDivisionController extends Controller
                     'status_label' => $subDivision->status ? 'Active' : 'Inactive',
                     'edit_url' => route('admin.sub-divisions.edit', $subDivision),
                     'delete_url' => route('admin.sub-divisions.destroy', $subDivision),
+                    'toggle_status_url' => route('admin.sub-divisions.toggle-status', $subDivision),
                 ];
             })
             ->values();
@@ -135,6 +136,21 @@ class SubDivisionController extends Controller
         return redirect()
             ->route('admin.sub-divisions.index')
             ->with('success', 'Sub Division updated successfully.');
+    }
+
+    public function toggleStatus(SubDivision $subDivision)
+    {
+        if ($redirect = $this->adminGuard()) {
+            return $redirect;
+        }
+
+        $subDivision->update([
+            'status' => !$subDivision->status,
+        ]);
+
+        return redirect()
+            ->route('admin.sub-divisions.index')
+            ->with('success', 'Sub Division status updated successfully.');
     }
 
     public function destroy(SubDivision $subDivision)

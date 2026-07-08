@@ -19,7 +19,38 @@ class AdminController extends Controller
 
         $user = Auth::user();
         $userDetail = $user->detail ?? new UserDetail(['user_id' => $user->id]);
-        return view('admin.profile', compact('user', 'userDetail'));
+        
+        $loginLogs = \App\Models\LoginLog::where('user_id', $user->id)
+            ->latest()
+            ->limit(50)
+            ->get();
+
+        $otpLogs = \App\Models\OtpLog::where('user_id', $user->id)
+            ->latest()
+            ->limit(50)
+            ->get();
+
+        return view('admin.profile', compact('user', 'userDetail', 'loginLogs', 'otpLogs'));
+    }
+
+    public function myActivity()
+    {
+        if ($redirect = $this->redirectIfLocked()) {
+            return $redirect;
+        }
+
+        $user = Auth::user();
+        
+        // Paginate logs for the dedicated activity page
+        $loginLogs = \App\Models\LoginLog::where('user_id', $user->id)
+            ->latest()
+            ->paginate(15, ['*'], 'login_page');
+
+        $otpLogs = \App\Models\OtpLog::where('user_id', $user->id)
+            ->latest()
+            ->paginate(15, ['*'], 'otp_page');
+
+        return view('admin.my-activity', compact('loginLogs', 'otpLogs'));
     }
 
     public function updateProfile(Request $request)
@@ -43,15 +74,12 @@ class AdminController extends Controller
             'state' => 'nullable|string|max:255',
             'postal_code' => 'nullable|string|max:20',
             'country' => 'nullable|string|max:255',
-            'organization' => 'nullable|string|max:255',
             'designation' => 'nullable|string|max:255',
             'additional_info' => 'nullable|string',
-            'anniversary_date' => 'nullable|date',
-            'date_of_birth' => 'nullable|date',
-            'spouse_name' => 'nullable|string|max:255',
-            'no_of_children' => 'nullable|integer|min:0',
-            'boys' => 'nullable|integer|min:0',
-            'girls' => 'nullable|integer|min:0',
+            'date_of_joining' => 'nullable|date',
+            'date_of_retirement' => 'nullable|date',
+            'date_of_contractual' => 'nullable|date',
+            'date_of_deputation' => 'nullable|date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'secure_pin' => 'nullable|digits:5|confirmed',
         ]);
@@ -112,8 +140,8 @@ class AdminController extends Controller
         // Update or create user detail
         $userDetail->fill($request->only([
             'phone', 'address_line1', 'address_line2', 'city', 'state', 'postal_code', 'country',
-            'organization', 'designation', 'additional_info', 'anniversary_date', 'date_of_birth',
-            'spouse_name', 'no_of_children', 'boys', 'girls'
+            'designation', 'additional_info', 'date_of_joining', 'date_of_retirement',
+            'date_of_contractual', 'date_of_deputation'
         ]));
         $userDetail->user_id = $user->id;
         $userDetail->save();

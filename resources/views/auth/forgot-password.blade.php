@@ -107,12 +107,20 @@
                     @if($otpRequired)
                     <div class="field">
                         <label for="otp_code">OTP Code</label>
-                        <input id="otp_code" name="otp_code" type="text" value="{{ old('otp_code') }}" placeholder="Enter 6 digit OTP" inputmode="numeric" pattern="\d*" required>
+                        <input id="otp_code" name="otp_code" type="text" value="{{ old('otp_code') }}" placeholder="Enter 6 digit OTP" inputmode="numeric" pattern="\d*" required autofocus>
+                    </div>
+                    <p class="login-note" style="font-size:0.8rem; margin-top: -10px; margin-bottom: 10px;">A secure OTP has been sent to your registered email.</p>
+                    <div class="otp-actions" style="margin-bottom: 15px;">
+                        <button type="submit" formaction="{{ route('password.resend-otp') }}" formnovalidate class="btn-resend" id="btnResendForgot">
+                            <i class="fa-solid fa-arrows-rotate"></i> Resend OTP
+                        </button>
+                        <span class="resend-timer" id="resendTimerForgot"></span>
                     </div>
                     <button type="submit" class="btn-submit">Verify OTP</button>
                     @else
                     <button type="submit" class="btn-submit">Send OTP</button>
                     @endif
+
                 </form>
 
                 <p class="note-link" style="text-align:center;">Remembered it? <a href="{{ route('login') }}">Back to login</a></p>

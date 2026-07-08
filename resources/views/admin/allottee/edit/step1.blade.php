@@ -115,19 +115,20 @@
         color: #000 !important;
         transition: all 0.3s ease;
     }
+
     .badge.bg-secondary {
         font-size: 14px !important;
     }
 </style>
 @php
-    #return getDebugIndex($applicant);
+    #return debug($applicant);
     $divisions = getDivisions();
     $propertyCategory = getPropertyCategory();
     $quaterType = getQuarterType();
 @endphp
 <form id="step1Form" method="POST">
     @csrf
-    <input type="hidden" name="allottee_id" value="{{$applicant->id ?? ''}}">
+    <input type="hidden" name="allottee_id" value="{{ $applicant->id ?? '' }}">
 
     {{-- ── Allottee Details ── --}}
     <div class="form-section" style="margin-top:10px;">
@@ -138,8 +139,9 @@
                 </label>
                 <select name="division_id" id="divisionId" class="custom-input division-select">
                     <option value="">— Select Division —</option>
-                    @foreach($divisions as $division)
-                        <option value="{{ $division->dv_en_id }}" {{ isset($applicant) && $applicant->division_id == $division->id ? 'selected' : '' }}>
+                    @foreach ($divisions as $division)
+                        <option value="{{ $division->dv_en_id }}"
+                            {{ isset($applicant) && $applicant->division_id == $division->id ? 'selected' : '' }}>
                             {{ $division->name }}
                         </option>
                     @endforeach
@@ -151,11 +153,12 @@
                 </label>
                 <select name="subdivision_id" id="subdivisionSelect" class="custom-input">
                     <option value="">— Select Sub Division —</option>
-                        @foreach($subdivisions as $subDiv)
-                            <option value="{{ $subDiv->sub_dv_en_id }}" {{ isset($applicant) && $applicant->subdivision_id == $subDiv->id ? 'selected' : '' }}>
-                                {{ $subDiv->name }}
-                            </option>
-                        @endforeach
+                    @foreach ($subdivisions as $subDiv)
+                        <option value="{{ $subDiv->sub_dv_en_id }}"
+                            {{ isset($applicant) && $applicant->subdivision_id == $subDiv->id ? 'selected' : '' }}>
+                            {{ $subDiv->name }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
             <div class="field">
@@ -164,10 +167,11 @@
                 </label>
                 <select name="pcategory_id" id="pCategory" class="custom-input property-category-select">
                     <option value="">— Select Property Category —</option>
-                    @foreach($propertyCategory as $Category)
-                    <option value="{{ $Category->pct_en_id }}" {{ isset($applicant) && $applicant->pcategory_id == $Category->id ? 'selected' : '' }}>
-                        {{ $Category->name }}
-                    </option>
+                    @foreach ($propertyCategory as $Category)
+                        <option value="{{ $Category->pct_en_id }}"
+                            {{ isset($applicant) && $applicant->pcategory_id == $Category->id ? 'selected' : '' }}>
+                            {{ $Category->name }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -180,11 +184,12 @@
                 </label>
                 <select name="property_type_id" id="PropertyCatType" class="custom-input property-cat-type-select">
                     <option value="">— Select Property Type —</option>
-                        @foreach($propertyTypes as $proType)
-                            <option value="{{ $proType->pt_en_id }}" {{ isset($applicant) && $applicant->property_type_id == $proType->id ? 'selected' : '' }}>
-                                {{ $proType->name }}
-                            </option>
-                        @endforeach
+                    @foreach ($propertyTypes as $proType)
+                        <option value="{{ $proType->pt_en_id }}"
+                            {{ isset($applicant) && $applicant->property_type_id == $proType->id ? 'selected' : '' }}>
+                            {{ $proType->name }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
 
@@ -194,11 +199,12 @@
                 </label>
                 <select name="p_sub_type_id" id="property_sub_type" class="custom-input property-sub-type-select">
                     <option value="">— Select Property Sub Type —</option>
-                        @foreach($propertySubTypes as $proSubType)
-                            <option value="{{ $proSubType->pctm_en_id }}" {{ isset($applicant) && $applicant->p_sub_type_id == $proSubType->id ? 'selected' : '' }}>
-                                {{ $proSubType->name }}
-                            </option>
-                        @endforeach
+                    @foreach ($propertySubTypes as $proSubType)
+                        <option value="{{ $proSubType->pctm_en_id }}"
+                            {{ isset($applicant) && $applicant->p_sub_type_id == $proSubType->id ? 'selected' : '' }}>
+                            {{ $proSubType->name }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
 
@@ -208,17 +214,18 @@
                 </label>
                 <select name="quarter_id" id="quaterTypeOption" class="custom-input quater-type-option">
                     <option value="">— Select Quarter Type —</option>
-                    @foreach($quaterType as $quat)
-                    <option value="{{ $quat->qt_en_id }}" {{ isset($applicant) && $applicant->quarter_id == $quat->quarter_id ? 'selected' : '' }}>
-                        {{ $quat->quarter_code }} - {{ $quat->quarter_name }}
-                    </option>
+                    @foreach ($quaterType as $quat)
+                        <option value="{{ $quat->qt_en_id }}"
+                            {{ isset($applicant) && $applicant->quarter_id == $quat->quarter_id ? 'selected' : '' }}>
+                            {{ $quat->quarter_code }} - {{ $quat->quarter_name }}
+                        </option>
                     @endforeach
                 </select>
             </div>
         </div>
-        
+
         <!-- Hidden input for selected scheme ID -->
-        <input type="hidden" name="scheme_id" id="selected_scheme_id" value="{{$applicant->scheme_id ?? ''}}">
+        <input type="hidden" name="scheme_id" id="selected_scheme_id" value="{{ $applicant->scheme_id ?? '' }}">
 
         <div class="form-grid" style="grid-template-columns: repeat(1, 1fr) !important;">
             <div class="field">
@@ -226,7 +233,10 @@
                     Schemes <span class="req-star">*</span>
                 </label>
                 <div class="custom-select-wrapper">
-                    <input type="text" class="custom-input mb-2" id="schemeSearch" placeholder="Type to search scheme by name" value="{{ optional($getSchemeList)->scheme_code ? optional($getSchemeList)->scheme_code . ' ' . optional($getSchemeList)->scheme_name : '' }}" autocomplete="off" autofocus="" required>
+                    <input type="text" class="custom-input mb-2" id="schemeSearch"
+                        placeholder="Type to search scheme by name"
+                        value="{{ optional($getSchemeList)->scheme_code ? optional($getSchemeList)->scheme_code . ' ' . optional($getSchemeList)->scheme_name : '' }}"
+                        autocomplete="off" autofocus="" required>
                     <div class="custom-options" id="customOptions">
                     </div>
                     <small class="text-muted mt-1" id="searchResultCount">0 schemes
@@ -241,7 +251,8 @@
                     Application No. <span class="req-star">*</span>
                 </label>
                 <input type="text" name="application_no" class="custom-input alpha-num-dash"
-                    value="{{ old('application_no', $applicant->application_no ?? '') }}" placeholder="e.g. 1234567890">
+                    value="{{ old('application_no', $applicant->application_no ?? '') }}"
+                    placeholder="e.g. 1234567890">
             </div>
             <div class="field">
                 <label class="field-label">
@@ -256,9 +267,9 @@
                         for ($d = 1; $d <= 31; $d++):
                             $day = str_pad($d, 2, '0', STR_PAD_LEFT);
                         ?>
-                            <option value="<?= $day ?>" <?= $selectedDay == $day ? 'selected' : '' ?>>
-                                <?= $day ?>
-                            </option>
+                        <option value="<?= $day ?>" <?= $selectedDay == $day ? 'selected' : '' ?>>
+                            <?= $day ?>
+                        </option>
                         <?php endfor; ?>
                     </select>
                     <!-- Month -->
@@ -269,9 +280,9 @@
                         for ($m = 1; $m <= 12; $m++):
                             $month = str_pad($m, 2, '0', STR_PAD_LEFT);
                         ?>
-                            <option value="<?= $month ?>" <?= $selectedMonth == $month ? 'selected' : '' ?>>
-                                <?= $month ?>
-                            </option>
+                        <option value="<?= $month ?>" <?= $selectedMonth == $month ? 'selected' : '' ?>>
+                            <?= $month ?>
+                        </option>
                         <?php endfor; ?>
                     </select>
                     <!-- Year -->
@@ -282,9 +293,9 @@
                         $currentYear = date('Y');
                         for ($y = $currentYear; $y >= 1960; $y--):
                         ?>
-                            <option value="<?= $y ?>" <?= $selectedYear == $y ? 'selected' : '' ?>>
-                                <?= $y ?>
-                            </option>
+                        <option value="<?= $y ?>" <?= $selectedYear == $y ? 'selected' : '' ?>>
+                            <?= $y ?>
+                        </option>
                         <?php endfor; ?>
                     </select>
                 </div>
@@ -300,20 +311,23 @@
                     @php $prefixes = ['Shri', 'Smt.', 'Miss', 'Dr.', 'Md.', 'Late', 'M/S' , 'Maj.' , 'Capt.']; @endphp
                     <select name="prefix" class="prefix-select">
                         @foreach ($prefixes as $prefix)
-                        <option value="{{ $prefix }}" {{ ($applicant->prefix ?? '') === $prefix ? 'selected' : '' }}>
-                            {{ $prefix }}
-                        </option>
+                            <option value="{{ $prefix }}"
+                                {{ ($applicant->prefix ?? '') === $prefix ? 'selected' : '' }}>
+                                {{ $prefix }}
+                            </option>
                         @endforeach
                     </select>
                     <input type="text" name="allottee_name" class="custom-input only-alphabet"
-                        value="{{ old('allottee_name', $applicant->allottee_name ?? '') }}" placeholder="e.g. Rajesh">
+                        value="{{ old('allottee_name', $applicant->allottee_name ?? '') }}"
+                        placeholder="e.g. Rajesh">
                 </div>
             </div>
 
             <div class="field">
                 <label class="field-label">Middle Name</label>
                 <input type="text" name="allottee_middle_name" class="custom-input only-alphabet"
-                    value="{{ old('allottee_middle_name', $applicant->allottee_middle_name ?? '') }}" placeholder="Optional">
+                    value="{{ old('allottee_middle_name', $applicant->allottee_middle_name ?? '') }}"
+                    placeholder="Optional">
             </div>
 
             <div class="field">
@@ -321,7 +335,8 @@
                     Last Name
                 </label>
                 <input type="text" name="allottee_surname" class="custom-input only-alphabet"
-                    value="{{ old('allottee_surname', $applicant->allottee_surname ?? '') }}" placeholder="e.g. Kumar">
+                    value="{{ old('allottee_surname', $applicant->allottee_surname ?? '') }}"
+                    placeholder="e.g. Kumar">
             </div>
 
             <div class="field">
@@ -332,20 +347,23 @@
                     @php $prefixes = ['श्री', 'श्रीमती', 'सुश्री', 'डॉ.', 'मो.', 'स्व०', 'मेसर्स' , 'मेजर', 'कैप्टन']; @endphp
                     <select name="allottee_prefix_hindi" class="prefix-select">
                         @foreach ($prefixes as $prefix)
-                        <option value="{{ $prefix }}" {{ ($applicant->allottee_prefix_hindi ?? '') === $prefix ? 'selected' : '' }}>
-                            {{ $prefix }}
-                        </option>
+                            <option value="{{ $prefix }}"
+                                {{ ($applicant->allottee_prefix_hindi ?? '') === $prefix ? 'selected' : '' }}>
+                                {{ $prefix }}
+                            </option>
                         @endforeach
                     </select>
                     <input type="text" name="allottee_name_hindi" class="custom-input only-hindi"
-                        value="{{ old('allottee_name_hindi', $applicant->allottee_name_hindi ?? '') }}" placeholder="e.g. राजेश">
+                        value="{{ old('allottee_name_hindi', $applicant->allottee_name_hindi ?? '') }}"
+                        placeholder="e.g. राजेश">
                 </div>
             </div>
 
             <div class="field">
                 <label class="field-label">Middle Name (Hindi)</label>
                 <input type="text" name="allottee_middle_hindi" class="custom-input only-hindi"
-                    value="{{ old('allottee_middle_hindi', $applicant->allottee_middle_hindi ?? '') }}" placeholder="e.g. कुमार">
+                    value="{{ old('allottee_middle_hindi', $applicant->allottee_middle_hindi ?? '') }}"
+                    placeholder="e.g. कुमार">
             </div>
 
             <div class="field">
@@ -353,7 +371,8 @@
                     Last Name (Hindi)
                 </label>
                 <input type="text" name="allottee_surname_hindi" class="custom-input only-hindi"
-                    value="{{ old('allottee_surname_hindi', $applicant->allottee_surname_hindi ?? '') }}" placeholder="e.g. कुमार">
+                    value="{{ old('allottee_surname_hindi', $applicant->allottee_surname_hindi ?? '') }}"
+                    placeholder="e.g. कुमार">
             </div>
 
             <div class="field">
@@ -364,9 +383,10 @@
                     @php $prefixes = ['Father', 'Mother', 'Husband', 'Wife']; @endphp
                     <select name="relation_prefix" class="prefix-select">
                         @foreach ($prefixes as $prefix)
-                        <option value="{{ $prefix }}" {{ ($applicant->allottee_relation_type ?? '') === $prefix ? 'selected' : '' }}>
-                            {{ $prefix }}
-                        </option>
+                            <option value="{{ $prefix }}"
+                                {{ ($applicant->allottee_relation_type ?? '') === $prefix ? 'selected' : '' }}>
+                                {{ $prefix }}
+                            </option>
                         @endforeach
                     </select>
                     <input type="text" name="relation_name" class="custom-input only-alphabet"
@@ -380,11 +400,21 @@
                     Marital Status <span class="req-star">*</span>
                 </label>
                 <select name="marital_status" class="custom-input">
-                    <option value="Unmarried" {{ old('marital_status', $applicant->marital_status ?? '') === 'Unmarried' ? 'selected' : '' }}>Unmarried</option>
-                    <option value="Married" {{  old('marital_status', $applicant->marital_status ?? '') === 'Married' ? 'selected' : '' }}>Married</option>
-                    <option value="Divorced" {{  old('marital_status', $applicant->marital_status ?? '') === 'Divorced' ? 'selected' : '' }}>Divorced</option>
-                    <option value="Widow" {{  old('marital_status', $applicant->marital_status ?? '') === 'Widow' ? 'selected' : '' }}>Widow</option>
-                    <option value="Widower" {{  old('marital_status', $applicant->marital_status ?? '') === 'Widower' ? 'selected' : '' }}>Widower</option>
+                    <option value="Unmarried"
+                        {{ old('marital_status', $applicant->marital_status ?? '') === 'Unmarried' ? 'selected' : '' }}>
+                        Unmarried</option>
+                    <option value="Married"
+                        {{ old('marital_status', $applicant->marital_status ?? '') === 'Married' ? 'selected' : '' }}>
+                        Married</option>
+                    <option value="Divorced"
+                        {{ old('marital_status', $applicant->marital_status ?? '') === 'Divorced' ? 'selected' : '' }}>
+                        Divorced</option>
+                    <option value="Widow"
+                        {{ old('marital_status', $applicant->marital_status ?? '') === 'Widow' ? 'selected' : '' }}>
+                        Widow</option>
+                    <option value="Widower"
+                        {{ old('marital_status', $applicant->marital_status ?? '') === 'Widower' ? 'selected' : '' }}>
+                        Widower</option>
                 </select>
             </div>
 
@@ -393,9 +423,15 @@
                     Gender <span class="req-star">*</span>
                 </label>
                 <select name="allottee_gender" class="custom-input">
-                    <option value="Male" {{  old('allottee_gender', $applicant->allottee_gender ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
-                    <option value="Female" {{  old('allottee_gender', $applicant->allottee_gender ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
-                    <option value="Transgender" {{  old('allottee_gender', $applicant->allottee_gender ?? '') === 'Transgender' ? 'selected' : '' }}>Transgender</option>
+                    <option value="Male"
+                        {{ old('allottee_gender', $applicant->allottee_gender ?? '') === 'Male' ? 'selected' : '' }}>
+                        Male</option>
+                    <option value="Female"
+                        {{ old('allottee_gender', $applicant->allottee_gender ?? '') === 'Female' ? 'selected' : '' }}>
+                        Female</option>
+                    <option value="Transgender"
+                        {{ old('allottee_gender', $applicant->allottee_gender ?? '') === 'Transgender' ? 'selected' : '' }}>
+                        Transgender</option>
                 </select>
             </div>
 
@@ -404,7 +440,8 @@
                     PAN Card Number
                 </label>
                 <input type="text" id="pan_card_number" name="pan_card_number" placeholder="ABCDE1234F"
-                    class="custom-input pan-input" value="{{ old('pan_card_number', $applicant->pan_card_number ?? '') }}" maxlength="10"
+                    class="custom-input pan-input"
+                    value="{{ old('pan_card_number', $applicant->pan_card_number ?? '') }}" maxlength="10"
                     style="text-transform:uppercase">
             </div>
 
@@ -418,25 +455,25 @@
             </div>
 
             @php
-            $categories = [
-            'General' => 'General',
-            'General (PwD)' => 'General (PwD)',
-            'Scheduled Caste (SC)' => 'Scheduled Caste (SC)',
-            'Scheduled Caste (SC) (PwD)' => 'Scheduled Caste (SC) (PwD)',
-            'Scheduled Tribe (ST)' => 'Scheduled Tribe (ST)',
-            'Scheduled Tribe (ST) (PwD)' => 'Scheduled Tribe (ST) (PwD)',
-            'Other Backward Class (OBC)' => 'Other Backward Class (OBC)',
-            'Other Backward Class (OBC) (PwD)' => 'Other Backward Class (OBC) (PwD)',
-            'Retired Government Servant' => 'Retired Government Servant',
-            'Govt. Servant retiring within one year' => 'Govt. Servant retiring within one year',
-            'Armed Forces Personnel' => 'Armed Forces Personnel',
-            'Ex-Servicemen' => 'Ex-Servicemen',
-            'Abandoned' => 'Abandoned',
-            'Destitute Widows' => 'Destitute Widows',
-            'Vidhaanmandal' => 'Vidhaanmandal',
-            'Vidhansabha' => 'Vidhansabha',
-            ];
-            $selectedCategory = old('allottee_category', $applicant->allottee_category ?? '');
+                $categories = [
+                    'General' => 'General',
+                    'General (PwD)' => 'General (PwD)',
+                    'Scheduled Caste (SC)' => 'Scheduled Caste (SC)',
+                    'Scheduled Caste (SC) (PwD)' => 'Scheduled Caste (SC) (PwD)',
+                    'Scheduled Tribe (ST)' => 'Scheduled Tribe (ST)',
+                    'Scheduled Tribe (ST) (PwD)' => 'Scheduled Tribe (ST) (PwD)',
+                    'Other Backward Class (OBC)' => 'Other Backward Class (OBC)',
+                    'Other Backward Class (OBC) (PwD)' => 'Other Backward Class (OBC) (PwD)',
+                    'Retired Government Servant' => 'Retired Government Servant',
+                    'Govt. Servant retiring within one year' => 'Govt. Servant retiring within one year',
+                    'Armed Forces Personnel' => 'Armed Forces Personnel',
+                    'Ex-Servicemen' => 'Ex-Servicemen',
+                    'Abandoned' => 'Abandoned',
+                    'Destitute Widows' => 'Destitute Widows',
+                    'Vidhaanmandal' => 'Vidhaanmandal',
+                    'Vidhansabha' => 'Vidhansabha',
+                ];
+                $selectedCategory = old('allottee_category', $applicant->allottee_category ?? '');
             @endphp
 
             <div class="field">
@@ -446,9 +483,9 @@
                 <select name="allottee_category" class="custom-input" required>
                     <option value="">Select Category</option>
                     @foreach ($categories as $value => $label)
-                    <option value="{{ $value }}" {{ $selectedCategory === $value ? 'selected' : '' }}>
-                        {{ $label }}
-                    </option>
+                        <option value="{{ $value }}" {{ $selectedCategory === $value ? 'selected' : '' }}>
+                            {{ $label }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -504,7 +541,8 @@
 
             <div class="field">
                 <label class="field-label">Nationality</label>
-                <input type="text" name="allottee_nationality" class="custom-input only-alphabet" value="{{ old('allottee_nationality', $applicant->allottee_nationality ?? 'Indian') }}">
+                <input type="text" name="allottee_nationality" class="custom-input only-alphabet"
+                    value="{{ old('allottee_nationality', $applicant->allottee_nationality ?? 'Indian') }}">
             </div>
 
             <div class="field">
@@ -520,9 +558,9 @@
                         for ($d = 1; $d <= 31; $d++):
                             $day = str_pad($d, 2, '0', STR_PAD_LEFT);
                         ?>
-                            <option value="<?= $day ?>" <?= $selectedDay == $day ? 'selected' : '' ?>>
-                                <?= $day ?>
-                            </option>
+                        <option value="<?= $day ?>" <?= $selectedDay == $day ? 'selected' : '' ?>>
+                            <?= $day ?>
+                        </option>
                         <?php endfor; ?>
                     </select>
                     <!-- Month -->
@@ -533,9 +571,9 @@
                         for ($m = 1; $m <= 12; $m++):
                             $month = str_pad($m, 2, '0', STR_PAD_LEFT);
                         ?>
-                            <option value="<?= $month ?>" <?= $selectedMonth == $month ? 'selected' : '' ?>>
-                                <?= $month ?>
-                            </option>
+                        <option value="<?= $month ?>" <?= $selectedMonth == $month ? 'selected' : '' ?>>
+                            <?= $month ?>
+                        </option>
                         <?php endfor; ?>
                     </select>
                     <!-- Year -->
@@ -546,9 +584,9 @@
                         $currentYear = date('Y');
                         for ($y = $currentYear; $y >= 1925; $y--):
                         ?>
-                            <option value="<?= $y ?>" <?= $selectedYear == $y ? 'selected' : '' ?>>
-                                <?= $y ?>
-                            </option>
+                        <option value="<?= $y ?>" <?= $selectedYear == $y ? 'selected' : '' ?>>
+                            <?= $y ?>
+                        </option>
                         <?php endfor; ?>
                     </select>
                 </div>
@@ -556,8 +594,8 @@
 
             <div class="field">
                 <label class="field-label">Current Age</label>
-                <input type="text" name="current_age" class="custom-input" id="current_age"
-                    value="" placeholder="e.g. 99 year old">
+                <input type="text" name="current_age" class="custom-input" id="current_age" value=""
+                    placeholder="e.g. 99 year old">
             </div>
         </div>
     </div>

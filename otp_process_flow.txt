@@ -1,0 +1,87 @@
+OTP EMAIL SENDING PROCESS - END TO END FLOW
+============================================
+
+Yeh document step-by-step batata hai ki jab user "Login" ya "Send OTP" par click karta hai, toh backend mein kya hota hai aur mail queue ke through kaise send hota hai.
+
+---
+
+### STEP 1: User Action (Frontend)
+User apna email/username aur password daal kar "Verify & Login" (ya Forgot Password me "Send OTP") button par click karta hai.
+Yeh ek POST request bhejta hai backend routes ko (jaise `/login` ya `/password/email`).
+
+### STEP 2: Controller Processing (Backend)
+Request seedha `AuthController` ya `PasswordController` ke paas jati hai.
+Controller check karta hai ki user sahi hai ya nahi. Agar sahi hai, toh wo `OtpService` (jo ek dedicated service class hai) ko call karta hai mail bhejne ke liye.
+
+### STEP 3: OTP Generation & Encryption (OtpService.php)
+1. `OtpService` ek secure 6-digit random number generate karta hai.
+2. Is OTP ko Laravel ke `APP_KEY` se encrypt karke database ke `users` table (`otp_code` column) mein save kar diya jata hai.
+3. OTP expiry time (10 minutes) set ki jati hai.
+
+### STEP 4: Queue Dispatch & Fast Response
+Yaha par system turant mail NAHI bhejta, balki ek "Task" banata hai taaki user ko screen par wait na karna pade:
+1. `OtpService` check karta hai ki ye production hai ya dev mode (agar dev mode hai, toh actual email ki jagah dev email like 'gouravatced@gmail.com' par redirect kar deta hai).
+2. System ek naya record `storage/logs/otp_dispatch.log` me daal deta hai ki "Job is ready to dispatch".
+3. Fir system `SendOtpEmail::dispatch(...)` command run karta hai. 
+4. Is command se ek "Job/Task" bankar database ke `jobs` table mein chali jati hai.
+5. Code yahi par turant user ko response de deta hai, aur user ko agla page dikh jata hai. (Isliye ye super fast hota hai).
+
+### STEP 5: Background Queue Worker (The Engine)
+Background mein ek terminal command humesha chalni chahiye: `php artisan queue:work --queue=emails`.
+1. Jaise hi `jobs` table mein naya task aata hai, ye Queue Worker usay turant pick kar leta hai (bina user ko disturb kiye).
+2. Worker `app/Jobs/SendOtpEmail.php` job class ko execute karta hai.
+
+### STEP 6: Actual Email Sending (SMTP)
+`SendOtpEmail` job class ke andar ka `handle()` method call hota hai.
+1. Yeh SMTP server (mail.computered.co.in) se connect karta hai.
+2. `app/Mail/OtpMail.php` ka use karke email ka HTML template (`otp.blade.php`) render (taiyar) karta hai.
+3. Mail user ke inbox mein bhej diya jata hai.
+
+### STEP 7: Final Logging (Success/Error)
+1. Agar mail successfully chala jata hai, toh job `storage/logs/otp_sent.log` mein success entry daal deti hai ki "OTP EMAIL SENT SUCCESS".
+2. Agar SMTP down hai ya koi error aati hai, toh catch block chalega aur `otp_sent.log` mein "OTP EMAIL SEND FAILED" ke naam se error likh dega aur retry karega (agar tries=3 set hai).
+
+---
+**SUMMARY FLOWCHART:**
+
+ +-------------------+
+ |   USER (Browser)  |
+ +--------+----------+
+          | (1) Clicks "Send OTP" or "Login"
+          v
+ +-------------------+
+ |  CONTROLLER (PHP) | (2) Validates User Request
+ +--------+----------+
+          | 
+          v
+ +-------------------+ (3) Generates 6-Digit OTP
+ |    OtpService     | (4) Encrypts OTP & Saves to 'users' table
+ +--------+----------+
+          |
+          | (5) Log Dispatch Event -> otp_dispatch.log
+          | (6) SendOtpEmail::dispatch(...)
+          v
+ +-------------------+ (7) Saves Job to 'jobs' table
+ |   LARAVEL QUEUE   | (8) INSTANT RESPONSE to User (Agla page aa jata hai)
+ |  (Database Table) |     << WAIT KHATAM >>
+ +--------+----------+
+          |
+          | (9) Picked up continuously in background
+          v
+ +-------------------+
+ |   QUEUE WORKER    | (10) Runs background task (php artisan queue:work)
+ | (Background Job)  | (11) Builds HTML Template via OtpMail
+ +--------+----------+
+          |
+          | (12) Mail::to()->send()
+          v
+ +-------------------+
+ |    SMTP SERVER    | (13) Logs Success/Error -> otp_sent.log
+ | (mail.computered) |
+ +--------+----------+
+          |
+          | (14) Actual Email Delivery
+          v
+ +-------------------+
+ |   USER'S INBOX    | 
+ +-------------------+

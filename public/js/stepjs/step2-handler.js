@@ -3,14 +3,14 @@
 // ============================================
 const Step2Handler = {
     manager: null,
-    
-    init: function() {
+
+    init: function () {
         console.log('Step 2 Handler Initialized');
         this.bindEvents();
         this.initializeAddressCopy();
     },
 
-    bindEvents: function() {
+    bindEvents: function () {
         // State-District cascading
         document.querySelectorAll('.state-select, .state-select-hindi').forEach(select => {
             select.addEventListener('change', this.loadDistricts);
@@ -34,12 +34,12 @@ const Step2Handler = {
         this.applyInputRestrictions();
     },
 
-    initializeAddressCopy: function() {
+    initializeAddressCopy: function () {
         // Initial state for district dropdowns - No need to load districts here
         // as they're already populated by the server
     },
 
-    loadDistricts: function() {
+    loadDistricts: function () {
         const stateId = this.value;
         const targetId = this.dataset.target;
         const districtSelect = document.getElementById(targetId);
@@ -57,10 +57,10 @@ const Step2Handler = {
             .then(res => res.json())
             .then(data => {
                 const isHindi = targetId.includes('hi');
-                
+
                 // Clear and add default option
-                districtSelect.innerHTML = isHindi ? 
-                    '<option value="">-- जिला चुनें --</option>' : 
+                districtSelect.innerHTML = isHindi ?
+                    '<option value="">-- जिला चुनें --</option>' :
                     '<option value="">-- Select District --</option>';
 
                 // Add district options
@@ -68,12 +68,12 @@ const Step2Handler = {
                     const option = document.createElement('option');
                     option.value = item.id;
                     option.textContent = isHindi ? item.name_hi : item.name_en;
-                    
+
                     // Check if this district was previously selected
                     if (currentSelectedValue && currentSelectedValue == item.id) {
                         option.selected = true;
                     }
-                    
+
                     districtSelect.appendChild(option);
                 });
 
@@ -85,7 +85,7 @@ const Step2Handler = {
             .catch(error => console.error('Error loading districts:', error));
     },
 
-    handleAddressCopy: function(checkbox) {
+    handleAddressCopy: function (checkbox) {
         const fieldMaps = {
             'same_as_relation_copy': [
                 ['relation_address', 'present_address'],
@@ -140,7 +140,7 @@ const Step2Handler = {
             if (fromEl && toEl) {
                 if (checkbox.checked) {
                     toEl.value = fromEl.value;
-                    
+
                     // If it's a state select, trigger change to load districts
                     if (to.includes('state')) {
                         toEl.dispatchEvent(new Event('change'));
@@ -152,37 +152,37 @@ const Step2Handler = {
         });
     },
 
-    applyInputRestrictions: function() {
+    applyInputRestrictions: function () {
         // Only Numbers (0-9)
         document.querySelectorAll(".only-number").forEach(input => {
-            input.addEventListener("input", function() {
+            input.addEventListener("input", function () {
                 this.value = this.value.replace(/[^0-9]/g, "");
             });
         });
 
         // Only Alphabets (A-Z + space)
         document.querySelectorAll(".only-alphabet").forEach(input => {
-            input.addEventListener("input", function() {
+            input.addEventListener("input", function () {
                 this.value = this.value.replace(/[^a-zA-Z\s]/g, "");
             });
         });
 
         // Only Hindi
         document.querySelectorAll(".only-hindi").forEach(input => {
-            input.addEventListener("input", function() {
+            input.addEventListener("input", function () {
                 this.value = this.value.replace(/[^\u0900-\u097F\s]/g, "");
             });
         });
 
         // Only Email
         document.querySelectorAll(".only-email").forEach(input => {
-            input.addEventListener("input", function() {
+            input.addEventListener("input", function () {
                 this.value = this.value.replace(/[^a-zA-Z0-9@._\-]/g, "");
             });
         });
     },
 
-    destroy: function() {
+    destroy: function () {
         console.log('Step 2 Handler Destroyed');
     }
 };

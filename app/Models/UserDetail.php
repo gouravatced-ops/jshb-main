@@ -21,33 +21,21 @@ class UserDetail extends Model
         'state',
         'postal_code',
         'country',
-        'organization',
         'designation',
         'additional_info',
-        'anniversary_date',
-        'date_of_birth',
-        'spouse_name',
-        'no_of_children',
-        'boys',
-        'girls',
+        'date_of_joining',
+        'date_of_retirement',
+        'date_of_contractual',
+        'date_of_deputation',
         'phone_hash',
     ];
 
-    protected function phone(): Attribute
-    {
-        return Attribute::make(
-            get: fn (?string $value) => SensitiveData::decrypt($value),
-            set: fn (?string $value) => [
-                'phone' => SensitiveData::encrypt($value),
-                'phone_hash' => SensitiveData::hash($value),
-            ],
-        );
-    }
-
-    public function getMaskedPhoneAttribute(): string
-    {
-        return SensitiveData::mask($this->getRawOriginal('phone'));
-    }
+    protected $casts = [
+        'date_of_joining' => 'date',
+        'date_of_retirement' => 'date',
+        'date_of_contractual' => 'date',
+        'date_of_deputation' => 'date',
+    ];
 
     public function user()
     {

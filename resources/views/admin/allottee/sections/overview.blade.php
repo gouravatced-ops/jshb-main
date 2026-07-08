@@ -3,7 +3,8 @@
     <div class="page-header">
         <div>
             <h1 class="page-title">Dashboard Overview</h1>
-            <p class="page-subtitle">Key information at a glance · Application {{ $allottee->application_no ?? 'JSHBA-24928374' }}</p>
+            <p class="page-subtitle">Key information at a glance · Application
+                {{ $allottee->application_no ?? '-' }}</p>
         </div>
         <button class="btn-ghost" onclick="window.close();">
             <i class="fa-solid fa-arrow-left"></i> Back to List
@@ -18,14 +19,9 @@
         </div>
         <div class="col-md-4">
             <div class="info-card">
-                <p class="info-card-label"><i class="fa-solid fa-map-pin me-1"></i>Division</p>
-                <p class="info-card-value">{{ $allottee->division->name ?? '—' }}</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="info-card">
-                <p class="info-card-label"><i class="fa-solid fa-map me-1"></i>Sub Division</p>
-                <p class="info-card-value">{{ $allottee->subDivision->name ?? '—' }}</p>
+                <p class="info-card-label"><i class="fa-solid fa-map-pin me-1"></i>Division / Sub Division</p>
+                <p class="info-card-value">{{ $allottee->division->name ?? '—' }} /
+                    {{ $allottee->subDivision->name ?? '—' }}</p>
             </div>
         </div>
         <div class="col-md-4">
@@ -43,110 +39,127 @@
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label"><i class="fa-solid fa-people-group me-1"></i>Quarter Type</p>
-                <p class="info-card-value">{{ ($allottee->quarterType->quarter_code ?? '') ?: '—' }}-{{ $allottee->quarterType->quarter_name ?? '' }}</p>
+                <p class="info-card-value">
+                    {{ $allottee->quarterType->quarter_code ?? '' ?: '—' }}-{{ $allottee->quarterType->quarter_name ?? '' }}
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <p class="info-card-label">
+                    <i class="fa-solid fa-house me-1"></i> Property Number
+                </p>
+                <p class="info-card-value badge bg-success ms-2 text-white">
+                    {{ $allottee->property_number ?: '—' }}
+                </p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label"><i class="fa-solid fa-hashtag me-1"></i>Application No.</p>
-                <p class="info-card-value" style="font-family:'DM Mono',monospace;">{{ $allottee->application_no ?? '—' }}</p>
+                <p class="info-card-value" style="font-family:'DM Mono',monospace;">
+                    {{ $allottee->application_no ?? '—' }}</p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label"><i class="fa-regular fa-calendar me-1"></i>Application Date</p>
-                <p class="info-card-value">{{ $allottee->application_day ?? '' }}/{{ $allottee->application_month ?? '' }}/{{ $allottee->application_year ?? '' }}</p>
+                <p class="info-card-value">
+                    {{ $allottee->application_day ?? '' }}/{{ $allottee->application_month ?? '' }}/{{ $allottee->application_year ?? '' }}
+                </p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="info-card">
                 <p class="info-card-label"><i class="fa-solid fa-user me-1"></i>Applicant Name</p>
-                <p class="info-card-value">{{ trim(($allottee->prefix ?? '') . ' ' . ($allottee->allottee_name ?? '') . ' ' . ($allottee->allottee_middle_name ?? '') . ' ' . ($allottee->allottee_surname ?? '')) }}</p>
+                <p class="info-card-value">
+                    {{ trim(($allottee->prefix ?? '') . ' ' . ($allottee->allottee_name ?? '') . ' ' . ($allottee->allottee_middle_name ?? '') . ' ' . ($allottee->allottee_surname ?? '')) }}
+                </p>
             </div>
         </div>
     </div>
-    <hr class="divider-thin" />
+    <div class="section-title">
+        <i class="fa-solid fa-file-circle-check me-2"></i>
+        Document Records
+    </div>
     <div class="letter-grid">
-        @foreach($allottee->generatedDocument as $document)
+        @foreach ($allottee->generatedDocument as $key => $document)
+            @php
+                $isSigned = !empty($document->signed_file_path);
+                $isGenerated = !$isSigned && !empty($document->file_path);
+                $documentType = $document->document_type;
 
-        @php
-            $isSigned    = !empty($document->signed_file_path);
-            $isGenerated = !$isSigned && !empty($document->file_path);
+                $filePath = $isSigned ? $document->signed_file_path : $document->file_path;
+                $statusLabel = '';
+                $subTitle = '';
+                if ($documentType == 'agreement') {
+                    $statusLabel = 'Uploaded';
+                    $subTitle = 'Document Uploaded By Admin';
+                } else {
+                    $statusLabel = $isSigned ? 'Signed' : 'Generated';
+                    $subTitle = $isSigned ? 'Your signed document is available' : 'Signed Document Uploded';
+                }
+            @endphp
 
-            $filePath = $isSigned
-                ? $document->signed_file_path
-                : $document->file_path;
+            <div class="letter-hero letter-hero{{ $key + 1 }}">
 
-            $statusLabel = $isSigned ? 'Signed' : 'Generated';
-        @endphp
+                <p class="letter-hero-title">
+                    <i class="fa-solid fa-envelope-open-text me-2"></i>
 
-        <div class="letter-hero">
+                    {{ ucwords($document->document_name) }}
 
-            <p class="letter-hero-title">
-                <i class="fa-solid fa-envelope-open-text me-2"></i>
+                    <span class="badge bg-dark ms-2">
+                        {{ $statusLabel }}
+                    </span>
+                </p>
 
-                {{ ucwords($document->document_name) }}
+                <p class="letter-hero-sub">
+                    {{ $subTitle }}
+                </p>
 
-                <span class="badge bg-dark ms-2">
-                    {{ $statusLabel }}
-                </span>
-            </p>
+                <div class="app-no">
+                    {{ $allottee->application_no ?? 'N/A' }}
+                </div>
 
-            <p class="letter-hero-sub">
-                @if($isSigned)
-                Your signed document is available
-                @else
-                Your document has been generated by system
-                @endif
-            </p>
-
-            <div class="app-no">
-                {{ $allottee->application_no ?? 'N/A' }}
-            </div>
-
-            <div style="
-            display:flex;
-            gap:10px;
-            margin-top:18px;
-            flex-wrap:nowrap;
-        ">
-
-                <!-- VIEW -->
-                <a
-                    href="{{ asset($filePath) }}"
-                    target="_blank"
-                    class="btn-brand"
+                <div
                     style="
-                    background:rgba(255,255,255,.2);
-                    border:1.5px solid rgba(255,255,255,.4)
+                    display:flex;
+                    gap:10px;
+                    margin-top:18px;
+                    flex-wrap:nowrap;
                 ">
-                    <i class="fa-solid fa-eye"></i>
-                    View
-                </a>
 
-                <!-- DOWNLOAD -->
-                <a
-                    href="{{ asset($filePath) }}"
-                    download
-                    class="btn-brand"
-                    style="
+                    <!-- VIEW -->
+                    <a href="{{ asset($filePath) }}" target="_blank" class="btn-brand"
+                        style="
+                            background:rgba(255,255,255,.2);
+                            border:1.5px solid rgba(255,255,255,.4)
+                        ">
+                        <i class="fa-solid fa-eye"></i>
+                        View
+                    </a>
+
+                    <!-- DOWNLOAD -->
+                    <a href="{{ asset($filePath) }}" download class="btn-brand"
+                        style="
                     background:rgba(255,255,255,.95);
                     color:var(--brand)
                 ">
-                    <i class="fa-solid fa-download"></i>
-                    Download
-                </a>
+                        <i class="fa-solid fa-download"></i>
+                        Download
+                    </a>
 
+                </div>
             </div>
-        </div>
-
         @endforeach
     </div>
     <!-- @php
-    $allotmentLetter = \App\Models\AllotteeGeneratedDocument::where([
-    'allottee_id' => $allottee->id,
-    'document_type' => 'allotment-letter',
-    ])->latest()->first();
+        $allotmentLetter = \App\Models\AllotteeGeneratedDocument::where([
+            'allottee_id' => $allottee->id,
+            'document_type' => 'allotment-letter',
+        ])
+            ->latest()
+            ->first();
     @endphp
     <div class="section-title"><i class="fa-solid fa-folder-open text-success me-2"></i>Required Documents</div>
     <div class="doc-row">
@@ -157,27 +170,57 @@
         </div>
         <span class="badge-status badge-generated">{{ $allotmentLetter ? 'Generated' : 'Pending' }}</span>
         <div class="d-flex gap-2">
-            @if($allotmentLetter)
-            <a href="{{ asset($allotmentLetter->file_path) }}" target="_blank" class="btn-ghost"><i class="fa-solid fa-eye"></i> View</a>
+            @if ($allotmentLetter)
+<a href="{{ asset($allotmentLetter->file_path) }}" target="_blank" class="btn-ghost"><i class="fa-solid fa-eye"></i> View</a>
             <a href="{{ route('admin.allottees.letters.allotment.pdf', ['allottee' => $allottee, 'download' => 1]) }}" class="btn-brand"><i class="fa-solid fa-download"></i></a>
-            @else
-            <button class="btn-ghost" disabled>Not Available</button>
-            @endif
+@else
+<button class="btn-ghost" disabled>Not Available</button>
+@endif
         </div>
     </div> -->
     <!-- @php
-    $documents = [
-    ['name' => 'Aadhaar Card (ID Proof)', 'icon' => 'fa-solid fa-id-card', 'icon_class' => 'img', 'status' => 'uploaded', 'meta' => 'Identity Document · JPG / PNG / PDF · Max 2MB'],
-    ['name' => 'Income Certificate', 'icon' => 'fa-solid fa-file-lines', 'icon_class' => 'doc', 'status' => 'pending', 'meta' => 'Issued by competent authority · PDF only · Max 2MB'],
-    ['name' => 'Address Proof', 'icon' => 'fa-solid fa-location-dot', 'icon_class' => 'img', 'status' => 'required', 'meta' => 'Electricity bill / Rent agreement / Bank passbook'],
-    ['name' => 'Caste Certificate (if applicable)', 'icon' => 'fa-solid fa-certificate', 'icon_class' => 'doc', 'status' => 'pending', 'meta' => 'SC / ST / OBC certificate from competent authority'],
-    ['name' => 'Passport Size Photograph', 'icon' => 'fa-solid fa-user-circle', 'icon_class' => 'img', 'status' => 'uploaded', 'meta' => 'Recent photo · JPG / PNG · Max 500KB'],
-    ];
-    $statusStyles = ['uploaded' => 'badge-uploaded', 'pending' => 'badge-pending', 'required' => 'badge-required'];
-    $statusText = ['uploaded' => 'Uploaded', 'pending' => 'Pending', 'required' => 'Required'];
+        $documents = [
+            [
+                'name' => 'Aadhaar Card (ID Proof)',
+                'icon' => 'fa-solid fa-id-card',
+                'icon_class' => 'img',
+                'status' => 'uploaded',
+                'meta' => 'Identity Document · JPG / PNG / PDF · Max 2MB',
+            ],
+            [
+                'name' => 'Income Certificate',
+                'icon' => 'fa-solid fa-file-lines',
+                'icon_class' => 'doc',
+                'status' => 'pending',
+                'meta' => 'Issued by competent authority · PDF only · Max 2MB',
+            ],
+            [
+                'name' => 'Address Proof',
+                'icon' => 'fa-solid fa-location-dot',
+                'icon_class' => 'img',
+                'status' => 'required',
+                'meta' => 'Electricity bill / Rent agreement / Bank passbook',
+            ],
+            [
+                'name' => 'Caste Certificate (if applicable)',
+                'icon' => 'fa-solid fa-certificate',
+                'icon_class' => 'doc',
+                'status' => 'pending',
+                'meta' => 'SC / ST / OBC certificate from competent authority',
+            ],
+            [
+                'name' => 'Passport Size Photograph',
+                'icon' => 'fa-solid fa-user-circle',
+                'icon_class' => 'img',
+                'status' => 'uploaded',
+                'meta' => 'Recent photo · JPG / PNG · Max 500KB',
+            ],
+        ];
+        $statusStyles = ['uploaded' => 'badge-uploaded', 'pending' => 'badge-pending', 'required' => 'badge-required'];
+        $statusText = ['uploaded' => 'Uploaded', 'pending' => 'Pending', 'required' => 'Required'];
     @endphp
-    @foreach($documents as $doc)
-    <div class="doc-row">
+    @foreach ($documents as $doc)
+<div class="doc-row">
         <div class="doc-icon {{ $doc['icon_class'] }}"><i class="{{ $doc['icon'] }}"></i></div>
         <div class="doc-info">
             <p class="doc-name">{{ $doc['name'] }}</p>
@@ -185,15 +228,15 @@
         </div>
         <span class="badge-status {{ $statusStyles[$doc['status']] }}">{{ $statusText[$doc['status']] }}</span>
         <div class="d-flex gap-2">
-            @if($doc['status'] == 'uploaded')
-            <button class="btn-ghost" onclick="viewDocument('{{ $doc['name'] }}')"><i class="fa-solid fa-eye"></i> View</button>
+            @if ($doc['status'] == 'uploaded')
+<button class="btn-ghost" onclick="viewDocument('{{ $doc['name'] }}')"><i class="fa-solid fa-eye"></i> View</button>
             <button class="btn-outline-brand" onclick="openReupload('{{ $doc['name'] }}')"><i class="fa-solid fa-arrow-upload"></i> Re-upload</button>
-            @else
-            <button class="btn-brand" onclick="openReupload('{{ $doc['name'] }}')"><i class="fa-solid fa-cloud-arrow-up"></i> Upload</button>
-            @endif
+@else
+<button class="btn-brand" onclick="openReupload('{{ $doc['name'] }}')"><i class="fa-solid fa-cloud-arrow-up"></i> Upload</button>
+@endif
         </div>
     </div>
-    @endforeach
+@endforeach
     <div class="d-flex gap-2 mt-4 flex-wrap align-items-center">
         <span class="stat-chip"><span class="dot" style="background:var(--success)"></span> 2 Uploaded</span>
         <span class="stat-chip"><span class="dot" style="background:var(--accent)"></span> 2 Pending</span>
@@ -205,12 +248,3 @@
         </button>
     </div> -->
 </div>
-<script>
-    function viewDocument(docName) {
-        alert('Viewing: ' + docName);
-    }
-
-    function submitAllDocuments() {
-        alert('Submitting all documents for verification');
-    }
-</script>

@@ -58,10 +58,31 @@ return [
             'ignore_exceptions' => false,
         ],
 
+        'user_credentials' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/user_credentials.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
+        'otp_dispatch' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/otp_dispatch.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
+        'otp_sent' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/otp_sent.log'),
+            'level' => 'info',
             'replace_placeholders' => true,
         ],
 

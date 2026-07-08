@@ -32,7 +32,7 @@ return [
     |
     */
 
-    'lifetime' => 30,
+    'lifetime' => env('APP_ENV') === 'local' ? 525600 : env('SESSION_LIFETIME', 60),
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 

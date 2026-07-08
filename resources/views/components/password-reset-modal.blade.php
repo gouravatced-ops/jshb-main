@@ -25,14 +25,20 @@
                     <label for="oldPassword" class="password-form-label">
                         <i class="fa-solid fa-key"></i> Current Password
                     </label>
-                    <input 
-                        type="password" 
-                        id="oldPassword" 
-                        name="old_password" 
-                        class="password-form-input"
-                        placeholder="Enter your current password"
-                        required
-                    >
+                    <div style="position: relative;">
+                        <input 
+                            type="password" 
+                            id="oldPassword" 
+                            name="old_password" 
+                            class="password-form-input"
+                            placeholder="Enter your current password"
+                            required
+                            style="padding-right: 40px;"
+                        >
+                        <button type="button" onclick="const p = document.getElementById('oldPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0;">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
                     <span class="password-form-error" id="oldPasswordError"></span>
                 </div>
 
@@ -41,14 +47,20 @@
                     <label for="newPassword" class="password-form-label">
                         <i class="fa-solid fa-lock"></i> New Password
                     </label>
-                    <input 
-                        type="password" 
-                        id="newPassword" 
-                        name="new_password" 
-                        class="password-form-input"
-                        placeholder="Enter new password (min. 8 characters)"
-                        required
-                    >
+                    <div style="position: relative;">
+                        <input 
+                            type="password" 
+                            id="newPassword" 
+                            name="new_password" 
+                            class="password-form-input"
+                            placeholder="Enter new password (min. 8 characters)"
+                            required
+                            style="padding-right: 40px;"
+                        >
+                        <button type="button" onclick="const p = document.getElementById('newPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0;">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
                     <div class="password-strength-bar">
                         <div class="password-strength-fill" id="passwordStrengthFill"></div>
                     </div>
@@ -61,16 +73,24 @@
                     <label for="confirmPassword" class="password-form-label">
                         <i class="fa-solid fa-check"></i> Confirm Password
                     </label>
-                    <input 
-                        type="password" 
-                        id="confirmPassword" 
-                        name="new_password_confirmation" 
-                        class="password-form-input"
-                        placeholder="Confirm your new password"
-                        required
-                    >
+                    <div style="position: relative;">
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            name="new_password_confirmation" 
+                            class="password-form-input"
+                            placeholder="Confirm your new password"
+                            required
+                            style="padding-right: 40px;"
+                        >
+                        <button type="button" onclick="const p = document.getElementById('confirmPassword'); p.type = p.type === 'password' ? 'text' : 'password'; this.innerHTML = p.type === 'password' ? '<i class=\'fa-regular fa-eye\'></i>' : '<i class=\'fa-regular fa-eye-slash\'></i>';" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 0;">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
                     <span class="password-form-error" id="confirmPasswordError"></span>
                 </div>
+
+                <x-global-otp-verify purpose="update_password" buttonText="Send OTP to Verify" />
 
                 <!-- Captcha Security Question -->
                 <div class="password-form-group">
@@ -117,7 +137,7 @@
             <button type="button" class="password-reset-btn-cancel" id="passwordResetCancel" style="display: none;">
                 Cancel
             </button>
-            <button type="button" class="password-reset-btn-submit" id="passwordResetSubmit">
+            <button type="button" class="password-reset-btn-submit" id="passwordResetSubmit" disabled style="opacity: 0.6; cursor: not-allowed;" onmouseover="if(this.disabled) this.style.cursor='not-allowed'; else this.style.cursor='pointer';" onmouseout="if(this.disabled) this.style.cursor='not-allowed';">
                 <i class="fa-solid fa-check-circle"></i> Update Password
             </button>
         </div>

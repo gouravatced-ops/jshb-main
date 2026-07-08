@@ -14,19 +14,27 @@ use App\Models\AllotteeProcessStep;
 use App\Models\AllotteeGeneratedDocument;
 use App\Models\AllotteePaymentOrder;
 use App\Models\AllotteeTransaction;
+use App\Models\AllotteeEmiAccount;
+use App\Models\AllotteeMonthlyDemand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\EmiCalculatorService;
+use App\Models\User;
+use App\Models\Role;
+use App\Traits\DocumentUploadTrait;
 
 class AllotteeController extends Controller
 {
+    use DocumentUploadTrait;
     private function processStepBlueprint(): array
     {
         return [
@@ -67,9 +75,27 @@ class AllotteeController extends Controller
                 ],
             ],
 
-            // LOTTERY
+            // ALLOTTEE DOCUMENT
             [
                 'order_key'   => 3,
+                'menu_key'    => 'letter-order-issued',
+                'title'       => 'Letter/Orders Issued',
+                'description' => 'Letter/Orders Issued',
+                'icon'        => 'fa-solid fa-file-signature',
+                'blade'       => 'letter-order-issued',
+                'always_show' => true,
+                'visible_if'  => [
+                    'payment_option' => [
+                        'emi',
+                        'one_time',
+                        'null',
+                    ],
+                ],
+            ],
+
+            // LOTTERY
+            [
+                'order_key'   => 4,
                 'menu_key'    => 'lottery',
                 'title'       => 'Lottery',
                 'description' => 'Lottery related activities',
@@ -95,7 +121,7 @@ class AllotteeController extends Controller
 
             // ALLOTMENT
             [
-                'order_key'   => 4,
+                'order_key'   => 5,
                 'menu_key'    => 'allotment',
                 'title'       => 'Allotment',
                 'description' => 'Allotment related activities',
@@ -130,12 +156,19 @@ class AllotteeController extends Controller
                         'icon'         => 'fa-solid fa-key',
                         'blade'        => 'allotment-possession-letter',
                     ],
+                    [
+                        'order_key'    => 4,
+                        'sub_menu_key' => 'agreement-document-letter',
+                        'title'        => 'Agreement',
+                        'icon'         => 'fa-solid fa-key',
+                        'blade'        => 'allotment-agreement-letter',
+                    ],
                 ],
             ],
 
             // CHOOSE PAYMENT OPTION
             [
-                'order_key'   => 5,
+                'order_key'   => 6,
                 'menu_key'    => 'choose-payment-option',
                 'title'       => 'Choose Payment Option',
                 'description' => 'Choose EMI or One Time Payment',
@@ -151,7 +184,7 @@ class AllotteeController extends Controller
 
             // PROPERTY PAYMENT
             [
-                'order_key'   => 6,
+                'order_key'   => 7,
                 'menu_key'    => 'property-payment',
                 'title'       => 'Property Payment',
                 'description' => 'One time property payment',
@@ -182,7 +215,7 @@ class AllotteeController extends Controller
 
             // EMI MANAGEMENT
             [
-                'order_key'   => 7,
+                'order_key'   => 8,
                 'menu_key'    => 'emi-management',
                 'title'       => 'EMI Management',
                 'description' => 'EMI Management',
@@ -225,48 +258,10 @@ class AllotteeController extends Controller
                 ],
             ],
 
-            // FINAL CALCULATION
-            [
-                'order_key'   => 8,
-                'menu_key'    => 'final-calculation',
-                'title'       => 'Final Calculation',
-                'description' => 'Final calculation process',
-                'icon'        => 'fa-solid fa-calculator',
-                'always_show' => true,
-                'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                    ],
-                ],
-                'submenus'    => [
-                    [
-                        'order_key'    => 1,
-                        'sub_menu_key' => 'final-calculate-value',
-                        'title'        => 'Calculate Value',
-                        'icon'         => 'fa-solid fa-calculator',
-                        'blade'        => 'final-calculate-value',
-                    ],
-                    [
-                        'order_key'    => 2,
-                        'sub_menu_key' => 'final-payment-demand-note',
-                        'title'        => 'Payment Demand Note',
-                        'icon'         => 'fa-solid fa-file-invoice',
-                        'blade'        => 'final-payment-demand-note',
-                    ],
-                    [
-                        'order_key'    => 3,
-                        'sub_menu_key' => 'final-generate-letter',
-                        'title'        => 'Generate Letter',
-                        'icon'         => 'fa-solid fa-envelope-open-text',
-                        'blade'        => 'final-generate-letter',
-                    ],
-                ],
-            ],
-
+            
             // NOC
             [
-                'order_key'   => 10,
+                'order_key'   => 9,
                 'menu_key'    => 'noc',
                 'title'       => 'NOC',
                 'description' => 'NOC related process',
@@ -299,6 +294,44 @@ class AllotteeController extends Controller
                         'title'        => 'Generate NOC',
                         'icon'         => 'fa-solid fa-file-circle-plus',
                         'blade'        => 'generate-noc',
+                    ],
+                ],
+            ],
+
+            // FINAL CALCULATION
+            [
+                'order_key'   => 10,
+                'menu_key'    => 'final-calculation',
+                'title'       => 'Final Calculation',
+                'description' => 'Final calculation process',
+                'icon'        => 'fa-solid fa-calculator',
+                'always_show' => true,
+                'visible_if'  => [
+                    'payment_option' => [
+                        'emi',
+                    ],
+                ],
+                'submenus'    => [
+                    [
+                        'order_key'    => 1,
+                        'sub_menu_key' => 'final-calculate-value',
+                        'title'        => 'Calculate Value',
+                        'icon'         => 'fa-solid fa-calculator',
+                        'blade'        => 'final-calculate-value',
+                    ],
+                    [
+                        'order_key'    => 2,
+                        'sub_menu_key' => 'final-payment-demand-note',
+                        'title'        => 'Payment Demand Note',
+                        'icon'         => 'fa-solid fa-file-invoice',
+                        'blade'        => 'final-payment-demand-note',
+                    ],
+                    [
+                        'order_key'    => 3,
+                        'sub_menu_key' => 'final-generate-letter',
+                        'title'        => 'Generate Letter',
+                        'icon'         => 'fa-solid fa-envelope-open-text',
+                        'blade'        => 'final-generate-letter',
                     ],
                 ],
             ],
@@ -387,8 +420,7 @@ class AllotteeController extends Controller
                 'always_show' => true,
                 'visible_if'  => [
                     'payment_option' => [
-                        'emi',
-                        'one_time',
+                        'null',
                     ],
                 ],
             ],
@@ -518,7 +550,6 @@ class AllotteeController extends Controller
     }
 
     // RESOLVE STEP STATUS
-
     private function resolveStepStatus(
         int $menuOrder,
         int $subMenuIndex = 0
@@ -527,14 +558,14 @@ class AllotteeController extends Controller
         // COMPLETED
 
         if (
-            in_array($menuOrder, [1, 2, 3])
+            in_array($menuOrder, [1, 2, 3, 4])
         ) {
             return AllotteeProcessStep::STATUS_COMPLETED;
         }
 
         // ALLOTMENT
 
-        if ($menuOrder === 3) {
+        if ($menuOrder === 4) {
 
             return match ($subMenuIndex) {
 
@@ -592,7 +623,6 @@ class AllotteeController extends Controller
 
     private function saveGeneratedPdf(Allottee $allottee, string $docName, string $type, string $content): string
     {
-
         // CHECK EXISTING DOCUMENT
         $exists = $allottee->generatedDocument()
             ->where('document_type', $type)
@@ -700,9 +730,10 @@ class AllotteeController extends Controller
 
     public function signedDocumentUploads(Request $request)
     {
+        // VALIDATE REQUEST
         $validated = $request->validate([
-            'document_id'     => 'required|integer|string',
-            'allottee_id'     => 'required|integer|string',
+            'document_id'     => 'required',
+            'allottee_id'     => 'required|integer',
             'document_name'   => 'required|string',
             'document_type'   => 'required|string',
             'issue_date'      => 'required|date',
@@ -715,18 +746,16 @@ class AllotteeController extends Controller
 
         try {
 
-            // FETCH DOCUMENT & ALLOTTEE
-            $document = AllotteeGeneratedDocument::findOrFail(
-                $validated['document_id']
-            );
+            $userId    = Auth::id();
+            $now       = now();
+            $stepNo    = (int) $validated['stepNo'];
+            $issueDate = Carbon::parse($validated['issue_date']);
 
+            // FETCH ALLOTTEE DETAILS
             $allottee = Allottee::with('scheme.schemeFinance')
                 ->findOrFail($validated['allottee_id']);
 
-            $issueDate = Carbon::parse($validated['issue_date']);
-            $stepNo    = (int) $validated['stepNo'];
-
-            // FILE UPLOAD
+            // PREPARE FILE STORAGE PATH
             $folder = sprintf(
                 'documents/%s/signed/%s/%s/%s',
                 $validated['document_type'],
@@ -739,14 +768,15 @@ class AllotteeController extends Controller
 
             File::ensureDirectoryExists($directory, 0755, true);
 
+            // UPLOAD FILE
             $file      = $request->file('file');
             $extension = $file->getClientOriginalExtension();
 
             $fileName = sprintf(
                 'signed-%s-%s-%s.%s',
                 Str::slug($validated['document_type']),
-                now()->format('YmdHis'),
-                rand(1000, 9999),
+                $now->format('YmdHis'),
+                Str::random(6),
                 $extension
             );
 
@@ -754,17 +784,35 @@ class AllotteeController extends Controller
 
             $filePath = "{$folder}/{$fileName}";
 
-            // UPDATE GENERATED DOCUMENT
-            $document->update([
-                'issue_date'         => $validated['issue_date'],
-                'document_number'    => $validated['document_number'],
-                'signed_file_name'   => $fileName,
-                'signed_file_path'   => $filePath,
-                'signed_uploaded_by' => Auth::id(),
-                'signed_uploaded_at' => now(),
-            ]);
+            // CREATE OR UPDATE DOCUMENT
+            if ($validated['document_id'] === 'up') {
 
-            // CREATE PAYMENT ORDER (ONLY FOR ALLOTMENT LETTER)
+                $document = AllotteeGeneratedDocument::create([
+                    'allottee_id'   => $allottee->id,
+                    'document_name' => $validated['document_name'],
+                    'document_type' => $validated['document_type'],
+                    'file_name'     => $fileName,
+                    'file_path'     => $filePath,
+                    'generated_by'  => $userId,
+                    'generated_at'  => $now,
+                ]);
+            } else {
+
+                $document = AllotteeGeneratedDocument::findOrFail(
+                    $validated['document_id']
+                );
+
+                $document->update([
+                    'issue_date'         => $validated['issue_date'],
+                    'document_number'    => $validated['document_number'],
+                    'signed_file_name'   => $fileName,
+                    'signed_file_path'   => $filePath,
+                    'signed_uploaded_by' => $userId,
+                    'signed_uploaded_at' => $now,
+                ]);
+            }
+
+            // GENERATE ALLOTMENT PAYMENT ORDER
             $paymentOrder = null;
 
             if ($validated['document_type'] === 'allotment-letter') {
@@ -773,8 +821,7 @@ class AllotteeController extends Controller
 
                 $propertyAmount = (float) ($finance->property_total_cost ?? 0);
                 $percentage     = (float) ($finance->allotment_percentage ?? 15);
-
-                $allotmentAmount = (float) ($finance->allotement_amount);
+                $allotmentAmount = (float) ($finance->allotement_amount ?? 0);
 
                 $paymentOrder = AllotteePaymentOrder::updateOrCreate(
                     [
@@ -787,17 +834,13 @@ class AllotteeController extends Controller
                         'property_amount'  => $propertyAmount,
                         'percentage'       => $percentage,
                         'base_amount'      => $allotmentAmount,
-                        'penalty_amount'   => 0,
-                        'admin_charge'     => 0,
                         'total_payable'    => $allotmentAmount,
-                        'paid_amount'      => 0,
                         'remaining_amount' => $allotmentAmount,
-                        'payment_option'   => null,
                         'due_date'         => $issueDate->copy()->addDays(30),
-                        'issued_at'        => now(),
+                        'issued_at'        => $now,
                         'order_status'     => 'issued',
                         'remarks'          => 'Auto generated after signed allotment letter upload',
-                        'created_by'       => Auth::id(),
+                        'created_by'       => $userId,
                     ]
                 );
             }
@@ -817,8 +860,8 @@ class AllotteeController extends Controller
 
             $step->update([
                 'status'       => 'completed',
-                'completed_at' => now(),
-                'completed_by' => Auth::id(),
+                'completed_at' => $now,
+                'completed_by' => $userId,
             ]);
 
             // UNLOCK NEXT STEP
@@ -846,13 +889,11 @@ class AllotteeController extends Controller
                 'message' => $e->getMessage(),
                 'line'    => $e->getLine(),
                 'file'    => $e->getFile(),
-                'trace'   => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to upload signed document',
-                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -860,23 +901,26 @@ class AllotteeController extends Controller
     public function show(Allottee $allottee)
     {
         $allottee->load([
-            'division:id,name',
-            'subDivision:id,name',
-            'propertyCategory:id,name',
-            'propertyType:id,name',
-            'quarterType:quarter_id,quarter_code',
-            'scheme:id,scheme_name',
+            'division',
+            'subDivision',
+            'propertyCategory',
+            'propertyType',
+            'quarterType',
+            'scheme',
             'alloteeAdresses',
         ]);
 
         // PROCESS FLOW
-
-        $this->ensureProcessSteps($allottee);
-
-        // $this->refreshStepFlow($allottee);
+        $processStage = $allottee->processSteps()
+            ->exists();
+        if (!$processStage) {
+            $this->ensureProcessSteps($allottee);
+            $this->refreshStepFlow($allottee);
+        } else {
+            $this->ensureProcessSteps($allottee);
+        }
 
         // DOCUMENTS
-
         $documents = AllotteeGeneratedDocument::query()
             ->where('allottee_id', $allottee->id)
             ->latest()
@@ -949,7 +993,7 @@ class AllotteeController extends Controller
         ];
         $allottee->load($relationWith);
         $this->ensureProcessSteps($allottee);
-        $this->refreshStepFlow($allottee);
+        // $this->refreshStepFlow($allottee);
         $step = AllotteeProcessStep::where('allottee_id', $allottee->id)->where('step_no', $stepNo)->firstOrFail();
         if ($step->status === 'locked') {
             return response('<div class="alert alert-warning">This step is locked. Complete previous step first.</div>');
@@ -972,7 +1016,7 @@ class AllotteeController extends Controller
             $allottee->current_step = $stepNo + 1;
             $allottee->save();
         }
-        $this->refreshStepFlow($allottee);
+        // $this->refreshStepFlow($allottee);
         return response()->json(['success' => true, 'message' => 'Step marked completed.']);
     }
 
@@ -1017,7 +1061,7 @@ class AllotteeController extends Controller
                 $step11->save();
             }
         }
-        $this->refreshStepFlow($allottee);
+        // $this->refreshStepFlow($allottee);
         return back()->with('success', 'Payment option saved successfully.');
     }
 
@@ -1026,63 +1070,219 @@ class AllotteeController extends Controller
         $validated = $request->validate([
             'payment_option' => 'required|in:emi,one_time',
         ]);
-        $allottee->payment_option = $validated['payment_option'];
-        $allottee->updated_by = Auth::id();
-        $allottee->update_ip_address = $request->ip();
-        $allottee->save();
 
-        $finance = $allottee->scheme->schemeFinance;
+        DB::transaction(function () use ($request, $allottee, $validated) {
 
-        $propertyAmount = (float) ($finance->property_total_cost ?? 0);
-        $percentage     = (float) 100 - ($finance->allotment_percentage + $finance->lottery_percentage);
-
-        $balanaceAmount = (float) ($finance->balance_amount);
-        $adminCharges   = (float) ($finance->admin_charges) ?? 0;
-
-        $paymentOrder = AllotteePaymentOrder::updateOrCreate(
-            [
-                'allottee_id' => $allottee->id,
-                'order_type'  => 'final',
-            ],
-            [
-                'order_no'         => AllotteePaymentOrder::generateOrderNo('ORD-FINAL'),
-                'title'            => "{$percentage}% Final One Time Settlement Payment Order",
-                'property_amount'  => $propertyAmount,
-                'percentage'       => $percentage,
-                'base_amount'      => $balanaceAmount,
-                'penalty_amount'   => 0,
-                'admin_charge'     => $adminCharges ?? 0,
-                'total_payable'    => ($balanaceAmount + $adminCharges),
-                'paid_amount'      => 0,
-                'remaining_amount' => ($balanaceAmount + $adminCharges),
-                'payment_option'   => 'one_time',
-                'due_date'         => now()->addDays(30),
-                'issued_at'        => now(),
-                'order_status'     => 'issued',
-                'remarks'          => 'Auto generated Final one time payment order',
-                'created_by'       => Auth::id(),
-            ]
-        );
-
-        $step7 = AllotteeProcessStep::where('allottee_id', $allottee->id)->where('step_no', 7)->first();
-        if ($step7 && $step7->status !== 'completed') {
-            $step7->status = 'completed';
-            $step7->completed_at = now();
-            $step7->completed_by = Auth::id();
-            $step7->save();
-        }
-
-        $steps = $validated['payment_option'] === 'one_time'
-            ? [8, 9]
-            : [10, 11, 12, 13];
-
-        AllotteeProcessStep::where('allottee_id', $allottee->id)
-            ->whereIn('step_no', $steps)
-            ->update([
-                'status' => 'pending',
+            $allottee->update([
+                'payment_option'   => $validated['payment_option'],
+                'updated_by'       => Auth::id(),
+                'update_ip_address' => $request->ip(),
             ]);
 
-        return back()->with('success', 'Payment option updated successfully.');
+            $finance = $allottee->scheme->schemeFinance;
+
+            if (!$finance) {
+                throw new \Exception("Scheme financial details not found for the selected property.");
+            }
+
+            $propertyAmount = (float) ($finance->property_total_cost ?? 0);
+
+            $lotteryPercentage   = (float) ($finance->lottery_percentage ?? 10);
+            $allotmentPercentage = (float) ($finance->allotment_percentage ?? 15);
+
+            $balancePercentage = 100 - ($lotteryPercentage + $allotmentPercentage);
+
+            $balanceAmount = (float) ($finance->balance_amount ?? 0);
+            $adminCharges  = (float) ($finance->admin_charges ?? 0);
+
+            $emiCount = (float) ($finance->emi_count ?? 0);
+            $normalInterest = (float) ($finance->normal_interest_rate ?? 0);
+            $penaltyInterest = (float) ($finance->penalty_interest_rate ?? 0);
+
+            // ONE TIME PAYMENT
+            if ($validated['payment_option'] === 'one_time') {
+
+                // Remove EMI setup if already created
+                DB::table('allottee_emi_schedules')
+                    ->where('allottee_id', $allottee->id)
+                    ->delete();
+
+                DB::table('allottee_emi_accounts')
+                    ->where('allottee_id', $allottee->id)
+                    ->delete();
+
+                AllotteePaymentOrder::updateOrCreate(
+                    [
+                        'allottee_id' => $allottee->id,
+                        'order_type'  => 'final',
+                    ],
+                    [
+                        'order_no'         => AllotteePaymentOrder::generateOrderNo('ORD-FINAL'),
+                        'title'            => "{$balancePercentage}% Final One Time Settlement",
+                        'property_amount'  => $propertyAmount,
+                        'percentage'       => $balancePercentage,
+                        'base_amount'      => $balanceAmount,
+                        'penalty_amount'   => 0,
+                        'admin_charge'     => $adminCharges,
+                        'total_payable'    => $balanceAmount + $adminCharges,
+                        'paid_amount'      => 0,
+                        'remaining_amount' => $balanceAmount + $adminCharges,
+                        'payment_option'   => 'one_time',
+                        'due_date'         => now()->addDays(30),
+                        'issued_at'        => now(),
+                        'order_status'     => 'issued',
+                        'remarks'          => 'Auto generated one time payment order',
+                        'created_by'       => Auth::id(),
+                    ]
+                );
+
+                // Remove EMI Order if exists
+                AllotteePaymentOrder::where(
+                    'allottee_id',
+                    $allottee->id
+                )->where('order_type', 'emi')->delete();
+
+                $nextSteps = [10, 11];
+            }
+
+            // In your updatePaymentOption method, replace the EMI section with:
+
+            // EMI PAYMENT
+            else {
+                // Remove one-time order if exists
+                AllotteePaymentOrder::where('allottee_id', $allottee->id)
+                    ->where('order_type', 'final')
+                    ->delete();
+
+                $emiOrder = AllotteePaymentOrder::updateOrCreate(
+                    [
+                        'allottee_id' => $allottee->id,
+                        'order_type'  => 'emi',
+                    ],
+                    [
+                        'order_no'         => AllotteePaymentOrder::generateOrderNo('ORD-EMI'),
+                        'title'            => "{$balancePercentage}% EMI Payment Order",
+                        'property_amount'  => $propertyAmount,
+                        'percentage'       => $balancePercentage,
+                        'base_amount'      => $balanceAmount,
+                        'penalty_amount'   => 0,
+                        'admin_charge'     => 0,
+                        'total_payable'    => $balanceAmount,
+                        'paid_amount'      => 0,
+                        'remaining_amount' => $balanceAmount,
+                        'payment_option'   => 'emi',
+                        'issued_at'        => now(),
+                        'order_status'     => 'issued',
+                        'remarks'          => 'Auto generated EMI order',
+                        'created_by'       => Auth::id(),
+                    ]
+                );
+
+                // EMI ACCOUNT
+                $tenureMonths = $emiCount;
+                $interestRate = $normalInterest;
+                $penaltyRate  = $penaltyInterest;
+
+                $emiAccount = AllotteeEmiAccount::updateOrCreate(
+                    [
+                        'allottee_id' => $allottee->id,
+                        'order_id'    => $emiOrder->id,
+                    ],
+                    [
+                        'account_no'            => 'EMI-' . str_pad($allottee->id, 6, '0', STR_PAD_LEFT),
+                        'principal_amount'      => $balanceAmount,
+                        'annual_interest_rate'  => $interestRate,
+                        'penalty_interest_rate' => $penaltyRate,
+                        'admin_charge'          => 10,
+                        'tenure_months'         => $tenureMonths,
+                        'account_status'        => 'active',
+                        'emi_start_date'        => now()->addMonth()->startOfMonth(),
+                        'emi_end_date'          => Carbon::parse(now()->addMonth()->startOfMonth())->addMonths($tenureMonths - 1),
+                        'created_by'            => Auth::id(),
+                    ]
+                );
+ 
+                // Generate first demand only if no demands exist
+                if (!$emiAccount->demands()->exists()) {
+                    app(EmiCalculatorService::class)->generateFirstDemand($emiAccount);
+                }
+
+                $nextSteps = [12, 13, 14, 15];
+            }
+
+            // STEP MANAGEMENT
+            $step7 = AllotteeProcessStep::where(
+                'allottee_id',
+                $allottee->id
+            )->where('step_no', 7)->first();
+
+            if ($step7 && $step7->status !== 'completed') {
+                $step7->update([
+                    'status'       => 'completed',
+                    'completed_at' => now(),
+                    'completed_by' => Auth::id(),
+                ]);
+            }
+
+            AllotteeProcessStep::where(
+                'allottee_id',
+                $allottee->id
+            )->whereIn('step_no', $nextSteps)
+                ->update([
+                    'status' => 'pending',
+                ]);
+        });
+
+        return back()->with(
+            'success',
+            'Payment option updated successfully.'
+        );
+    }
+
+    /**
+     * Process EMI payment
+     */
+    public function processEmiPayment(Request $request, Allottee $allottee, $demandId)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'payment_mode' => 'required|in:cash,cheque,dd,upi,netbanking,gateway',
+        ]);
+
+        DB::transaction(function () use ($request, $allottee, $demandId, $validated) {
+            $demand = AllotteeMonthlyDemand::where('allottee_id', $allottee->id)
+                ->where('id', $demandId)
+                ->firstOrFail();
+
+            $emiService = app(EmiCalculatorService::class);
+
+            // Refresh penalty before payment
+            $emiService->refreshPenalty($demand);
+
+            // Apply payment
+            $emiService->applyPayment($demand, $validated['amount'], $validated['payment_mode']);
+
+            // Create transaction record
+            AllotteeTransaction::create([
+                'allottee_id' => $allottee->id,
+                'demand_id' => $demand->id,
+                'transaction_type' => 'emi_payment',
+                'payment_stage' => 'emi',
+                'amount' => $validated['amount'],
+                'principal_amount' => $demand->principle_amount,
+                'interest_amount' => $demand->interest_amount,
+                'penalty_amount' => $demand->late_fine_penalty + $demand->penalty_interest_amount,
+                'admin_charge' => $demand->penalty_admin_charges,
+                'total_amount' => $validated['amount'],
+                'payment_mode' => $validated['payment_mode'],
+                'payment_status' => 'success',
+                'transaction_no' => 'TXN-' . uniqid(),
+                'paid_at' => now(),
+                'created_by' => Auth::id(),
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'Payment processed successfully.');
     }
 
     public function allotmentLetter(Allottee $allottee)
@@ -1125,6 +1325,10 @@ class AllotteeController extends Controller
 
     public function allotmentLetterPdf(Request $request, Allottee $allottee)
     {
+        $allottee->update([
+            'property_number' =>  Allottee::generateUniquePropertyNumber(),
+        ]);
+
         $allottee->load(['division:id,name', 'subDivision:id,name', 'propertyCategory:id,name']);
         // Set PDF options for proper Unicode rendering
         $pdf = Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
@@ -1137,21 +1341,13 @@ class AllotteeController extends Controller
             ]);
         $fileName = 'allotment-letter-' . $allottee->id . '.pdf';
         if ($request->boolean('download')) {
-            $document = AllotteeGeneratedDocument::where([
-                'allottee_id'   => $allottee->id,
-                'document_type' => 'allotment-letter',
-            ])->latest()->first();
-            if (
-                $document &&
-                File::exists(public_path($document->file_path))
-            ) {
-                return response()->download(
-                    public_path($document->file_path),
-                    $document->file_name
-                );
-            }
+            $fileName = $this->saveGeneratedPdf($allottee, 'Allotment Letter', 'allotment-letter', $pdf->output());
         }
-        return $pdf->stream($fileName);
+        if (!$request->boolean('download')) {
+            return $pdf->stream($fileName);
+        } else {
+            return back()->with('success', 'PDF generated successfully.');
+        }
     }
 
     public function possessionLetterPdf(Request $request, Allottee $allottee)
@@ -1172,9 +1368,17 @@ class AllotteeController extends Controller
     public function saveStep0(Request $request)
     {
         try {
+            $userId = null;
+            if ($request->filled('applicant_id')) {
+                $applicant = Allottee::find($request->applicant_id);
+                if ($applicant) {
+                    $userId = $applicant->user_id;
+                }
+            }
 
             $validator = Validator::make($request->all(), [
-                'applicant_id'     => 'nullable|integer|exists:allottees,id',
+                'applicant_id'     => 'nullable|integer|exists:adms_allottees.allottees,id',
+                'email'            => 'required|email|max:255|unique:adms_allottees.users,email' . ($userId ? ',' . $userId : ''),
                 'payment_amount'   => 'required|numeric|min:0.01',
                 'payment_day'      => 'required|between:1,31',
                 'payment_month'    => 'required|between:1,12',
@@ -1212,11 +1416,20 @@ class AllotteeController extends Controller
                 ? Allottee::find($request->applicant_id)
                 : new Allottee();
 
-            if (!$applicant->exists) {
-                $applicant->username = 'DRAFT_' . strtoupper(Str::random(12));
-                $applicant->password = Hash::make(Str::random(40));
+            $isDraftLogin = !$applicant->exists || Str::startsWith((string) $applicant->username, 'DRAFT_');
+            $plainPassword = null;
+
+            if ($isDraftLogin) {
+                $usersname = $this->generateUniqueUsername($divisionId, $quarterId, $subDivisionId, $request->payment_year);
+                $plainPassword = $this->generatePassword();
+                $applicant->username = $usersname;
+                $applicant->password = Hash::make($plainPassword);
                 $applicant->create_ip_address = $request->ip();
                 $applicant->created_by = Auth::id();
+            }
+
+            if (empty($applicant->property_number)) {
+                $applicant->property_number = Allottee::generateUniquePropertyNumber();
             }
 
             $applicant->fill([
@@ -1232,8 +1445,6 @@ class AllotteeController extends Controller
                 'updated_by'        => Auth::id(),
             ]);
 
-            $applicant->save();
-
             $transaction = AllotteeTransaction::where([
                 'allottee_id'     => $applicant->id,
                 'transaction_type' => 'lottery_payment',
@@ -1244,42 +1455,58 @@ class AllotteeController extends Controller
             $receiptPath = $transaction?->receipt_path;
 
             if ($request->hasFile('payment_receipt')) {
+                $file = $request->file('payment_receipt');
+                $scheme = Scheme::find($request->scheme_id);
 
-                if (!empty($receiptPath)) {
-                    $oldFile = public_path($receiptPath);
-
-                    if (File::exists($oldFile)) {
-                        File::delete($oldFile);
-                    }
-                }
-
-                $folder = sprintf(
-                    'uploads/payments/%s/%02d/%02d',
+                $uploadResult = $this->uploadToDocumentApi(
+                    $file,
+                    'LOTTERY',
+                    $scheme->scheme_code ?? 'SCH',
+                    $applicant->property_number ?? 'PROP',
                     $request->payment_year,
                     $request->payment_month,
-                    $request->payment_day
+                    $request->payment_day,
+                    $receiptPath
                 );
 
-                $directory = public_path($folder);
-
-                File::ensureDirectoryExists($directory, 0755, true);
-
-                $file = $request->file('payment_receipt');
-
-                $receiptFile = sprintf(
-                    'payment-receipt-%s%s%s-%s-%s.%s',
-                    substr($request->payment_year, -2),
-                    str_pad($request->payment_month, 2, '0', STR_PAD_LEFT),
-                    str_pad($request->payment_day, 2, '0', STR_PAD_LEFT),
-                    now()->format('His'),
-                    mt_rand(1000, 9999),
-                    $file->getClientOriginalExtension()
-                );
-
-                $file->move($directory, $receiptFile);
-
-                $receiptPath = $folder . '/' . $receiptFile;
+                $receiptPath = $uploadResult['file_path'];
+                $receiptFile = $uploadResult['file_name'];
             }
+
+            // Auto-create User for the allottee (if not already exists)
+            if (!User::on('adms_allottees')->where('username', $applicant->username)->exists()) {
+                $fullName = trim(implode(' ', array_filter([
+                    $applicant->allottee_name,
+                    $applicant->allottee_middle_name,
+                    $applicant->allottee_surname,
+                ])));
+
+                if (empty($fullName)) {
+                    $fullName = 'Applicant';
+                }
+
+                $user = new User();
+                $user->setConnection('adms_allottees');
+                $user->name = $fullName;
+                $user->username = $applicant->username;
+                $user->email = $request->email;
+                $user->login_with_otp = false;
+                $user->password_created_at = now();
+                $user->status = true;
+                $user->password = $applicant->password;
+                $user->save();
+
+                if ($plainPassword) {
+                    Log::channel('user_credentials')->info('New User Created', [
+                        'username' => $user->username,
+                        'password' => $plainPassword
+                    ]);
+                }
+
+                $applicant->user_id = $user->id;
+            }
+
+            $applicant->save();
 
             $amount = str_replace(',', '', $request->payment_amount);
 
@@ -1323,6 +1550,10 @@ class AllotteeController extends Controller
                 'message'      => 'Payment details saved successfully.',
                 'applicant_id' => $applicant->id,
                 'next_step'    => 1,
+                'credentials'  => $plainPassword ? [
+                    'username' => $applicant->username,
+                    'password' => $plainPassword
+                ] : null,
             ]);
         } catch (\Throwable $e) {
 
@@ -1353,7 +1584,7 @@ class AllotteeController extends Controller
         $step = (int) $step;
         if ($step === 0) {
 
-            $applicant = $applicantId ? Allottee::find($applicantId) : null;
+            $applicant = $applicantId ? Allottee::find($applicantId) : new Allottee();
 
             $getSchemeList = $applicant->scheme_id
                 ? Scheme::select('scheme_code', 'scheme_name')->where('id', $applicant->scheme_id)->first()
@@ -1362,6 +1593,20 @@ class AllotteeController extends Controller
             $subdivisions = getSubDivisions(encryptId($applicant->division_id)) ?? [];
             $propertyTypes = getPropertyType(encryptId($applicant->pcategory_id)) ?? [];
             $propertySubTypes = getPropertySubType(encryptId($applicant->property_type_id)) ?? [];
+
+            $transaction = AllotteeTransaction::where([
+                'allottee_id'     => $applicant->id,
+                'transaction_type' => 'lottery_payment',
+                'payment_stage'   => 'application',
+            ])->first();
+
+            $applicant->payment_amount = $transaction->total_amount ?? '';
+            $applicant->payment_day = $transaction->payment_day ?? '';
+            $applicant->payment_month = $transaction->payment_month ?? '';
+            $applicant->payment_year = $transaction->payment_year ?? '';
+            $applicant->payment_utr_no = $transaction->utr_no ?? '';
+            $applicant->payment_receipt_path = $transaction->receipt_path ?? '';
+            $applicant->user_email = $applicant->user_id ? User::on('adms_allottees')->where('id', $applicant->user_id)->value('email') : '';
 
             return view('admin.allottee.step0', compact('applicant', 'getSchemeList', 'subdivisions', 'propertyTypes', 'propertySubTypes'));
         }
@@ -1586,15 +1831,21 @@ class AllotteeController extends Controller
         } else {
             $applicant = new Allottee();
         }
-        $divisionId = $applicant->division_id;
-        $subDivisionId = $applicant->subdivision_id;
-        $quarterId = $applicant->quarter_id;
-        $isDraftLogin = !$applicant->exists || Str::startsWith((string) $applicant->username, 'DRAFT_');
-        if ($isDraftLogin) {
-            $usersname = $this->generateUniqueUsername($divisionId, $quarterId, $subDivisionId, $request->allotment_year);
-            $password = $this->generatePassword();
-            $applicant->username = $usersname;
-            $applicant->password = Hash::make($password);
+
+        // If User's name needs updating, we can do it here
+        if (!empty($applicant->username)) {
+            $user = User::on('adms_allottees')->where('username', $applicant->username)->first();
+            if ($user) {
+                $fullName = trim(implode(' ', array_filter([
+                    $request->allottee_name,
+                    $request->allottee_middle_name,
+                    $request->allottee_surname,
+                ])));
+                if (!empty($fullName) && $user->name !== $fullName) {
+                    $user->name = $fullName;
+                    $user->save();
+                }
+            }
         }
 
         $applicant->application_no = $request->application_no;
@@ -1693,24 +1944,28 @@ class AllotteeController extends Controller
             $allottee->allotment_day = date('d');
             $allottee->allotment_month = date('m');
             $allottee->allotment_year = date('Y');
+            // if (empty($allottee->property_number)) {
+            //     $allottee->property_number = Allottee::generateUniquePropertyNumber();
+            // }
             $allottee->save();
+
             DB::commit();
 
-            $documentExists = $allottee->generatedDocument()
-                ->where('document_type', 'allotment-letter')
-                ->exists();
-            if (!$documentExists) {
-                $pdf = Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
-                    ->setPaper('a4', 'portrait')
-                    ->setOptions([
-                        'defaultFont' => 'KrutiDev',
-                        'isHtml5ParserEnabled' => true,
-                        'isRemoteEnabled' => true,
-                        'chroot' => public_path(),
-                    ]);
+            // $documentExists = $allottee->generatedDocument()
+            //     ->where('document_type', 'allotment-letter')
+            //     ->exists();
+            // if (!$documentExists) {
+            //     $pdf = Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
+            //         ->setPaper('a4', 'portrait')
+            //         ->setOptions([
+            //             'defaultFont' => 'KrutiDev',
+            //             'isHtml5ParserEnabled' => true,
+            //             'isRemoteEnabled' => true,
+            //             'chroot' => public_path(),
+            //         ]);
 
-                $this->saveGeneratedPdf($allottee, 'Allotment Letter', 'allotment-letter', $pdf->output());
-            }
+            //     $this->saveGeneratedPdf($allottee, 'Allotment Letter', 'allotment-letter', $pdf->output());
+            // }
 
             return response()->json([
                 'success' => true,
@@ -1737,5 +1992,55 @@ class AllotteeController extends Controller
             ->orWhere('primary_mobile', 'like', "%{$search}%")
             ->paginate(10);
         return view('admin.allottee.index', compact('allottees'));
+    }
+
+    public function deleteAllotteeComponents(Allottee $allottee)
+    {
+        $allottee->update([
+            'payment_option' => null,
+            'property_number' => null,
+        ]);
+
+        $allottee->processSteps()->delete();
+        $allottee->allotteeOrders()->delete();
+        $allottee->emiAccount()->delete();
+        $allottee->emiSchedule()->delete();
+
+        $allottee->allotteeTransaction()
+            ->where('transaction_type', '!=', 'lottery_payment')
+            ->delete();
+
+        $allottee->generatedDocument()->delete();
+
+        return redirect()
+            ->route('admin.allottees.index')
+            ->with('success', 'Allottee components deleted successfully.');
+    }
+
+    public function deleteEMISetup(Allottee $allottee)
+    {
+        $allottee->update([
+            'payment_option' => null,
+        ]);
+
+        $allottee->emiAccount()->delete();
+        $allottee->emiDemand()->delete();
+        $allottee->emiSchedule()->delete();
+        $allottee->allotteeTransaction()
+            ->where('transaction_type', '=', 'emi_payment')
+            ->delete();
+        $allottee->generatedDocument()
+            ->where('document_type', 'emi-payment-receipt')
+            ->delete();
+
+        AllotteeProcessStep::where('allottee_id', $allottee->id)
+            ->whereIn('step_no', [16, 17, 18])
+            ->update([
+                'status' => 'locked',
+            ]);
+
+        return redirect()
+            ->route('admin.allottees.index')
+            ->with('success', 'Allottee EMI Setup Revoke successfully.');
     }
 }

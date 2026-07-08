@@ -1,5 +1,5 @@
 @php
-    #return getDebugIndex($applicant);
+    #return debug($applicant);
     $states = getStates();
     $relationDistricts = getDistrict(15);
     $presentDistricts = getDistrict(15);
@@ -55,10 +55,10 @@
                 <select name="present_state" class="custom-input state-select" data-target="present-district-eng">
                     <option value="">-- Select State --</option>
                     @foreach ($states as $item)
-                    <option value="{{ $item->id }}"
-                        {{ isset($applicant) && $applicant->present_state == $item->id ? 'selected' : '' }}>
-                        {{ $item->name_en }}
-                    </option>
+                        <option value="{{ $item->id }}"
+                            {{ isset($applicant) && $applicant->present_state == $item->id ? 'selected' : '' }}>
+                            {{ $item->name_en }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -71,10 +71,10 @@
                     data-target="present-district-hi">
                     <option value="">-- राज्य चुनें --</option>
                     @foreach ($states as $item)
-                    <option value="{{ $item->id }}"
-                        {{ isset($applicant) && $applicant->present_state == $item->id ? 'selected' : '' }}>
-                        {{ $item->name_hi }}
-                    </option>
+                        <option value="{{ $item->id }}"
+                            {{ isset($applicant) && $applicant->present_state == $item->id ? 'selected' : '' }}>
+                            {{ $item->name_hi }}
+                        </option>
                     @endforeach
 
                 </select>
@@ -87,12 +87,12 @@
                 <select name="present_district" class="custom-input fetch-district" id="present-district-eng">
                     <option value="">-- Select District --</option>
                     @if (!empty($presentDistricts))
-                    @foreach ($presentDistricts as $dist)
-                    <option value="{{ $dist->id }}"
-                        {{ isset($applicant) && $applicant->present_district == $dist->id ? 'selected' : '' }}>
-                        {{ $dist->name_en }}
-                    </option>
-                    @endforeach
+                        @foreach ($presentDistricts as $dist)
+                            <option value="{{ $dist->id }}"
+                                {{ isset($applicant) && $applicant->present_district == $dist->id ? 'selected' : '' }}>
+                                {{ $dist->name_en }}
+                            </option>
+                        @endforeach
                     @endif
                 </select>
             </div>
@@ -105,12 +105,12 @@
                     id="present-district-hi">
                     <option value="">-- जिला चुनें --</option>
                     @if (!empty($presentDistricts))
-                    @foreach ($presentDistricts as $dist)
-                    <option value="{{ $dist->id }}"
-                        {{ isset($applicant) && $applicant->present_district_hindi == $dist->id ? 'selected' : '' }}>
-                        {{ $dist->name_hi }}
-                    </option>
-                    @endforeach
+                        @foreach ($presentDistricts as $dist)
+                            <option value="{{ $dist->id }}"
+                                {{ isset($applicant) && $applicant->present_district_hindi == $dist->id ? 'selected' : '' }}>
+                                {{ $dist->name_hi }}
+                            </option>
+                        @endforeach
                     @endif
                 </select>
             </div>
@@ -219,10 +219,10 @@
                     data-target="permanent-district-eng">
                     <option value="">-- Select State --</option>
                     @foreach ($states as $item)
-                    <option value="{{ $item->id }}"
-                        {{ isset($applicant) && $applicant->permanent_state == $item->id ? 'selected' : '' }}>
-                        {{ $item->name_en }}
-                    </option>
+                        <option value="{{ $item->id }}"
+                            {{ isset($applicant) && $applicant->permanent_state == $item->id ? 'selected' : '' }}>
+                            {{ $item->name_en }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -235,10 +235,10 @@
                     data-target="permanent-district-hi">
                     <option value="">-- राज्य चुनें --</option>
                     @foreach ($states as $item)
-                    <option value="{{ $item->id }}"
-                        {{ isset($applicant) && $applicant->permanent_state == $item->id ? 'selected' : '' }}>
-                        {{ $item->name_hi }}
-                    </option>
+                        <option value="{{ $item->id }}"
+                            {{ isset($applicant) && $applicant->permanent_state == $item->id ? 'selected' : '' }}>
+                            {{ $item->name_hi }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -249,12 +249,12 @@
                 <select name="permanent_district" class="custom-input fetch-district" id="permanent-district-eng">
                     <option value="">-- Select District --</option>
                     @if (!empty($permanentDistricts))
-                    @foreach ($permanentDistricts as $dist)
-                    <option value="{{ $dist->id }}"
-                        {{ isset($applicant) && $applicant->permanent_district == $dist->id ? 'selected' : '' }}>
-                        {{ $dist->name_en }}
-                    </option>
-                    @endforeach
+                        @foreach ($permanentDistricts as $dist)
+                            <option value="{{ $dist->id }}"
+                                {{ isset($applicant) && $applicant->permanent_district == $dist->id ? 'selected' : '' }}>
+                                {{ $dist->name_en }}
+                            </option>
+                        @endforeach
                     @endif
                 </select>
             </div>
@@ -266,12 +266,12 @@
                     id="permanent-district-hi">
                     <option value="">-- जिला चुनें --</option>
                     @if (!empty($permanentDistricts))
-                    @foreach ($permanentDistricts as $dist)
-                    <option value="{{ $dist->id }}"
-                        {{ isset($applicant) && $applicant->permanent_district_hindi == $dist->id ? 'selected' : '' }}>
-                        {{ $dist->name_hi }}
-                    </option>
-                    @endforeach
+                        @foreach ($permanentDistricts as $dist)
+                            <option value="{{ $dist->id }}"
+                                {{ isset($applicant) && $applicant->permanent_district_hindi == $dist->id ? 'selected' : '' }}>
+                                {{ $dist->name_hi }}
+                            </option>
+                        @endforeach
                     @endif
                 </select>
             </div>
@@ -347,7 +347,8 @@
                     Primary Mobile No. of Applicant
                 </label>
                 <input type="text" name="mobile_number" class="custom-input only-number" maxlength="10"
-                    value="{{ old('mobile_number',$applicant->mobile_number ?? '') }}" placeholder="Enter 10-digit mobile number">
+                    value="{{ old('mobile_number', $applicant->mobile_number ?? '') }}"
+                    placeholder="Enter 10-digit mobile number">
             </div>
 
             <div class="field">
@@ -355,7 +356,7 @@
                     Alternate Mobile No.
                 </label>
                 <input type="text" name="alternate_mobile" class="custom-input only-number" maxlength="10"
-                    value="{{ old('alternate_mobile',$applicant->alternate_mobile ?? '') }}"
+                    value="{{ old('alternate_mobile', $applicant->alternate_mobile ?? '') }}"
                     placeholder="Enter 10-digit alternate mobile number">
             </div>
 
@@ -365,9 +366,11 @@
                 </label>
                 <div class="input-group" style="gap :10px">
                     <input type="text" name="stdCode" class="prefix-select only-number" maxlength="5"
-                        minlength="5" value="{{ old('stdCode',$applicant->stdCode ?? '') }}" placeholder="Enter stdCode number">
+                        minlength="5" value="{{ old('stdCode', $applicant->stdCode ?? '') }}"
+                        placeholder="Enter stdCode number">
                     <input type="text" name="landline" class="custom-input only-number" maxlength="7"
-                        minlength="5" value="{{ old('landline',$applicant->landline ?? '') }}" placeholder="Enter landline number">
+                        minlength="5" value="{{ old('landline', $applicant->landline ?? '') }}"
+                        placeholder="Enter landline number">
                 </div>
             </div>
 
@@ -376,7 +379,8 @@
                     WhatsApp No.
                 </label>
                 <input type="text" name="whatsapp_number" class="custom-input only-number" maxlength="10"
-                    value="{{ old('whatsapp_number',$applicant->whatsapp_number ?? '') }}" placeholder="Enter 10-digit WhatsApp number">
+                    value="{{ old('whatsapp_number', $applicant->whatsapp_number ?? '') }}"
+                    placeholder="Enter 10-digit WhatsApp number">
             </div>
 
             <div class="field">
@@ -384,7 +388,7 @@
                     E-mail ID of Applicant
                 </label>
                 <input type="email" name="email" class="custom-input only-email"
-                    value="{{ old('email',$applicant->email ?? '') }}" placeholder="Enter email address">
+                    value="{{ old('email', $applicant->email ?? '') }}" placeholder="Enter email address">
             </div>
         </div>
     </div>

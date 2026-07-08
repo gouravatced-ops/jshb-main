@@ -83,13 +83,21 @@
 
         <span class="topbar-spacer"></span>
 
-        <span class="topbar-badge">
-            <i class="fa-solid fa-circle-check me-1"></i>Applicant Account
-        </span>
+        <a href="javascript:void(0)" onclick="goToAllottees()" class="topbar-badge">
+            <i class="fa-solid fa-house me-1"></i> Dashboard
+        </a>
+
+        {{-- <span class="topbar-badge">
+            <i class="fa-solid fa-circle-check me-1"></i> Applicant Account
+        </span> --}}
+        <a href="javascript:void(0)" onclick="closeTab()" class="topbar-badge-close">
+            <i class="fa-solid fa-xmark me-1"></i> Close
+        </a>
 
         <div class="topbar-avatar" title="{{ $allottee->allottee_name ?? 'User' }}">
             {{ strtoupper(substr($allottee->allottee_name ?? 'U', 0, 2)) }}
         </div>
+
     </header>
 
     <div class="page-wrap">
@@ -106,14 +114,15 @@
                 @php
                     $menu = $menuSteps->first();
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | MENU VISIBILITY CONDITIONS
-                    |--------------------------------------------------------------------------
-                    */
+                    // MENU VISIBILITY CONDITIONS
 
                     // Hide Choose Payment Option if payment option already selected
                     if ($menuKey === 'choose-payment-option' && !is_null($paymentOption)) {
+                        continue;
+                    }
+
+                    // Hide Allotment Cancellation if payment option selected
+                    if ($menuKey === 'allotment-cancellation' && !is_null($paymentOption)) {
                         continue;
                     }
 
@@ -127,11 +136,12 @@
                         continue;
                     }
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | SIDEBAR STATES
-                    |--------------------------------------------------------------------------
-                    */
+                    // show Final Calculation only for emi
+                    if ($menuKey === 'final-calculation' && $paymentOption !== 'emi') {
+                        continue;
+                    }
+
+                    // SIDEBAR STATES
 
                     $hasSubmenus = $menuSteps->whereNotNull('sub_menu_key')->count() > 0;
 
@@ -171,7 +181,7 @@
                                     <i class="fa-solid fa-lock"></i>
                                 @endif
 
-                                <i class="fa-solid fa-chevron-down menu-arrow"></i>
+                                {{-- <i class="fa-solid fa-chevron-down menu-arrow"></i> --}}
                             </span>
 
                         </button>
@@ -344,7 +354,7 @@
     <div class="position-fixed bottom-0 end-0 p-3 toast-container">
         <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert">
             <div class="d-flex">
-                <div class="toast-body"><i class="fa-solid fa-circle-check me-2"></i> Document uploaded successfully!
+                <div class="toast-body"><i class="fa-solid fa-circle-check me-2"></i> Successfully!
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto"
                     data-bs-dismiss="toast"></button>
@@ -360,572 +370,57 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+    {{-- Payment Modal --}}
+    <div class="modal fade" id="emiPaymentModal" tabindex="-1" aria-labelledby="emiPaymentModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="emiPaymentModalLabel">Pay EMI</h5>
+                    <button type="button" class="close" onclick="closeEmiModal()">&times;</button>
+                </div>
+                <form id="emiPaymentForm">
+                    <input type="hidden" name="demand_id" id="modal_demand_id" value="">
+                    <input type="hidden" name="payment_mode" value="gateway">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Amount (₹)</label>
+                            <input type="number" step="0.01" min="1" name="amount" id="modal_amount"
+                                class="form-control" required>
+                            <small class="form-text text-muted">Enter the amount to pay for this EMI.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-ghost" onclick="closeEmiModal()">Cancel</button>
+                        <button type="submit" class="btn-brand">Pay</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
-        // Global App namespace - prevents polluting global scope
-        window.App = (function() {
-            'use strict';
-
-            // DOM Elements
-            const elements = {
-                dynamicContent: document.getElementById('dynamicContent'),
-                reuploadModal: null,
-                successToast: null,
-                errorToast: null
-            };
-
-            // State
-            let currentActiveButton = null;
-            let currentStepNo = {{ $currentStepNo ?? 1 }};
-
-            // Routes (injected from Laravel)
-            const routes = {
+        window.AppConfig = {
+            currentStepNo: @json($currentStepNo ?? 1),
+            routes: {
                 overview: @json(route('admin.allottees.section', ['allottee' => $allottee, 'section' => 'overview'])),
                 process: @json(route('admin.allottees.process.step', ['allottee' => $allottee, 'stepNo' => '__STEP__'])),
                 uploadSigned: @json(route('admin.allottees.signed.document.uploads')),
                 initialPayment: @json(route('admin.allottees.initial.payment.pay')),
-                OneTimePayment: @json(route('admin.allottees.one-time-payment.pay')),
-            };
-
-            // Helper: Get step URL
-            function getStepUrl(stepNo) {
-                if (stepNo === 0 || stepNo === 'overview') {
-                    return routes.overview;
-                }
-                return routes.process.replace('__STEP__', stepNo);
-            }
-
-            // Helper: Update URL hash
-            function updateUrl(stepNo) {
-                history.pushState(null, '', stepNo === 0 || stepNo === 'overview' ? '#overview' :
-                    `#step-${stepNo}`);
-            }
-
-            // Helper: Set active menu button
-            function setActiveMenu(element) {
-                document.querySelectorAll('.sidebar-submenu-link, .sidebar-link').forEach(btn => btn.classList
-                    .remove('active'));
-                if (element) {
-                    element.classList.add('active');
-                    currentActiveButton = element;
-                }
-            }
-
-            // Helper: Restore active menu (on error)
-            function restoreActiveMenu() {
-                if (currentActiveButton) {
-                    currentActiveButton.classList.add('active');
-                }
-            }
-
-            // Helper: Auto open parent collapse menu
-            function autoOpenParentMenu(element) {
-                if (!element) return;
-                const collapse = element.closest('.collapse');
-                if (collapse && !collapse.classList.contains('show')) {
-                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapse, {
-                        toggle: false
-                    });
-                    bsCollapse.show();
-                }
-            }
-
-            // UI: Show loading state
-            function setLoading() {
-                if (elements.dynamicContent) {
-                    elements.dynamicContent.innerHTML = `
-                    <div class="text-center py-5">
-                        <div class="mb-3"><i class="fa-solid fa-spinner fa-spin fa-2x text-muted"></i></div>
-                        <div class="text-muted">Loading section...</div>
-                    </div>
-                `;
-                }
-            }
-
-            // UI: Show error state
-            function showError(message = 'Failed to load section.') {
-                if (elements.dynamicContent) {
-                    elements.dynamicContent.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fa-solid fa-circle-exclamation me-2"></i> ${message}
-                    </div>
-                `;
-                }
-            }
-
-            // UI: Show toast message
-            function showToast(type, message) {
-                if (type === 'success' && elements.successToast) {
-                    const toast = bootstrap.Toast.getOrCreateInstance(elements.successToast);
-                    toast.show();
-                } else if (type === 'error' && elements.errorToast) {
-                    const msgSpan = document.getElementById('errorToastMsg');
-                    if (msgSpan) msgSpan.textContent = message;
-                    const toast = bootstrap.Toast.getOrCreateInstance(elements.errorToast);
-                    toast.show();
-                }
-            }
-
-            // Main: Load step content
-            async function loadStep(stepNo, element = null) {
-                if (!elements.dynamicContent) return;
-
-                // Handle string 'overview' or number 0
-                const stepValue = stepNo === 'overview' ? 0 : parseInt(stepNo);
-
-                setLoading();
-                setActiveMenu(element);
-                currentStepNo = stepValue;
-
-                try {
-                    const response = await fetch(getStepUrl(stepValue), {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'text/html'
-                        }
-                    });
-
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-                    elements.dynamicContent.innerHTML = await response.text();
-                    updateUrl(stepValue);
-                    autoOpenParentMenu(element);
-                    initializePlugins();
-
-                    // Re-attach event listeners to dynamically loaded buttons
-                    attachDynamicEventListeners();
-
-                    // Dispatch custom event for step loaded
-                    window.dispatchEvent(new CustomEvent('step-loaded', {
-                        detail: {
-                            stepNo: stepValue
-                        }
-                    }));
-                } catch (error) {
-                    console.error('Load step error:', error);
-                    showError('Failed to load section. Please try again.');
-                    restoreActiveMenu();
-                }
-            }
-
-            // Attach event listeners to dynamically loaded buttons
-            function attachDynamicEventListeners() {
-                // Find all buttons with data-step attribute or onclick that might need App methods
-                document.querySelectorAll('[onclick*="App."]').forEach(button => {
-                    // Store original onclick
-                    const originalOnclick = button.getAttribute('onclick');
-                    if (originalOnclick && !button.hasAttribute('data-app-bound')) {
-                        button.setAttribute('data-app-bound', 'true');
-                        // Replace with a safer wrapper that checks if App exists
-                        button.setAttribute('onclick',
-                            `if(window.App) { ${originalOnclick} } else { console.error('App not ready'); }`
-                        );
-                    }
-                });
-            }
-
-            // Initialize all third-party plugins
-            function initializePlugins() {
-                // Tooltips
-                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
-
-                // Toasts
-                document.querySelectorAll('.toast').forEach(el => new bootstrap.Toast(el));
-
-                // Select2
-                if (typeof $ !== 'undefined' && $.fn.select2) {
-                    $('.select2').select2({
-                        width: '100%'
-                    });
-                }
-
-                // Flatpickr
-                if (typeof flatpickr !== 'undefined') {
-                    flatpickr('.datepicker', {
-                        dateFormat: 'Y-m-d'
-                    });
-                }
-            }
-
-            // ========== RE-UPLOAD MODAL FUNCTIONS ==========
-            function openReupload(docName, documentType, documentId, allotteeId, stepNo) {
-                const docNameElement = document.getElementById('docTypeSelect');
-                const documentIdElement = document.getElementById('documentId');
-                const allotteeIdElement = document.getElementById('allotteeId');
-                const documentTypeElement = document.getElementById('documentType');
-                const stepNoElement = document.getElementById('stepNoValue');
-                const modalTitleElement = document.getElementById('reuploadModalTitle');
-
-                if (documentIdElement) documentIdElement.value = documentId;
-                if (allotteeIdElement) allotteeIdElement.value = allotteeId;
-                if (documentTypeElement) documentTypeElement.value = documentType;
-                if (stepNoElement) stepNoElement.value = stepNo;
-
-                if (modalTitleElement) {
-                    modalTitleElement.innerHTML = `
-                    <i class="fa-solid fa-file-signature me-2 text-success"></i>
-                    Upload Signed ${docName.replaceAll('-', ' ')}
-                `;
-                }
-
-                if (docNameElement) docNameElement.value = docName;
-                clearFile();
-
-                if (!elements.reuploadModal) {
-                    const modalEl = document.getElementById('reuploadModal');
-                    if (modalEl) elements.reuploadModal = new bootstrap.Modal(modalEl);
-                }
-                if (elements.reuploadModal) elements.reuploadModal.show();
-            }
-
-            function previewFile(input) {
-                if (!input?.files?.length) return;
-
-                const file = input.files[0];
-                const preview = document.getElementById('filePreview');
-                const previewName = document.getElementById('previewName');
-                const previewSize = document.getElementById('previewSize');
-                const previewIcon = document.getElementById('previewIcon');
-                const previewLink = document.getElementById('previewLink');
-
-                if (preview) preview.style.display = 'block';
-                if (previewName) previewName.innerText = file.name;
-                if (previewSize) previewSize.innerText = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-
-                const fileUrl = URL.createObjectURL(file);
-                if (previewLink) previewLink.href = fileUrl;
-
-                if (previewIcon) {
-                    previewIcon.innerHTML = file.type.includes('pdf') ?
-                        '<i class="fa-solid fa-file-pdf"></i>' :
-                        '<i class="fa-solid fa-image"></i>';
-                }
-            }
-
-            function clearFile() {
-                const fileInput = document.getElementById('fileInput');
-                if (fileInput) fileInput.value = '';
-                const filePreview = document.getElementById('filePreview');
-                if (filePreview) filePreview.style.display = 'none';
-            }
-
-            async function submitDocumentUpload() {
-                const fileInput = document.getElementById('fileInput');
-                if (!fileInput?.files?.length) {
-                    showToast('error', 'Please select a signed document to upload');
-                    return;
-                }
-
-                const documentId = document.getElementById('documentId')?.value;
-                const docTypeSelect = document.getElementById('docTypeSelect')?.value;
-                const documentType = document.getElementById('documentType')?.value;
-                const allotteeId = document.getElementById('allotteeId')?.value;
-                const docIssueDate = document.getElementById('docIssueDate')?.value;
-                const docNumber = document.getElementById('docNumber')?.value;
-                const stepNo = document.getElementById('stepNoValue')?.value;
-
-                const formData = new FormData();
-                formData.append('document_id', documentId);
-                formData.append('document_name', docTypeSelect);
-                formData.append('document_type', documentType);
-                formData.append('allottee_id', allotteeId);
-                formData.append('issue_date', docIssueDate || new Date().toISOString().split('T')[0]);
-                formData.append('document_number', docNumber || '');
-                formData.append('stepNo', stepNo);
-                formData.append('file', fileInput.files[0]);
-
-                try {
-                    const response = await fetch(routes.uploadSigned, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                ?.content || ''
-                        },
-                        body: formData
-                    });
-
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.message || 'Upload failed');
-
-                    if (elements.reuploadModal) {
-                        elements.reuploadModal.hide();
-                    }
-                    showToast('success', 'Document uploaded successfully!');
-
-                    // Refresh current step
-                    window.location.reload();
-                } catch (error) {
-                    console.error('Upload error:', error);
-                    showToast('error', error.message || 'Upload failed. Please try again.');
-                }
-            }
-
-            // ========== PAYMENT FUNCTION ==========
-            async function payInitialPayment(paymentId) {
-
-                const button = document.querySelector('.btn-brand');
-                const originalHtml = button.innerHTML;
-
-                // Disable button + show loader
-                button.disabled = true;
-                button.innerHTML = `
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    Processing...
-                `;
-
-                try {
-
-                    const response = await fetch(routes.initialPayment, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector(
-                                'meta[name="csrf-token"]'
-                            )?.content || '',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            payment_id: paymentId
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok || !data.success) {
-                        throw new Error(
-                            data.message || 'Payment failed'
-                        );
-                    }
-
-                    if (data.receipt_url) {
-                        window.open(data.receipt_url, '_blank');
-                    }
-
-                    window.location.reload();
-
-                } catch (error) {
-
-                    console.error('Payment error:', error);
-
-                    showToast(
-                        'error',
-                        error.message || 'Payment failed. Please try again.'
-                    );
-
-                    // Restore button on error
-                    button.disabled = false;
-                    button.innerHTML = originalHtml;
-                }
-            }
-
-            // ========== ONE TIME PAYMENT FUNCTION ==========
-            async function oneTimePayment(paymentId) {
-
-                const button = document.querySelector('.btn-brand');
-                const originalHtml = button.innerHTML;
-
-                // Disable + Loader
-                button.disabled = true;
-                button.innerHTML = `
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    Processing...
-                `;
-
-                try {
-
-                    const response = await fetch(routes.OneTimePayment, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector(
-                                'meta[name="csrf-token"]'
-                            )?.content || '',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            payment_id: paymentId
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok || !data.success) {
-                        throw new Error(
-                            data.message || 'Payment failed'
-                        );
-                    }
-
-                    if (data.receipt_url) {
-                        window.open(data.receipt_url, '_blank');
-                    }
-
-                    window.location.reload();
-
-                } catch (error) {
-
-                    console.error(error);
-
-                    showToast(
-                        'error',
-                        error.message || 'Payment failed. Please try again.'
-                    );
-
-                    // Re-enable button
-                    button.disabled = false;
-                    button.innerHTML = originalHtml;
-                }
-            }
-
-            // ========== MENU ARROW ROTATION ==========
-            function initMenuArrowRotation() {
-                document.addEventListener('click', function(e) {
-                    const button = e.target.closest('.sidebar-menu-btn');
-                    if (!button) return;
-
-                    const arrow = button.querySelector('.menu-arrow');
-                    setTimeout(() => {
-                        const target = document.querySelector(button.getAttribute(
-                            'data-bs-target'));
-                        if (arrow && target) {
-                            arrow.style.transform = target.classList.contains('show') ?
-                                'rotate(180deg)' : 'rotate(0deg)';
-                        }
-                    }, 150);
-                });
-            }
-
-            // ========== URL HASH NAVIGATION ==========
-            function handleNavigation() {
-                const hash = window.location.hash;
-                if (!hash || hash === '#') {
-                    return;
-                }
-
-                if (hash === '#overview') {
-                    const overviewBtn = document.querySelector('[data-step="overview"]');
-                    if (overviewBtn) loadStep(0, overviewBtn);
-                } else if (hash.startsWith('#step-')) {
-                    const stepNo = parseInt(hash.replace('#step-', ''), 10);
-                    if (!isNaN(stepNo)) {
-                        const stepBtn = document.querySelector(`[data-step="${stepNo}"]`);
-                        if (stepBtn) loadStep(stepNo, stepBtn);
-                    }
-                }
-            }
-
-            // ========== INITIALIZATION ==========
-            function init() {
-                // Cache modal and toast instances
-                const modalEl = document.getElementById('reuploadModal');
-                if (modalEl) elements.reuploadModal = new bootstrap.Modal(modalEl);
-
-                const successEl = document.getElementById('successToast');
-                if (successEl) elements.successToast = successEl;
-                const errorEl = document.getElementById('errorToast');
-                if (errorEl) elements.errorToast = errorEl;
-
-                initializePlugins();
-                initMenuArrowRotation();
-
-                // Popstate event listener
-                window.addEventListener('popstate', handleNavigation);
-
-                // Handle initial active button or load default step
-                const activeButton = document.querySelector('.sidebar-submenu-link.active, .sidebar-link.active');
-                if (activeButton) {
-                    currentActiveButton = activeButton;
-                    autoOpenParentMenu(activeButton);
-                    // Load the active step content if not already loaded
-                    const stepNo = activeButton.getAttribute('data-step');
-                    if (stepNo && (!elements.dynamicContent || elements.dynamicContent.innerHTML.trim() === '')) {
-                        loadStep(parseInt(stepNo), activeButton);
-                    }
-                } else {
-                    // Load default step (step 1) on initial load
-                    const defaultButton = document.querySelector('[data-step="1"]');
-                    if (defaultButton) {
-                        loadStep(1, defaultButton);
-                    }
-                }
-
-                handleNavigation();
-
-                // Attach initial event listeners
-                attachDynamicEventListeners();
-            }
-
-            // Public API - expose all needed functions
-            return {
-                loadStep,
-                openReupload,
-                previewFile,
-                clearFile,
-                submitDocumentUpload,
-                payInitialPayment,
-                oneTimePayment,
-                init
-            };
-        })();
-
-        // Make functions globally available for inline onclick handlers
-        // Check if App is defined before using it
-        window.openReupload = function(docName, documentType, documentId, allotteeId, stepNo) {
-            if (window.App) {
-                window.App.openReupload(docName, documentType, documentId, allotteeId, stepNo);
-            } else {
-                console.error('App not ready yet');
+                oneTimePayment: @json(route('admin.allottees.one-time-payment.pay')),
+                emiProcessPayment: @json(route('admin.allottee.emi.process-payment', $allottee)),
             }
         };
+    </script>
+    <script src="{{ asset('js/allottee/dashboard.js') }}"></script>
+    <script>
+        function goToAllottees() {
+            window.location.href = "{{ route('admin.allottees.index') }}";
+        }
 
-        window.previewFile = function(input) {
-            if (window.App) {
-                window.App.previewFile(input);
-            } else {
-                console.error('App not ready yet');
-            }
-        };
-
-        window.clearFile = function() {
-            if (window.App) {
-                window.App.clearFile();
-            } else {
-                console.error('App not ready yet');
-            }
-        };
-
-        window.submitDocumentUpload = function() {
-            if (window.App) {
-                window.App.submitDocumentUpload();
-            } else {
-                console.error('App not ready yet');
-            }
-        };
-
-        window.payInitialPayment = function(paymentId) {
-            if (window.App) {
-                window.App.payInitialPayment(paymentId);
-            } else {
-                console.error('App not ready yet');
-            }
-        };
-
-        window.oneTimePayment = function(paymentId) {
-            if (window.App) {
-                window.App.oneTimePayment(paymentId);
-                console.log('Green');
-            } else {
-                console.error('App not ready yet');
-            }
-        };
-
-        // Initialize on DOM ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                if (window.App) window.App.init();
-            });
-        } else {
-            if (window.App) window.App.init();
+        function closeTab() {
+            window.close();
         }
     </script>
 </body>

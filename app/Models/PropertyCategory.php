@@ -9,6 +9,7 @@ use App\Traits\EncryptedRouteKey;
 class PropertyCategory extends Model
 {
     use SoftDeletes, EncryptedRouteKey;
+    protected $connection = 'adms_jshb';
     protected $table = 'property_category';
     public $timestamps = false;
 
