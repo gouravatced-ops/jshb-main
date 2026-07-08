@@ -1,6 +1,8 @@
 // ============================================
 // STEP 0 HANDLER - Payment details
 // ============================================
+window.APP_BASE_URL = window.APP_BASE_URL || (window.location.hostname === 'adms.jshb.computered.co.in' ? '/public' : '');
+
 const Step0Handler = {
     manager: null,
     init: function () {
@@ -96,7 +98,7 @@ const Step0Handler = {
         if (!divisionId) return;
         const currentSelectedValue = divisionId;
         subDivisionSelect.innerHTML = '<option value="">Loading ...</option>';
-        fetch(`/get-sub-divisions/${divisionId}`)
+        fetch(`${window.APP_BASE_URL}/get-sub-divisions/${divisionId}`)
             .then(res => res.json())
             .then(data => {
                 console.log(data);
@@ -120,7 +122,7 @@ const Step0Handler = {
         if (!pCategoryId) return;
         if (!propertyTypeSelect) return;
         propertyTypeSelect.innerHTML = '<option> Loading ... </option>';
-        fetch(`/get-property-types/${pCategoryId}`)
+        fetch(`${window.APP_BASE_URL}/get-property-types/${pCategoryId}`)
             .then(res => res.json())
             .then(data => {
                 propertyTypeSelect.innerHTML = '<option> -- Select Property Type -- </option>';
@@ -141,7 +143,7 @@ const Step0Handler = {
         if (!pTypeId) return;
         if (!propertySubTypeSelect) return;
         propertySubTypeSelect.innerHTML = '<option> Loading ... </option>';
-        fetch(`/get-property-sub-types/${pTypeId}`)
+        fetch(`${window.APP_BASE_URL}/get-property-sub-types/${pTypeId}`)
             .then(res => res.json())
             .then(data => {
                 propertySubTypeSelect.innerHTML = '<option> -- Select Sub Property Type -- </option>';
@@ -193,7 +195,7 @@ const Step0Handler = {
             .querySelector('meta[name="csrf-token"]')
             ?.getAttribute('content');
         try {
-            const response = await fetch('/scheme-list', {
+            const response = await fetch(`${window.APP_BASE_URL}/scheme-list`, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -311,7 +313,7 @@ const Step0Handler = {
         try {
             // API call using scheme id
             const response = await fetch(
-                `/get-scheme-details/${schemeId}`
+                `${window.APP_BASE_URL}/get-scheme-details/${schemeId}`
             );
             if (!response.ok) {
                 throw new Error('Failed to fetch scheme');
