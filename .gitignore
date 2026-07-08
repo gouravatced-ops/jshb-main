@@ -27,3 +27,4 @@ public/uploads/*
 storage
 .htaccess
 documents
+config/database.php

@@ -1,6 +1,8 @@
 // ============================================
 // STEP 2 HANDLER - Address Details
 // ============================================
+window.APP_BASE_URL = window.APP_BASE_URL || (window.location.hostname === 'adms.jshb.computered.co.in' ? '/public' : '');
+
 const Step2Handler = {
     manager: null,
 
@@ -53,7 +55,7 @@ const Step2Handler = {
 
         if (!stateId) return;
 
-        fetch(`/districts/${stateId}`)
+        fetch(`${window.APP_BASE_URL}/districts/${stateId}`)
             .then(res => res.json())
             .then(data => {
                 const isHindi = targetId.includes('hi');
