@@ -25,3 +25,7 @@ Thumbs.db
 public/documents/*
 public/uploads/*
 storage
+log
+.htaccess
+document
+documents
