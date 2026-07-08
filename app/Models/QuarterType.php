@@ -16,6 +16,7 @@ class QuarterType extends Model
      *
      * @var string
      */
+    protected $connection = 'adms_jshb';
     protected $table = 'quarter_type';
 
     /**

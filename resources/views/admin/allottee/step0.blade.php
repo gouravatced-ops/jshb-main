@@ -311,6 +311,12 @@
                         available</small>
                 </div>
             </div>
+                        <div class="field">
+                <label class="field-label">
+                    Email ID (For Login/OTP) <span class="req-star">*</span>
+                </label>
+                <input type="email" name="email" class="custom-input only-email mb-2" placeholder="Enter Email ID" value="{{ $applicant->user_email ?? '' }}" required>
+            </div>
         </div>
         <div class="section-header gradient-header" style="background:linear-gradient(90deg,#0c9a78,#066a53)">
             <div class="section-icon">
@@ -430,8 +436,12 @@
                 <div class="preview-title">
                     Receipt Preview
                 </div>
+                @php
+                    $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
+                    $previewSrc = !empty($applicant->payment_receipt_path) ? $docBaseUrl . '/' . ltrim($applicant->payment_receipt_path, '/') : '';
+                @endphp
                 <img id="receiptPreview" class="preview-image imagePopupModal"
-                    src="{{ !empty($applicant->payment_receipt_path) ? asset($applicant->payment_receipt_path) : '' }}"
+                    src="{{ $previewSrc }}"
                     alt="Receipt Preview"
                     style="{{ !empty($applicant->payment_receipt_path) ? 'display:block' : 'display:none' }}">
                 <div id="receiptPlaceholder" class="preview-placeholder"

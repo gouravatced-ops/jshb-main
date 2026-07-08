@@ -11,6 +11,8 @@ use App\Models\PropertyType;
 use App\Models\PropertyMainType;
 use App\Models\QuarterType;
 use App\Models\Scheme;
+use App\Models\State;
+use App\Models\Allottee;
 
 if (!function_exists('getDivisions')) {
     function getDivisions()
@@ -104,15 +106,14 @@ if (!function_exists('getdistrictNameById')) {
 if (!function_exists('getDistrict')) {
     function getDistrict($stateId)
     {
-        return DB::table('districts')->where('state_id', $stateId)->get();
+        return District::where('state_id', $stateId)->get();
     }
 }
 
 if (!function_exists('getStates')) {
     function getStates()
     {
-        return DB::table('states')
-            ->orderByRaw("
+        return State::orderByRaw("
                 CASE
                     WHEN name_en = 'Bihar (Now Jharkhand)' THEN 1
                     WHEN name_en = 'Jharkhand' THEN 2
@@ -120,7 +121,7 @@ if (!function_exists('getStates')) {
                     ELSE 4
                 END
             ")
-            ->orderBy('name_en', 'ASC') // optional: sort remaining states
+            ->orderBy('name_en', 'ASC')
             ->get();
     }
 }
@@ -135,21 +136,21 @@ if (!function_exists('getDivisionName')) {
 if (!function_exists('getDistrict')) {
     function getDistrict($stateId)
     {
-        return DB::table('districts')->where('state_id', $stateId)->get();
+        return District::where('state_id', $stateId)->get();
     }
 }
 
 if (!function_exists('getStateName')) {
     function getStateName($stateId)
     {
-        return DB::table('states')->where('id', $stateId)->value('name_en');
+        return State::where('id', $stateId)->value('name_en');
     }
 }
 
 if (!function_exists('getAllotteeName')) {
     function getAllotteeName($allotteeId)
     {
-        $allottee = DB::table('allottees')->select('prefix', 'allottee_name', 'allottee_middle_name', 'allottee_surname')->where('id', $allotteeId)->first();
+        $allottee = Allottee::select('prefix', 'allottee_name', 'allottee_middle_name', 'allottee_surname')->where('id', $allotteeId)->first();
         if ($allottee) {
             return trim($allottee->prefix . ' ' . $allottee->allottee_name . ' ' . $allottee->allottee_middle_name . ' ' . $allottee->allottee_surname);
         }
@@ -160,7 +161,7 @@ if (!function_exists('getAllotteeName')) {
 if (!function_exists('getDistrictName')) {
     function getDistrictName($distId)
     {
-        return DB::table('districts')->where('id', $distId)->value('name_en');
+        return District::where('id', $distId)->value('name_en');
     }
 }
 

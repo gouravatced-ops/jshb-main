@@ -11,6 +11,7 @@ class PropertyMainType extends Model
 {
     use HasFactory, SoftDeletes, EncryptedRouteKey;
 
+    protected $connection = 'adms_jshb';
     protected $table = 'property_sub_type';
     public $timestamps = false;
 

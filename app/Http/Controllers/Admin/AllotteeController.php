@@ -30,9 +30,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\EmiCalculatorService;
 use App\Models\User;
 use App\Models\Role;
+use App\Traits\DocumentUploadTrait;
 
 class AllotteeController extends Controller
 {
+    use DocumentUploadTrait;
     private function processStepBlueprint(): array
     {
         return [
@@ -1366,9 +1368,17 @@ class AllotteeController extends Controller
     public function saveStep0(Request $request)
     {
         try {
+            $userId = null;
+            if ($request->filled('applicant_id')) {
+                $applicant = Allottee::find($request->applicant_id);
+                if ($applicant) {
+                    $userId = $applicant->user_id;
+                }
+            }
 
             $validator = Validator::make($request->all(), [
-                'applicant_id'     => 'nullable|integer|exists:allottees,id',
+                'applicant_id'     => 'nullable|integer|exists:adms_allottees.allottees,id',
+                'email'            => 'required|email|max:255|unique:adms_allottees.users,email' . ($userId ? ',' . $userId : ''),
                 'payment_amount'   => 'required|numeric|min:0.01',
                 'payment_day'      => 'required|between:1,31',
                 'payment_month'    => 'required|between:1,12',
@@ -1406,11 +1416,20 @@ class AllotteeController extends Controller
                 ? Allottee::find($request->applicant_id)
                 : new Allottee();
 
-            if (!$applicant->exists) {
-                $applicant->username = 'DRAFT_' . strtoupper(Str::random(12));
-                $applicant->password = Hash::make(Str::random(40));
+            $isDraftLogin = !$applicant->exists || Str::startsWith((string) $applicant->username, 'DRAFT_');
+            $plainPassword = null;
+
+            if ($isDraftLogin) {
+                $usersname = $this->generateUniqueUsername($divisionId, $quarterId, $subDivisionId, $request->payment_year);
+                $plainPassword = $this->generatePassword();
+                $applicant->username = $usersname;
+                $applicant->password = Hash::make($plainPassword);
                 $applicant->create_ip_address = $request->ip();
                 $applicant->created_by = Auth::id();
+            }
+
+            if (empty($applicant->property_number)) {
+                $applicant->property_number = Allottee::generateUniquePropertyNumber();
             }
 
             $applicant->fill([
@@ -1426,8 +1445,6 @@ class AllotteeController extends Controller
                 'updated_by'        => Auth::id(),
             ]);
 
-            $applicant->save();
-
             $transaction = AllotteeTransaction::where([
                 'allottee_id'     => $applicant->id,
                 'transaction_type' => 'lottery_payment',
@@ -1438,42 +1455,58 @@ class AllotteeController extends Controller
             $receiptPath = $transaction?->receipt_path;
 
             if ($request->hasFile('payment_receipt')) {
+                $file = $request->file('payment_receipt');
+                $scheme = Scheme::find($request->scheme_id);
 
-                if (!empty($receiptPath)) {
-                    $oldFile = public_path($receiptPath);
-
-                    if (File::exists($oldFile)) {
-                        File::delete($oldFile);
-                    }
-                }
-
-                $folder = sprintf(
-                    'uploads/payments/%s/%02d/%02d',
+                $uploadResult = $this->uploadToDocumentApi(
+                    $file,
+                    'LOTTERY',
+                    $scheme->scheme_code ?? 'SCH',
+                    $applicant->property_number ?? 'PROP',
                     $request->payment_year,
                     $request->payment_month,
-                    $request->payment_day
+                    $request->payment_day,
+                    $receiptPath
                 );
 
-                $directory = public_path($folder);
-
-                File::ensureDirectoryExists($directory, 0755, true);
-
-                $file = $request->file('payment_receipt');
-
-                $receiptFile = sprintf(
-                    'payment-receipt-%s%s%s-%s-%s.%s',
-                    substr($request->payment_year, -2),
-                    str_pad($request->payment_month, 2, '0', STR_PAD_LEFT),
-                    str_pad($request->payment_day, 2, '0', STR_PAD_LEFT),
-                    now()->format('His'),
-                    mt_rand(1000, 9999),
-                    $file->getClientOriginalExtension()
-                );
-
-                $file->move($directory, $receiptFile);
-
-                $receiptPath = $folder . '/' . $receiptFile;
+                $receiptPath = $uploadResult['file_path'];
+                $receiptFile = $uploadResult['file_name'];
             }
+
+            // Auto-create User for the allottee (if not already exists)
+            if (!User::on('adms_allottees')->where('username', $applicant->username)->exists()) {
+                $fullName = trim(implode(' ', array_filter([
+                    $applicant->allottee_name,
+                    $applicant->allottee_middle_name,
+                    $applicant->allottee_surname,
+                ])));
+
+                if (empty($fullName)) {
+                    $fullName = 'Applicant';
+                }
+
+                $user = new User();
+                $user->setConnection('adms_allottees');
+                $user->name = $fullName;
+                $user->username = $applicant->username;
+                $user->email = $request->email;
+                $user->login_with_otp = false;
+                $user->password_created_at = now();
+                $user->status = true;
+                $user->password = $applicant->password;
+                $user->save();
+
+                if ($plainPassword) {
+                    Log::channel('user_credentials')->info('New User Created', [
+                        'username' => $user->username,
+                        'password' => $plainPassword
+                    ]);
+                }
+
+                $applicant->user_id = $user->id;
+            }
+
+            $applicant->save();
 
             $amount = str_replace(',', '', $request->payment_amount);
 
@@ -1517,6 +1550,10 @@ class AllotteeController extends Controller
                 'message'      => 'Payment details saved successfully.',
                 'applicant_id' => $applicant->id,
                 'next_step'    => 1,
+                'credentials'  => $plainPassword ? [
+                    'username' => $applicant->username,
+                    'password' => $plainPassword
+                ] : null,
             ]);
         } catch (\Throwable $e) {
 
@@ -1547,7 +1584,7 @@ class AllotteeController extends Controller
         $step = (int) $step;
         if ($step === 0) {
 
-            $applicant = $applicantId ? Allottee::find($applicantId) : null;
+            $applicant = $applicantId ? Allottee::find($applicantId) : new Allottee();
 
             $getSchemeList = $applicant->scheme_id
                 ? Scheme::select('scheme_code', 'scheme_name')->where('id', $applicant->scheme_id)->first()
@@ -1569,6 +1606,7 @@ class AllotteeController extends Controller
             $applicant->payment_year = $transaction->payment_year ?? '';
             $applicant->payment_utr_no = $transaction->utr_no ?? '';
             $applicant->payment_receipt_path = $transaction->receipt_path ?? '';
+            $applicant->user_email = $applicant->user_id ? User::on('adms_allottees')->where('id', $applicant->user_id)->value('email') : '';
 
             return view('admin.allottee.step0', compact('applicant', 'getSchemeList', 'subdivisions', 'propertyTypes', 'propertySubTypes'));
         }
@@ -1793,15 +1831,21 @@ class AllotteeController extends Controller
         } else {
             $applicant = new Allottee();
         }
-        $divisionId = $applicant->division_id;
-        $subDivisionId = $applicant->subdivision_id;
-        $quarterId = $applicant->quarter_id;
-        $isDraftLogin = !$applicant->exists || Str::startsWith((string) $applicant->username, 'DRAFT_');
-        if ($isDraftLogin) {
-            $usersname = $this->generateUniqueUsername($divisionId, $quarterId, $subDivisionId, $request->allotment_year);
-            $password = $this->generatePassword();
-            $applicant->username = $usersname;
-            $applicant->password = Hash::make($password);
+
+        // If User's name needs updating, we can do it here
+        if (!empty($applicant->username)) {
+            $user = User::on('adms_allottees')->where('username', $applicant->username)->first();
+            if ($user) {
+                $fullName = trim(implode(' ', array_filter([
+                    $request->allottee_name,
+                    $request->allottee_middle_name,
+                    $request->allottee_surname,
+                ])));
+                if (!empty($fullName) && $user->name !== $fullName) {
+                    $user->name = $fullName;
+                    $user->save();
+                }
+            }
         }
 
         $applicant->application_no = $request->application_no;
@@ -1900,47 +1944,28 @@ class AllotteeController extends Controller
             $allottee->allotment_day = date('d');
             $allottee->allotment_month = date('m');
             $allottee->allotment_year = date('Y');
-            $allottee->property_number = Allottee::generateUniquePropertyNumber();
+            // if (empty($allottee->property_number)) {
+            //     $allottee->property_number = Allottee::generateUniquePropertyNumber();
+            // }
             $allottee->save();
-
-            // Auto-create User for the allottee (if not already exists)
-            if (!User::on('adms_allottees')->where('username', $allottee->username)->exists()) {
-                $fullName = trim(implode(' ', array_filter([
-                    $allottee->allottee_name,
-                    $allottee->allottee_middle_name,
-                    $allottee->allottee_surname,
-                ])));
-
-                $user = new User();
-                $user->setConnection('adms_allottees');
-                $user->name = $fullName;
-                $user->username = $allottee->username;
-                $user->division_id = $allottee->division_id;
-                $user->login_with_otp = false;
-                $user->password_created_at = now();
-                $user->status = true;
-                // Copy the already-hashed password directly from allottee
-                $user->attributes['password'] = $allottee->getAttributes()['password'];
-                $user->save();
-            }
 
             DB::commit();
 
-            $documentExists = $allottee->generatedDocument()
-                ->where('document_type', 'allotment-letter')
-                ->exists();
-            if (!$documentExists) {
-                $pdf = Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
-                    ->setPaper('a4', 'portrait')
-                    ->setOptions([
-                        'defaultFont' => 'KrutiDev',
-                        'isHtml5ParserEnabled' => true,
-                        'isRemoteEnabled' => true,
-                        'chroot' => public_path(),
-                    ]);
+            // $documentExists = $allottee->generatedDocument()
+            //     ->where('document_type', 'allotment-letter')
+            //     ->exists();
+            // if (!$documentExists) {
+            //     $pdf = Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
+            //         ->setPaper('a4', 'portrait')
+            //         ->setOptions([
+            //             'defaultFont' => 'KrutiDev',
+            //             'isHtml5ParserEnabled' => true,
+            //             'isRemoteEnabled' => true,
+            //             'chroot' => public_path(),
+            //         ]);
 
-                $this->saveGeneratedPdf($allottee, 'Allotment Letter', 'allotment-letter', $pdf->output());
-            }
+            //     $this->saveGeneratedPdf($allottee, 'Allotment Letter', 'allotment-letter', $pdf->output());
+            // }
 
             return response()->json([
                 'success' => true,
