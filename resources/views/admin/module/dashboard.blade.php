@@ -28,7 +28,7 @@
             </svg> --}}
             <div>
                 <div class="dashboard-hero-kicker">
-                    Admin Quick View 22
+                    Admin Quick View
                 </div>
 
                 <h2 class="dashboard-hero-title">Dashboard</h2>
