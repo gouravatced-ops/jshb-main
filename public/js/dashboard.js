@@ -77,6 +77,26 @@ function initializeSessionTimer() {
     const countdown = document.getElementById('sessionCountdown');
     if (!expiryTs || !countdown || !logoutUrl) return;
 
+    // --- Added Idle Timeout Logic (30 minutes) ---
+    const IDLE_TIMEOUT_MS = 30 * 60 * 1000; 
+    let idleTimer;
+
+    function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            alert("Your session expired due to 30 minutes of inactivity.");
+            window.location.href = logoutUrl;
+        }, IDLE_TIMEOUT_MS);
+    }
+
+    // Listen to user activity to reset idle timer
+    ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+
+    resetIdleTimer(); // Start idle timer immediately
+    // ---------------------------------------------
+
     const tick = () => {
         const nowSeconds = Math.floor(Date.now() / 1000);
         const remaining = expiryTs - nowSeconds;
