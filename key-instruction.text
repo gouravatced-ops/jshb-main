@@ -104,3 +104,20 @@ Workflow Name
 Status
 
 Ye 10–15 functions ho sakte hain.
+
+
+==================================================================================
+
+
+Mere hisaab se tumhare JSHB project ke liye
+
+Tumhare project mein modules jaise:
+
+EMI generation
+Email notifications
+Document cleanup
+Application reminders
+OTP expiry
+Payment reconciliation
+
+In sab ke liye Laravel Scheduler + Queue best architecture rahega.

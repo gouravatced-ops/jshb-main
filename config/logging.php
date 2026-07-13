@@ -86,6 +86,13 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'test_notification' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/test_notification.log'),
+            'level' => 'debug',
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

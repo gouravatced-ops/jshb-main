@@ -253,7 +253,7 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         $message = $action === 'auto_logout'
-            ? 'Your session expired after 60 minutes. Please login again.'
+            ? 'Your session expired after 90 minutes. Please login again.'
             : 'You have been logged out.';
 
         return redirect()->route('login')->with('success', $message);

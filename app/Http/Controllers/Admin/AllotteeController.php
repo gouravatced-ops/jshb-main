@@ -16,6 +16,12 @@ use App\Models\AllotteePaymentOrder;
 use App\Models\AllotteeTransaction;
 use App\Models\AllotteeEmiAccount;
 use App\Models\AllotteeMonthlyDemand;
+use App\Models\Workflow;
+use App\Models\WorkflowStep;
+use App\Models\Application;
+use App\Models\ApplicationMovement;
+use App\Models\ApplicationDocument;
+use App\Models\ApplicationAuditTrail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
@@ -1948,6 +1954,166 @@ class AllotteeController extends Controller
             //     $allottee->property_number = Allottee::generateUniquePropertyNumber();
             // }
             $allottee->save();
+
+            // Find Workflow
+            $workflow = Workflow::where('application_type', 'allotment')
+                ->where('is_active', 1)
+                ->first();
+
+            $existingApplication = Application::where('allottee_id', $allottee->id)
+                ->where('application_type', 'allotment')
+                ->exists();
+
+            if ($workflow && !$existingApplication) {
+                // Get starting step
+                $startingStep = WorkflowStep::where('workflow_id', $workflow->id)
+                    ->orderBy('step_order', 'asc')
+                    ->first();
+                
+                // Get next step
+                $nextStep = $startingStep ? WorkflowStep::where('workflow_id', $workflow->id)
+                    ->where('step_order', '>', $startingStep->step_order)
+                    ->orderBy('step_order', 'asc')
+                    ->first() : null;
+
+                // Find Target User based on division
+                $divisionId = $allottee->division_id;
+                $targetUser = $nextStep ? User::where('role_id', $nextStep->role_id)
+                    ->when($divisionId, function ($query) use ($divisionId) {
+                        return $query->where('division_id', $divisionId);
+                    })
+                    ->where('status', 1)
+                    ->first() : null;
+                
+                $applicationNo = 'APL-' . date('Y') . '-' . str_pad($allottee->id, 6, '0', STR_PAD_LEFT);
+                
+                // Create Application
+                $application = Application::create([
+                    'application_no' => $applicationNo,
+                    'application_type' => 'allotment',
+                    'allottee_id' => $allottee->id,
+                    'property_id' => 1, // Provide a default or actual property ID
+                    'workflow_id' => $workflow->id,
+                    'current_step_id' => $nextStep ? $nextStep->id : ($startingStep ? $startingStep->id : null),
+                    'current_user_id' => $targetUser ? $targetUser->id : null,
+                    'current_role_id' => $nextStep ? $nextStep->role_id : ($startingStep ? $startingStep->role_id : null),
+                    'status' => 'in_progress', // Set directly to in_progress because it is forwarded immediately
+                    'priority' => 'normal',
+                    'created_date' => now(),
+                    'remarks' => 'New allotment application for property ' . ($allottee->property_number ?? 'N/A'),
+                    'created_by' => auth()->id() ?? 1,
+                ]);
+
+                // 1. Create Application Movement (System Generation)
+                $systemMovement = ApplicationMovement::create([
+                    'application_id' => $application->id,
+                    'from_user_id' => null,
+                    'to_user_id' => null, 
+                    'from_role_id' => null,
+                    'to_role_id' => $startingStep ? $startingStep->role_id : null,
+                    'from_step_id' => null,
+                    'to_step_id' => $startingStep ? $startingStep->id : null,
+                    'action_type' => 'created',
+                    'status' => 'completed',
+                    'remarks' => 'Application created by system',
+                    'movement_date' => now(),
+                ]);
+
+                // Insert Document from step0 lottery payment
+                $transaction = AllotteeTransaction::where([
+                    'allottee_id'      => $allottee->id,
+                    'transaction_type' => 'lottery_payment',
+                    'payment_stage'    => 'application',
+                ])->first();
+
+                if ($transaction && $transaction->receipt_path) {
+                    ApplicationDocument::create([
+                        'application_id'  => $application->id,
+                        'movement_id'     => $systemMovement->id,
+                        'document_type'   => 'lottery_receipt',
+                        'document_name'   => 'Lottery Receipt',
+                        'file_name'       => $transaction->receipt_file ?? 'lottery_receipt.pdf',
+                        'file_path'       => $transaction->receipt_path,
+                        'file_size'       => 0,
+                        'file_mime_type'  => 'application/pdf',
+                        'version'         => 1,
+                        'is_original'     => 1,
+                        'is_verified'     => 0,
+                        'uploaded_by'     => auth()->id() ?? 1,
+                        'uploaded_at'     => now(),
+                    ]);
+                }
+
+                // 3. Insert Audit Trail
+                $allotteeFullName = trim(implode(' ', array_filter([
+                    $allottee->allottee_name,
+                    $allottee->allottee_middle_name,
+                    $allottee->allottee_surname,
+                ])));
+                
+                if (empty($allotteeFullName)) {
+                    $allotteeFullName = 'Applicant';
+                }
+
+                ApplicationAuditTrail::create([
+                    'application_id' => $application->id,
+                    'user_id' => auth()->id() ?? 6,
+                    'role_id' => auth()->user() ? auth()->user()->role_id : 8,
+                    'action' => 'create',
+                    'module' => 'application',
+                    'description' => "Allotment application {$applicationNo} created for {$allotteeFullName}",
+                    'new_data' => [
+                        'application_id' => $application->id,
+                        'application_no' => $applicationNo,
+                        'allottee_id' => $allottee->id,
+                        'allottee_name' => $allotteeFullName,
+                        'property_number' => $allottee->property_number ?? '',
+                    ],
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
+
+                // 4. Create Application Movement (Forward to Next Step)
+                if ($nextStep) {
+                    ApplicationMovement::create([
+                        'application_id' => $application->id,
+                        'from_user_id' => auth()->id() ?? 1,
+                        'to_user_id' => $targetUser ? $targetUser->id : null,
+                        'from_role_id' => $startingStep->role_id,
+                        'to_role_id' => $nextStep->role_id,
+                        'from_step_id' => $startingStep->id,
+                        'to_step_id' => $nextStep->id,
+                        'action_type' => 'forwarded',
+                        'status' => 'in_progress',
+                        'remarks' => 'Application automatically forwarded to ' . $nextStep->step_name,
+                        'movement_date' => now(),
+                    ]);
+
+                    // Send Notification to Allottee
+                    if ($allottee->user_id) {
+                        sendNotification(
+                            $application->id,
+                            $allottee->user_id,
+                            'application_created',
+                            'New Allotment Application Created',
+                            "Your allotment application {$applicationNo} has been created and forwarded to {$nextStep->step_name} for verification.",
+                            "/dashboard/section/application"
+                        );
+                    }
+
+                    // Send Notification to Target User (e.g., Dealing Assistant)
+                    if ($targetUser) {
+                        sendNotification(
+                            $application->id,
+                            $targetUser->id,
+                            'application_forwarded',
+                            'New Allotment Application for Verification',
+                            "A new allotment application {$applicationNo} has been forwarded to you for document verification.",
+                            "/applications/view/{$application->id}"
+                        );
+                    }
+                }
+            }
 
             DB::commit();
 
