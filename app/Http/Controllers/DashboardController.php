@@ -180,27 +180,29 @@ class DashboardController extends Controller
         
         $pendingApplications = collect();
         $workflowId = \App\Models\Workflow::where('application_type', 'allotment')->value('id') ?? 1;
-        $admsDb = config('database.connections.adms_allottees.database');
+        // 1. Get all pending application allottee IDs for this role
+        $pendingAllotteeIds = \App\Models\Application::where('current_role_id', $user->role_id)
+            ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
+            ->pluck('allottee_id')
+            ->unique()
+            ->toArray();
 
-        $pendingApplications = \App\Models\Application::join("$admsDb.allottees as al", 'applications.allottee_id', '=', 'al.id')
-            ->leftJoin('application_movements as am', 'applications.id', '=', 'am.application_id')
-            ->where('al.division_id', $user->division_id)
-            ->where('applications.current_role_id', $user->role_id)
-            ->whereIn('applications.status', ['pending', 'in_progress', 'forwarded'])
+        // 2. Filter these allottees by the user's division using the proper DB connection
+        $validAllotteeIds = \App\Models\Allottee::whereIn('id', $pendingAllotteeIds)
+            ->where('division_id', $user->division_id)
+            ->pluck('id')
+            ->toArray();
+
+        // 3. Fetch applications matching these valid allottees
+        $pendingApplications = \App\Models\Application::with('allottee')
+            ->where('current_role_id', $user->role_id)
+            ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
+            ->whereIn('allottee_id', $validAllotteeIds)
             ->select(
                 'applications.id',
                 'applications.application_no',
                 'applications.application_type',
-                'al.prefix',
-                'al.allottee_name',
-                'al.allottee_middle_name',
-                'al.allottee_surname',
-                'al.allottee_prefix_hindi',
-                'al.allottee_name_hindi',
-                'al.allottee_middle_hindi',
-                'al.allottee_surname_hindi',
-                'al.property_number',
-                'al.allotment_no',
+                'applications.allottee_id',
                 'applications.created_date',
                 DB::raw("DATE_FORMAT(applications.created_date, '%d-%b-%Y %H:%i') as created_date_formatted"),
                 DB::raw("DATEDIFF(NOW(), applications.created_date) as days_pending"),
@@ -211,18 +213,29 @@ class DashboardController extends Controller
                         ELSE 'Overdue'
                     END as priority
                 "),
-                DB::raw("COUNT(am.id) as total_movements"),
+                DB::raw("(SELECT COUNT(id) FROM application_movements WHERE application_id = applications.id) as total_movements"),
                 DB::raw("(SELECT remarks FROM application_notes WHERE application_id = applications.id ORDER BY created_at DESC LIMIT 1) as last_remark")
-            )
-            ->groupBy(
-                'applications.id', 'applications.application_no', 'applications.application_type',
-                'al.prefix', 'al.allottee_name', 'al.allottee_middle_name', 'al.allottee_surname',
-                'al.allottee_prefix_hindi', 'al.allottee_name_hindi', 'al.allottee_middle_hindi', 'al.allottee_surname_hindi',
-                'al.property_number', 'al.allotment_no', 'applications.created_date'
             )
             ->orderBy('applications.created_date', 'ASC')
             ->take(5)
             ->get();
+            
+        // Map allottee data so views don't break
+        $pendingApplications->transform(function($app) {
+            if ($app->allottee) {
+                $app->prefix = $app->allottee->prefix;
+                $app->allottee_name = $app->allottee->allottee_name;
+                $app->allottee_middle_name = $app->allottee->allottee_middle_name;
+                $app->allottee_surname = $app->allottee->allottee_surname;
+                $app->allottee_prefix_hindi = $app->allottee->allottee_prefix_hindi;
+                $app->allottee_name_hindi = $app->allottee->allottee_name_hindi;
+                $app->allottee_middle_hindi = $app->allottee->allottee_middle_hindi;
+                $app->allottee_surname_hindi = $app->allottee->allottee_surname_hindi;
+                $app->property_number = $app->allottee->property_number;
+                $app->allotment_no = $app->allottee->allotment_no;
+            }
+            return $app;
+        });
 
         return view('engineer.dashboard', compact(
             'users',
