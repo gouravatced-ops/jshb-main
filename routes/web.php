@@ -137,6 +137,7 @@ Route::middleware('auth')->group(function () {
 
 // Photo Capture Routes
 Route::post('/api/photo-session/generate', [App\Http\Controllers\PhotoCaptureController::class, 'generateToken'])->name('photo-session.generate');
+Route::get('/api/photo-session/check/{token}', [App\Http\Controllers\PhotoCaptureController::class, 'checkSession'])->name('photo-session.check');
 Route::get('/mobile/capture/{token}', [App\Http\Controllers\PhotoCaptureController::class, 'captureForm'])->name('mobile.capture');
 Route::post('/mobile/capture/{token}/upload', [App\Http\Controllers\PhotoCaptureController::class, 'upload'])->name('mobile.capture.upload');
 

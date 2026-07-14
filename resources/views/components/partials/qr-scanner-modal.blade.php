@@ -1,5 +1,3 @@
-<script src="https://js.pusher.com/8.0/pusher.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <!-- QR Code Modal -->
@@ -9,11 +7,20 @@
             <i class="fa-solid fa-mobile-screen-button" style="color: #1976d2; font-size: 24px;"></i>
         </div>
         <h3 style="margin:0 0 10px; color:#1e293b; font-weight:700; font-size: 22px;">Scan to Capture</h3>
-        <p style="color:#64748b; font-size:15px; margin-bottom:25px; line-height: 1.5;">Point your phone's camera at this QR code. Snap a photo, and it will magically appear right here!</p>
+        <p style="color:#64748b; font-size:15px; margin-bottom:25px; line-height: 1.5;">Point your phone's camera at this QR code. The captured image will appear here automatically.</p>
         
         <div id="qrCodeContainer" style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; display: inline-block; min-width: 200px; min-height: 200px; margin-bottom: 20px;">
             <div id="qrLoader" style="color: #94a3b8; line-height: 160px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
             <div id="qrcode" style="display: none; justify-content: center;"></div>
+            
+            <!-- Result Preview (Shown after upload) -->
+            <div id="qrResultPreview" style="display: none; flex-direction: column; align-items: center;">
+                <h4 style="color: #4CAF50; font-size: 16px; margin-bottom: 15px;"><i class="fa-solid fa-circle-check"></i> Image Uploaded!</h4>
+                <img id="qrResultImage" src="" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 15px;">
+                <button type="button" onclick="insertCapturedImage()" class="btn btn-success" style="padding: 10px 20px; border-radius: 8px; font-weight: bold; width: 100%;">
+                    <i class="fa-solid fa-file-import"></i> Insert into Editor
+                </button>
+            </div>
         </div>
         
         <div id="qrActions" style="display:none; margin-bottom: 25px; flex-direction: column; gap: 10px; align-items: center;">
@@ -36,7 +43,7 @@
         </div>
 
         <div>
-            <button type="button" onclick="$('#qrModal').fadeOut();" class="btn btn-secondary" style="padding:10px 24px; border-radius:8px; border:none; background:#f1f5f9; color:#475569; font-weight: 600; cursor:pointer; transition: all 0.2s;">Cancel Scan</button>
+            <button type="button" onclick="closeQrModal()" class="btn btn-secondary" style="padding:10px 24px; border-radius:8px; border:none; background:#f1f5f9; color:#475569; font-weight: 600; cursor:pointer; transition: all 0.2s;">Cancel Scan</button>
         </div>
     </div>
 </div>
@@ -49,21 +56,28 @@
 </style>
 
 <script>
-    // Enable pusher logging for debugging
-    Pusher.logToConsole = true;
+    var qrPollInterval = null;
 
-    // Initialize WebSockets using true Pusher
-    window.Echo = new Echo({
-        broadcaster: 'pusher',
-        key: '{{ env("PUSHER_APP_KEY", config("broadcasting.connections.pusher.key", "00e859a1a207d2bd6983")) }}',
-        cluster: '{{ env("PUSHER_APP_CLUSTER", config("broadcasting.connections.pusher.options.cluster", "ap2")) }}',
-        forceTLS: true
-    });
+    function closeQrModal() {
+        if (qrPollInterval) clearInterval(qrPollInterval);
+        $('#qrModal').fadeOut();
+    }
+
+    function insertCapturedImage() {
+        const imageUrl = $('#qrResultImage').attr('src');
+        if (imageUrl) {
+            $('#summernote').summernote('insertImage', imageUrl);
+        }
+        closeQrModal();
+    }
 
     // Global function to open QR modal and inject image into Summernote
     function openQrModal() {
+        if (qrPollInterval) clearInterval(qrPollInterval);
+
         // Reset Modal State
         $('#qrcode').empty().hide();
+        $('#qrResultPreview').hide();
         $('#qrActions').hide();
         $('#qrLoader').show();
         $('#qrError').hide();
@@ -90,44 +104,28 @@
                     correctLevel : QRCode.CorrectLevel.H
                 });
                 
-                // Listen for image upload
-                console.log("Subscribing to Pusher channel: photo-session." + data.token);
-                var photoChannel = window.Echo.channel('photo-session.' + data.token);
-                
-                photoChannel.subscribed(() => {
-                    console.log("Successfully subscribed to photo-session." + data.token);
-                });
-
-                photoChannel.listen('.photo.captured', (e) => {
-                        console.log("Photo Captured via Mobile!", e);
-                        $('#qrModal').fadeOut();
-                        
-                        // Check if the Engineer Image Modal exists
-                        if (typeof openEngineerModal === 'function') {
-                            openEngineerModal();
+                // Setup Polling every 10 seconds to check if image is uploaded
+                qrPollInterval = setInterval(function() {
+                    $.get('/api/photo-session/check/' + data.token, function(response) {
+                        if (response.status === 'completed' && response.url) {
+                            // Stop Polling
+                            clearInterval(qrPollInterval);
                             
-                            // Switch to My Saved Assets tab
-                            var triggerEl = document.querySelector('#assets-tab');
-                            if (triggerEl) {
-                                var tab = new bootstrap.Tab(triggerEl);
-                                tab.show();
-                            }
+                            // Hide QR code and show the captured image preview
+                            $('#qrcode').hide();
+                            $('#qrActions').hide();
+                            $('#qrResultImage').attr('src', response.url);
+                            $('#qrResultPreview').css('display', 'flex');
                             
-                            // Force gallery reload to fetch the newly saved image
-                            window.engineerAssetsLoaded = false;
-                            $('#assets-tab').trigger('show.bs.tab');
-
-                            // Show Toaster Notification
-                            var toast = $('<div style="position:fixed; bottom:20px; right:20px; background:#4CAF50; color:white; padding:15px 25px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:99999; font-weight:bold; animation: slideUpToast 0.4s ease-out;"><i class="fa-solid fa-check-circle me-2"></i> Live image uploaded successfully!</div>');
+                            // Optional Toast
+                            var toast = $('<div style="position:fixed; bottom:20px; right:20px; background:#4CAF50; color:white; padding:15px 25px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:99999; font-weight:bold; animation: slideUpToast 0.4s ease-out;"><i class="fa-solid fa-check-circle me-2"></i> Live image captured!</div>');
                             $('body').append(toast);
                             setTimeout(function() {
                                 toast.fadeOut(400, function() { $(this).remove(); });
                             }, 4000);
-                        } else {
-                            // Fallback if modal is missing
-                            $('#summernote').summernote('insertImage', e.imageUrl);
                         }
                     });
+                }, 10000);
             },
             error: function(xhr) {
                 $('#qrLoader').hide();
@@ -143,11 +141,13 @@
         copyText.setSelectionRange(0, 99999);
         navigator.clipboard.writeText(copyText.value);
         
-        // Show temporary feedback
-        let originalText = $('#qrLinkInput').next('button').html();
-        $('#qrLinkInput').next('button').html('<i class="fa-solid fa-check"></i> Copied');
+        var btn = event.currentTarget;
+        var oldHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        btn.style.color = '#10b981';
         setTimeout(() => {
-            $('#qrLinkInput').next('button').html(originalText);
+            btn.innerHTML = oldHtml;
+            btn.style.color = '#1976d2';
         }, 2000);
     }
 </script>
