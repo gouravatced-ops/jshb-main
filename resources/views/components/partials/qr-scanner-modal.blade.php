@@ -49,6 +49,9 @@
 </style>
 
 <script>
+    // Enable pusher logging for debugging
+    Pusher.logToConsole = true;
+
     // Initialize WebSockets using true Pusher
     window.Echo = new Echo({
         broadcaster: 'pusher',
@@ -92,8 +95,25 @@
                     .listen('.photo.captured', (e) => {
                         console.log("Photo Captured via Mobile!", e);
                         $('#qrModal').fadeOut();
-                        // Insert image natively into summernote
-                        $('#summernote').summernote('insertImage', e.imageUrl);
+                        
+                        // Check if the Engineer Image Modal exists
+                        if (typeof openEngineerModal === 'function') {
+                            openEngineerModal();
+                            
+                            // Switch to My Saved Assets tab
+                            var triggerEl = document.querySelector('#assets-tab');
+                            if (triggerEl) {
+                                var tab = new bootstrap.Tab(triggerEl);
+                                tab.show();
+                            }
+                            
+                            // Force gallery reload to fetch the newly saved image
+                            window.engineerAssetsLoaded = false;
+                            $('#assets-tab').trigger('show.bs.tab');
+                        } else {
+                            // Fallback if modal is missing
+                            $('#summernote').summernote('insertImage', e.imageUrl);
+                        }
                     });
             },
             error: function(xhr) {

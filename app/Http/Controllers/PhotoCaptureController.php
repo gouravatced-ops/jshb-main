@@ -17,8 +17,11 @@ class PhotoCaptureController extends Controller
     {
         $token = Str::random(40);
         
-        // Store in cache for 15 minutes
-        Cache::put('photo_session_' . $token, ['status' => 'pending'], now()->addMinutes(15));
+        // Store in cache for 15 minutes with user_id
+        Cache::put('photo_session_' . $token, [
+            'status' => 'pending',
+            'user_id' => auth()->id()
+        ], now()->addMinutes(15));
 
         return response()->json([
             'token' => $token,
@@ -43,7 +46,8 @@ class PhotoCaptureController extends Controller
      */
     public function upload(Request $request, $token)
     {
-        if (!Cache::has('photo_session_' . $token)) {
+        $session = Cache::get('photo_session_' . $token);
+        if (!$session) {
             return response()->json(['error' => 'Session expired or invalid token.'], 403);
         }
 
@@ -69,16 +73,27 @@ class PhotoCaptureController extends Controller
             return response()->json(['error' => 'Base64 decode failed.'], 400);
         }
 
-        // Generate filename and save to storage/app/public/captured_photos
-        $filename = 'captured_' . time() . '_' . Str::random(10) . '.' . $type;
-        Storage::disk('public')->put('captured_photos/' . $filename, $imageData);
+        // Generate filename and save to storage/app/public/engineer_assets
+        $filename = 'engineer_' . ($session['user_id'] ?? 'unknown') . '_' . time() . '_' . Str::random(10) . '.' . $type;
+        $path = 'engineer_assets/' . $filename;
+        Storage::disk('public')->put($path, $imageData);
 
-        $imageUrl = asset('storage/captured_photos/' . $filename);
+        $imageUrl = asset('storage/' . $path);
+
+        // Save to Database so it shows up in "My Saved Assets"
+        if (!empty($session['user_id'])) {
+            \App\Models\EngineerAsset::create([
+                'user_id' => $session['user_id'],
+                'asset_type' => 'live_capture',
+                'file_path' => 'storage/' . $path,
+                'original_name' => 'Live Capture ' . date('Y-m-d H:i:s'),
+            ]);
+        }
 
         // Broadcast the event to the desktop
         broadcast(new PhotoCaptured($token, $imageUrl));
 
-        // Mark cache as completed (optional, or just remove it)
+        // Mark cache as completed
         Cache::put('photo_session_' . $token, ['status' => 'completed', 'url' => $imageUrl], now()->addMinutes(5));
 
         return response()->json([
