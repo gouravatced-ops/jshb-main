@@ -55,8 +55,8 @@
     // Initialize WebSockets using true Pusher
     window.Echo = new Echo({
         broadcaster: 'pusher',
-        key: '{{ env("PUSHER_APP_KEY") }}',
-        cluster: '{{ env("PUSHER_APP_CLUSTER", "mt1") }}',
+        key: '{{ config("broadcasting.connections.pusher.key") }}',
+        cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}',
         forceTLS: true
     });
 
@@ -91,8 +91,14 @@
                 });
                 
                 // Listen for image upload
-                window.Echo.channel('photo-session.' + data.token)
-                    .listen('.photo.captured', (e) => {
+                console.log("Subscribing to Pusher channel: photo-session." + data.token);
+                var photoChannel = window.Echo.channel('photo-session.' + data.token);
+                
+                photoChannel.subscribed(() => {
+                    console.log("Successfully subscribed to photo-session." + data.token);
+                });
+
+                photoChannel.listen('.photo.captured', (e) => {
                         console.log("Photo Captured via Mobile!", e);
                         $('#qrModal').fadeOut();
                         
