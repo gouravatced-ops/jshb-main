@@ -28,6 +28,37 @@ Route::get('/run-storage-unlink', function () {
     }
 });
 
+Route::get('/fix-storage', function () {
+    try {
+        $publicStorage = public_path('storage');
+        $appStorage = storage_path('app/public');
+        
+        $messages = [];
+        
+        if (!file_exists($appStorage)) {
+            mkdir($appStorage, 0775, true);
+            $messages[] = "Created storage/app/public directory.";
+        }
+        
+        if (file_exists($publicStorage) && !is_link($publicStorage)) {
+            \Illuminate\Support\Facades\File::deleteDirectory($publicStorage);
+            $messages[] = "Deleted invalid physical 'storage' folder in public.";
+        }
+        
+        if (is_link($publicStorage)) {
+            unlink($publicStorage);
+            $messages[] = "Removed broken symlink.";
+        }
+        
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        $messages[] = "Created fresh storage symlink successfully!";
+        
+        return implode("<br><br>", $messages);
+    } catch (\Exception $e) {
+        return "Error fixing storage: " . $e->getMessage();
+    }
+});
+
 Route::get('/clear-cache', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
