@@ -11,13 +11,14 @@ use App\Models\PostType;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use \Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 90 minutes');
         }
 
         if (! Auth::check()) {
@@ -43,7 +44,7 @@ class DashboardController extends Controller
     public function admin(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 90 minutes');
         }
 
         if ($redirect = $this->redirectIfLocked()) {
@@ -72,7 +73,7 @@ class DashboardController extends Controller
     public function staff(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 90 minutes');
         }
 
         if ($redirect = $this->redirectIfLocked()) {
@@ -101,7 +102,7 @@ class DashboardController extends Controller
     public function division(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 90 minutes');
         }
 
         if ($redirect = $this->redirectIfLocked()) {
@@ -130,7 +131,7 @@ class DashboardController extends Controller
     public function subdivision(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 90 minutes');
         }
 
         if ($redirect = $this->redirectIfLocked()) {
@@ -159,7 +160,7 @@ class DashboardController extends Controller
     public function engineer(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 90 minutes');
         }
 
         if ($redirect = $this->redirectIfLocked()) {
@@ -176,19 +177,66 @@ class DashboardController extends Controller
         $loginLogs = LoginLog::latest()->take(10)->get();
         $otpLogs = OtpLog::latest()->take(10)->get();    
         $latestLogin = $loginLogs->first();
+        
+        $pendingApplications = collect();
+        $workflowId = \App\Models\Workflow::where('application_type', 'allotment')->value('id') ?? 1;
+        $admsDb = config('database.connections.adms_allottees.database');
+
+        $pendingApplications = \App\Models\Application::join("$admsDb.allottees as al", 'applications.allottee_id', '=', 'al.id')
+            ->leftJoin('application_movements as am', 'applications.id', '=', 'am.application_id')
+            ->where('al.division_id', $user->division_id)
+            ->where('applications.current_role_id', $user->role_id)
+            ->whereIn('applications.status', ['pending', 'in_progress', 'forwarded'])
+            ->select(
+                'applications.id',
+                'applications.application_no',
+                'applications.application_type',
+                'al.prefix',
+                'al.allottee_name',
+                'al.allottee_middle_name',
+                'al.allottee_surname',
+                'al.allottee_prefix_hindi',
+                'al.allottee_name_hindi',
+                'al.allottee_middle_hindi',
+                'al.allottee_surname_hindi',
+                'al.property_number',
+                'al.allotment_no',
+                'applications.created_date',
+                DB::raw("DATE_FORMAT(applications.created_date, '%d-%b-%Y %H:%i') as created_date_formatted"),
+                DB::raw("DATEDIFF(NOW(), applications.created_date) as days_pending"),
+                DB::raw("
+                    CASE 
+                        WHEN DATEDIFF(NOW(), applications.created_date) <= 3 THEN 'Normal'
+                        WHEN DATEDIFF(NOW(), applications.created_date) <= 7 THEN 'Urgent'
+                        ELSE 'Overdue'
+                    END as priority
+                "),
+                DB::raw("COUNT(am.id) as total_movements"),
+                DB::raw("(SELECT remarks FROM application_notes WHERE application_id = applications.id ORDER BY created_at DESC LIMIT 1) as last_remark")
+            )
+            ->groupBy(
+                'applications.id', 'applications.application_no', 'applications.application_type',
+                'al.prefix', 'al.allottee_name', 'al.allottee_middle_name', 'al.allottee_surname',
+                'al.allottee_prefix_hindi', 'al.allottee_name_hindi', 'al.allottee_middle_hindi', 'al.allottee_surname_hindi',
+                'al.property_number', 'al.allotment_no', 'applications.created_date'
+            )
+            ->orderBy('applications.created_date', 'ASC')
+            ->take(5)
+            ->get();
 
         return view('engineer.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
+            'pendingApplications'
         ));
     }
 
     public function accountant(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 90 minutes');
         }
 
         if ($redirect = $this->redirectIfLocked()) {
@@ -217,7 +265,7 @@ class DashboardController extends Controller
     public function managing(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 90 minutes');
         }
 
         if ($redirect = $this->redirectIfLocked()) {
@@ -246,7 +294,7 @@ class DashboardController extends Controller
     public function operator(Request $request)
     {
         if ($this->checkSessionExpiry($request)) {
-            return redirect()->route('login')->with('error', 'Your session expired after 60 minutes.');
+            return redirect()->route('login')->with('error', 'Your session expired after 90 minutes');
         }
 
         if ($redirect = $this->redirectIfLocked()) {

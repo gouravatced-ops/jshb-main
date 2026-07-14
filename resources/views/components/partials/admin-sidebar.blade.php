@@ -59,6 +59,29 @@
         </div>
     @endif
 
+    <!-- Workflows -->
+    <div class="nav-item-wrap">
+        <div class="nav-link-custom {{ request()->routeIs('admin.workflows.*') ? 'active' : '' }}" onclick="toggleSubmenu('workflows',this)">
+            <div class="nav-icon">
+                <i class="fa-solid fa-project-diagram"></i>
+            </div>
+            <span class="nav-text">Workflows</span>
+            <i class="fa-solid fa-chevron-right nav-chevron" id="workflows-chev"></i>
+        </div>
+
+        <div class="submenu" id="workflows" style="{{ request()->routeIs('admin.workflows.*') ? 'display:block' : '' }}">
+            <a class="submenu-item {{ request()->routeIs('admin.workflows.index') ? 'active' : '' }}"
+                href="{{ route('admin.workflows.index') }}">
+                <i class="fa-solid fa-list"></i> Workflow List
+            </a>
+
+            <a class="submenu-item {{ request()->routeIs('admin.workflows.create') ? 'active' : '' }}"
+                href="{{ route('admin.workflows.create') }}">
+                <i class="fa-solid fa-plus"></i> Add Workflow
+            </a>
+        </div>
+    </div>
+
     <div class="sidebar-section-label">Components Management</div>
 
     <!-- Division -->

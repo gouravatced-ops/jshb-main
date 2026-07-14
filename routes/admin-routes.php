@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AllotteeEmiController;
 use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PropertyMainTypeController;
 use App\Http\Controllers\Admin\QuarterTypeController;
+use App\Http\Controllers\Admin\WorkflowController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -82,6 +83,16 @@ Route::middleware('auth')
         Route::put('/quarter-types/{quarterType}', [QuarterTypeController::class, 'update'])->name('quarter-types.update');
         Route::post('/quarter-types/{quarterType}/toggle-status', [QuarterTypeController::class, 'toggleStatus'])->name('quarter-types.toggle-status');
         Route::delete('/quarter-types/{quarterType}', [QuarterTypeController::class, 'destroy'])->name('quarter-types.destroy');
+
+        // Workflows
+        Route::get('/workflows', [WorkflowController::class, 'index'])->name('workflows.index');
+        Route::get('/workflows/search', [WorkflowController::class, 'search'])->name('workflows.search');
+        Route::get('/workflows/create', [WorkflowController::class, 'create'])->name('workflows.create');
+        Route::post('/workflows', [WorkflowController::class, 'store'])->name('workflows.store');
+        Route::get('/workflows/{workflow}/edit', [WorkflowController::class, 'edit'])->name('workflows.edit');
+        Route::put('/workflows/{workflow}', [WorkflowController::class, 'update'])->name('workflows.update');
+        Route::post('/workflows/{workflow}/toggle-status', [WorkflowController::class, 'toggleStatus'])->name('workflows.toggle-status');
+        Route::delete('/workflows/{workflow}', [WorkflowController::class, 'destroy'])->name('workflows.destroy');
 
         // Scheme
         Route::get('/schemes', [SchemeController::class, 'index'])->name('schemes.index');

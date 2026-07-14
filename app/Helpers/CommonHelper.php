@@ -761,3 +761,30 @@ if (!function_exists('unicodeToKruti')) {
         return $text;
     }
 }
+
+if (!function_exists('sendNotification')) {
+    /**
+     * Send a notification to a specific user regarding an application.
+     *
+     * @param int $applicationId
+     * @param int $userId
+     * @param string $notificationType (e.g., 'application_created', 'application_forwarded')
+     * @param string $subject
+     * @param string $message
+     * @param string $link
+     * @return bool
+     */
+    function sendNotification($applicationId, $userId, $notificationType, $subject, $message, $link)
+    {
+        return \Illuminate\Support\Facades\DB::table('notifications')->insert([
+            'application_id' => $applicationId,
+            'user_id' => $userId,
+            'notification_type' => $notificationType,
+            'subject' => $subject,
+            'message' => $message,
+            'link' => $link,
+            'is_read' => 0,
+            'created_at' => now(),
+        ]);
+    }
+}
