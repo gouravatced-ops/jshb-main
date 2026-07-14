@@ -103,6 +103,27 @@ class PhotoCaptureController extends Controller
         $path = 'engineer_assets/' . $filename;
         Storage::disk('public')->put($path, $imageData);
 
+        // --- Python Image Processing Integration ---
+        $absolutePath = storage_path('app/public/' . $path);
+        $scriptPath = base_path('scripts/clean_image.py');
+        
+        // Execute python script
+        $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($absolutePath) . " 2>&1";
+        exec($command, $output, $returnCode);
+
+        if ($returnCode == 2) {
+            // No text or stamp found
+            Storage::disk('public')->delete($path);
+            \Illuminate\Support\Facades\Log::warning("Live Image Capture: Rejected by Python (No Text/Stamp)", ['ip' => $request->ip()]);
+            return response()->json(['error' => 'Image must contain readable text or a stamp with a clean background.'], 400);
+        } elseif ($returnCode !== 0) {
+            // General python script failure
+            Storage::disk('public')->delete($path);
+            \Illuminate\Support\Facades\Log::error("Live Image Capture: Python Processing Failed", ['ip' => $request->ip(), 'output' => $output]);
+            return response()->json(['error' => 'Image processing failed. Please try again.'], 500);
+        }
+        // -------------------------------------------
+
         $imageUrl = asset('storage/' . $path);
 
         // Save to Database so it shows up in "My Saved Assets"
@@ -110,7 +131,7 @@ class PhotoCaptureController extends Controller
             \App\Models\EngineerAsset::create([
                 'user_id' => $session['user_id'],
                 // CRITICAL: asset_type MUST be 'other' because the DB enum only allows 'signature', 'stamp', or 'other'. Using 'live_capture' will cause a 500 SQL crash!
-                'asset_type' => 'live_capture',
+                'asset_type' => 'other',
                 'file_path' => 'storage/' . $path,
                 'original_name' => 'Live Capture ' . date('Y-m-d H:i:s'),
             ]);
