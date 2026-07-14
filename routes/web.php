@@ -19,6 +19,19 @@ Route::get('/run-storage-link', function () {
     }
 });
 
+Route::get('/clear-cache', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        return 'All caches (config, route, view, application) have been cleared successfully!';
+    } catch (\Exception $e) {
+        return 'Error clearing cache: ' . $e->getMessage();
+    }
+});
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
