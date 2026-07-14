@@ -55,8 +55,8 @@
     // Initialize WebSockets using true Pusher
     window.Echo = new Echo({
         broadcaster: 'pusher',
-        key: '{{ config("broadcasting.connections.pusher.key") }}',
-        cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}',
+        key: '{{ env("PUSHER_APP_KEY", config("broadcasting.connections.pusher.key", "00e859a1a207d2bd6983")) }}',
+        cluster: '{{ env("PUSHER_APP_CLUSTER", config("broadcasting.connections.pusher.options.cluster", "ap2")) }}',
         forceTLS: true
     });
 
