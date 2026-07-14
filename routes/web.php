@@ -19,6 +19,15 @@ Route::get('/run-storage-link', function () {
     }
 });
 
+Route::get('/run-storage-unlink', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('storage:unlink');
+        return 'Storage link removed successfully!';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
 Route::get('/clear-cache', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
