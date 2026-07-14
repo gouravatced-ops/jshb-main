@@ -6,12 +6,12 @@
     <title>Capture Photo</title>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
-        body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .header { padding: 15px; text-align: center; background: #111; font-weight: bold; font-size: 18px; }
-        .video-container { flex: 1; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #000; }
+        body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
+        .header { padding: 15px; text-align: center; background: #111; font-weight: bold; font-size: 18px; flex-shrink: 0; }
+        .video-container { flex: 1; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #000; min-height: 50vh; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        canvas { display: none; }
-        .controls { padding: 20px; text-align: center; background: #111; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+        canvas { display: none; width: 100%; height: 100%; object-fit: contain; }
+        .controls { padding: 20px; text-align: center; background: #111; padding-bottom: calc(20px + env(safe-area-inset-bottom)); flex-shrink: 0; }
         .capture-btn { width: 70px; height: 70px; border-radius: 50%; background: #fff; border: 4px solid #ccc; cursor: pointer; outline: none; transition: transform 0.1s; display: inline-block; }
         .capture-btn:active { transform: scale(0.9); background: #eee; }
         #status-msg { margin-top: 15px; font-size: 14px; color: #aaa; min-height: 20px; }
@@ -47,7 +47,7 @@
             <div id="status-msg">Align document and tap to capture</div>
         </div>
 
-        <div id="confirm-actions" style="display:none; width: 100%; max-width: 300px; gap: 15px; justify-content: center;">
+        <div id="confirm-actions" style="display:none; width: 100%; max-width: 300px; gap: 15px; justify-content: center; margin: 0 auto;">
             <button type="button" id="retake-btn" style="flex: 1; padding: 12px; border-radius: 25px; border: 2px solid #fff; background: transparent; color: #fff; font-weight: bold; font-size: 16px;">Retake</button>
             <button type="button" id="upload-btn" style="flex: 1; padding: 12px; border-radius: 25px; border: none; background: #4CAF50; color: #fff; font-weight: bold; font-size: 16px;">OK / Upload</button>
         </div>
@@ -176,7 +176,12 @@
                     retakeBtn.disabled = false;
                     uploadBtn.textContent = "OK / Upload";
                     uploadBtn.style.opacity = "1";
-                    showError("Upload failed: " + xhr.status);
+                    
+                    let errorMsg = "Upload failed: " + xhr.status;
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg = xhr.responseJSON.error;
+                    }
+                    showError(errorMsg);
                 }
             });
         }
