@@ -37,6 +37,11 @@
                         </div>
                     @endif
                 </div>
+                <div class="col-md-6 mb-4" style="display: flex; align-items: flex-end; justify-content: flex-end;">
+                    <button type="button" onclick="openQrModal()" style="font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 8px; border: 2px solid #0d47a1; color: #0d47a1; background: #e3f2fd; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px rgba(13, 71, 161, 0.1);">
+                        <i class="fa-solid fa-mobile-screen-button" style="margin-right: 8px; font-size: 16px;"></i> Live Image Upload
+                    </button>
+                </div>
             </div>
 
             <div class="form-group mb-4 summernote-wrapper">
@@ -55,4 +60,5 @@
 </div>
 
 @include('components.partials.summernote-editor')
+@include('components.partials.qr-scanner-modal')
 @endsection

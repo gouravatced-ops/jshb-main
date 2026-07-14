@@ -18,4 +18,10 @@ Route::middleware('auth')
         Route::get('/applications/{application}', [App\Http\Controllers\Engineer\ApplicationController::class, 'show'])->name('applications.show');
         Route::get('/applications/{application}/action/{action_type}', [App\Http\Controllers\Engineer\ApplicationController::class, 'actionForm'])->name('applications.action.form');
         Route::post('/applications/{application}/action', [App\Http\Controllers\Engineer\ApplicationController::class, 'processAction'])->name('applications.action');
+
+        // Assets (Signatures, Stamps)
+        Route::get('/assets', [App\Http\Controllers\Engineer\AssetController::class, 'index'])->name('assets.index');
+        Route::post('/assets', [App\Http\Controllers\Engineer\AssetController::class, 'store'])->name('assets.store');
+        Route::delete('/assets/{id}', [App\Http\Controllers\Engineer\AssetController::class, 'destroy'])->name('assets.destroy');
+        Route::get('/api/assets', [App\Http\Controllers\Engineer\AssetController::class, 'getAssetsForEditor'])->name('api.assets');
     });

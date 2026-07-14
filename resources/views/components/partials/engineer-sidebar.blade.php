@@ -23,6 +23,13 @@
 </div>
 
 <div class="nav-item-wrap">
+    <a class="nav-link-custom {{ request()->routeIs('engineer.assets.*') ? 'active' : '' }}" href="{{ route('engineer.assets.index') }}">
+        <div class="nav-icon"><i class="fa-solid fa-stamp"></i></div>
+        <span class="nav-text">My Assets</span>
+    </a>
+</div>
+
+<div class="nav-item-wrap">
     <a class="nav-link-custom {{ request()->routeIs('engineer.profile') ? 'active' : '' }}" href="{{ route('engineer.profile') }}">
         <div class="nav-icon"><i class="fa-solid fa-id-card"></i></div>
         <span class="nav-text">My Profile</span>
