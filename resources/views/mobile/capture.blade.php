@@ -40,6 +40,7 @@
     </div>
     
     <div class="controls">
+        <div id="error-box" style="display:none; background: #ff4444; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; text-align: left;"></div>
         <button class="capture-btn" id="capture-btn"></button>
         <div id="status-msg">Align document and tap to capture</div>
     </div>
@@ -50,15 +51,21 @@
         const captureBtn = document.getElementById('capture-btn');
         const statusMsg = document.getElementById('status-msg');
         const successOverlay = document.getElementById('success-overlay');
+        const errorBox = document.getElementById('error-box');
         const token = '{{ $token }}';
+
+        function showError(msg) {
+            errorBox.style.display = 'block';
+            errorBox.innerHTML = '<strong>Error:</strong> ' + msg;
+            statusMsg.textContent = "Cannot capture photo.";
+            statusMsg.style.color = "#ff4444";
+        }
 
         // Initialize Camera
         async function initCamera() {
             // First check if browser supports mediaDevices
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                statusMsg.textContent = "Camera API not supported or requires HTTPS.";
-                statusMsg.style.color = "#ff4444";
-                alert("Camera requires a secure HTTPS connection. If you are testing locally, use ngrok or open via localhost.");
+                showError("Camera API not supported. This usually happens if you are not using HTTPS, or if you opened this link inside a QR Scanner's built-in browser. Please open this link in standard Chrome or Safari.");
                 return;
             }
             
@@ -70,19 +77,17 @@
                 video.srcObject = stream;
             } catch (err) {
                 console.error("Camera access denied or unavailable", err);
-                statusMsg.textContent = "Camera access denied. Please allow permissions.";
-                statusMsg.style.color = "#ff4444";
-                alert("Could not access camera. Please check your browser permissions and ensure you are using HTTPS.");
+                showError("Could not access camera. Please check your browser permissions. (" + err.message + ")");
             }
         }
 
         initCamera();
 
-        captureBtn.addEventListener('click', function(e) {
+        function handleCapture(e) {
             e.preventDefault(); // Prevent double firing
             
             if (!video.srcObject) {
-                alert("Camera feed is not active. Make sure you gave camera permissions and are on an HTTPS connection.");
+                showError("Camera feed is not active. Please ensure camera permissions are granted and you are using a secure HTTPS connection.");
                 return;
             }
 
@@ -122,7 +127,9 @@
                     statusMsg.style.color = "#ff4444";
                 }
             });
-        });
+        }
+        captureBtn.addEventListener('click', handleCapture);
+        captureBtn.addEventListener('touchstart', handleCapture);
     </script>
 </body>
 </html>

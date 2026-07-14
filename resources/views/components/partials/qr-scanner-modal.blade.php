@@ -110,6 +110,13 @@
                             // Force gallery reload to fetch the newly saved image
                             window.engineerAssetsLoaded = false;
                             $('#assets-tab').trigger('show.bs.tab');
+
+                            // Show Toaster Notification
+                            var toast = $('<div style="position:fixed; bottom:20px; right:20px; background:#4CAF50; color:white; padding:15px 25px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:99999; font-weight:bold; animation: slideUpToast 0.4s ease-out;"><i class="fa-solid fa-check-circle me-2"></i> Live image uploaded successfully!</div>');
+                            $('body').append(toast);
+                            setTimeout(function() {
+                                toast.fadeOut(400, function() { $(this).remove(); });
+                            }, 4000);
                         } else {
                             // Fallback if modal is missing
                             $('#summernote').summernote('insertImage', e.imageUrl);
