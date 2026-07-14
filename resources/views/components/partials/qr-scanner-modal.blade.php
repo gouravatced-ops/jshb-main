@@ -104,7 +104,7 @@
                     correctLevel : QRCode.CorrectLevel.H
                 });
                 
-                // Setup Polling every 10 seconds to check if image is uploaded
+                // Setup Polling every 5 seconds to check if image is uploaded
                 qrPollInterval = setInterval(function() {
                     $.get('/api/photo-session/check/' + data.token, function(response) {
                         if (response.status === 'completed' && response.url) {
@@ -125,7 +125,7 @@
                             }, 4000);
                         }
                     });
-                }, 10000);
+                }, 5000);
             },
             error: function(xhr) {
                 $('#qrLoader').hide();
