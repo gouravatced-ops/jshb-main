@@ -41,28 +41,33 @@
     
     <div class="controls">
         <div id="error-box" style="display:none; background: #ff4444; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; text-align: left; max-height: 100px; overflow-y: auto;"></div>
-        <div id="debug-log" style="background: #222; color: #0f0; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 11px; text-align: left; max-height: 150px; overflow-y: auto; font-family: monospace;"></div>
-        <button class="capture-btn" id="capture-btn"></button>
-        <div id="status-msg">Align document and tap to capture</div>
+        
+        <div id="capture-actions">
+            <button class="capture-btn" id="capture-btn"></button>
+            <div id="status-msg">Align document and tap to capture</div>
+        </div>
+
+        <div id="confirm-actions" style="display:none; width: 100%; max-width: 300px; gap: 15px; justify-content: center;">
+            <button type="button" id="retake-btn" style="flex: 1; padding: 12px; border-radius: 25px; border: 2px solid #fff; background: transparent; color: #fff; font-weight: bold; font-size: 16px;">Retake</button>
+            <button type="button" id="upload-btn" style="flex: 1; padding: 12px; border-radius: 25px; border: none; background: #4CAF50; color: #fff; font-weight: bold; font-size: 16px;">OK / Upload</button>
+        </div>
     </div>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const captureBtn = document.getElementById('capture-btn');
+        const retakeBtn = document.getElementById('retake-btn');
+        const uploadBtn = document.getElementById('upload-btn');
         const statusMsg = document.getElementById('status-msg');
         const successOverlay = document.getElementById('success-overlay');
         const errorBox = document.getElementById('error-box');
-        const debugLog = document.getElementById('debug-log');
+        
+        const captureActions = document.getElementById('capture-actions');
+        const confirmActions = document.getElementById('confirm-actions');
+        
         const token = '{{ $token }}';
-
-        function logDebug(msg) {
-            console.log(msg);
-            const p = document.createElement('div');
-            p.textContent = '> ' + msg;
-            debugLog.appendChild(p);
-            debugLog.scrollTop = debugLog.scrollHeight;
-        }
+        let capturedImageData = null;
 
         function showError(msg) {
             errorBox.style.display = 'block';
@@ -71,29 +76,23 @@
             statusMsg.style.color = "#ff4444";
         }
 
-        logDebug("Page loaded. Initializing camera...");
-
         // Initialize Camera
         async function initCamera() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 showError("Camera API not supported. (Needs HTTPS)");
-                logDebug("getUserMedia is missing.");
                 return;
             }
             
             try {
-                logDebug("Requesting camera access...");
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: 'environment' } 
                 });
                 video.srcObject = stream;
                 
                 video.onloadedmetadata = () => {
-                    logDebug("Video metadata loaded: " + video.videoWidth + "x" + video.videoHeight);
                     video.play();
                 };
             } catch (err) {
-                logDebug("Camera Error: " + err.message);
                 showError("Camera error: " + err.message);
             }
         }
@@ -102,66 +101,94 @@
 
         function handleCapture(e) {
             e.preventDefault();
-            logDebug("Capture button tapped.");
             
             if (!video.srcObject) {
                 showError("Camera feed not active.");
                 return;
             }
 
-            statusMsg.textContent = "Capturing and uploading...";
-            captureBtn.disabled = true;
-            captureBtn.style.opacity = '0.5';
-
             try {
                 let vWidth = video.videoWidth || 640;
                 let vHeight = video.videoHeight || 480;
                 
-                logDebug(`Drawing canvas: ${vWidth}x${vHeight}`);
                 canvas.width = vWidth;
                 canvas.height = vHeight;
                 
                 const context = canvas.getContext('2d');
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                logDebug("Converting to base64...");
-                const imageData = canvas.toDataURL('image/jpeg', 0.8);
-                logDebug("Base64 generated. Length: " + imageData.length);
+                capturedImageData = canvas.toDataURL('image/jpeg', 0.8);
 
-                logDebug("Sending AJAX request...");
-                $.ajax({
-                    url: `/mobile/capture/${token}/upload`,
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        image: imageData
-                    },
-                    success: function(response) {
-                        logDebug("AJAX Success! Response: " + JSON.stringify(response));
-                        if (response.success) {
-                            successOverlay.style.display = 'flex';
-                            statusMsg.textContent = "Upload successful!";
-                        }
-                    },
-                    error: function(xhr) {
-                        logDebug("AJAX Error! Status: " + xhr.status);
-                        logDebug("Response: " + xhr.responseText);
-                        captureBtn.disabled = false;
-                        captureBtn.style.opacity = '1';
-                        statusMsg.textContent = "Upload failed. Check logs.";
-                        showError("Upload failed: " + xhr.status);
-                    }
-                });
+                // Pause video and show canvas over it
+                video.pause();
+                canvas.style.display = 'block';
+                video.style.opacity = '0'; // Hide video visually to show canvas underneath
+
+                // Switch UI
+                captureActions.style.display = 'none';
+                confirmActions.style.display = 'flex';
+                
             } catch (ex) {
-                logDebug("Exception during capture: " + ex.message);
                 showError("Capture exception: " + ex.message);
-                captureBtn.disabled = false;
-                captureBtn.style.opacity = '1';
             }
+        }
+
+        function handleRetake(e) {
+            e.preventDefault();
+            capturedImageData = null;
+            
+            // Hide canvas, resume video
+            canvas.style.display = 'none';
+            video.style.opacity = '1';
+            video.play();
+
+            // Switch UI
+            confirmActions.style.display = 'none';
+            captureActions.style.display = 'block';
+            statusMsg.textContent = "Align document and tap to capture";
+            statusMsg.style.color = "#fff";
+        }
+
+        function handleUpload(e) {
+            e.preventDefault();
+            
+            if (!capturedImageData) return;
+
+            uploadBtn.disabled = true;
+            retakeBtn.disabled = true;
+            uploadBtn.textContent = "Uploading...";
+            uploadBtn.style.opacity = "0.7";
+
+            $.ajax({
+                url: `/mobile/capture/${token}/upload`,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    image: capturedImageData
+                },
+                success: function(response) {
+                    if (response.success) {
+                        successOverlay.style.display = 'flex';
+                    }
+                },
+                error: function(xhr) {
+                    uploadBtn.disabled = false;
+                    retakeBtn.disabled = false;
+                    uploadBtn.textContent = "OK / Upload";
+                    uploadBtn.style.opacity = "1";
+                    showError("Upload failed: " + xhr.status);
+                }
+            });
         }
 
         captureBtn.addEventListener('click', handleCapture);
         captureBtn.addEventListener('touchstart', handleCapture);
+        
+        retakeBtn.addEventListener('click', handleRetake);
+        retakeBtn.addEventListener('touchstart', handleRetake);
+        
+        uploadBtn.addEventListener('click', handleUpload);
+        uploadBtn.addEventListener('touchstart', handleUpload);
     </script>
 </body>
 </html>
