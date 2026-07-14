@@ -49,16 +49,12 @@
 </style>
 
 <script>
-    // Initialize WebSockets
+    // Initialize WebSockets using true Pusher
     window.Echo = new Echo({
         broadcaster: 'pusher',
-        key: '{{ env("REVERB_APP_KEY", "x5lig2zkjkjd2lo9ar77") }}',
-        wsHost: window.location.hostname,
-        wsPort: 8080,
-        wssPort: 8080,
-        forceTLS: false,
-        disableStats: true,
-        enabledTransports: ['ws', 'wss'],
+        key: '{{ env("PUSHER_APP_KEY") }}',
+        cluster: '{{ env("PUSHER_APP_CLUSTER", "mt1") }}',
+        forceTLS: true
     });
 
     // Global function to open QR modal and inject image into Summernote
@@ -93,7 +89,7 @@
                 
                 // Listen for image upload
                 window.Echo.channel('photo-session.' + data.token)
-                    .listen('PhotoCaptured', (e) => {
+                    .listen('.photo.captured', (e) => {
                         console.log("Photo Captured via Mobile!", e);
                         $('#qrModal').fadeOut();
                         // Insert image natively into summernote

@@ -54,6 +54,14 @@
 
         // Initialize Camera
         async function initCamera() {
+            // First check if browser supports mediaDevices
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                statusMsg.textContent = "Camera API not supported or requires HTTPS.";
+                statusMsg.style.color = "#ff4444";
+                alert("Camera requires a secure HTTPS connection. If you are testing locally, use ngrok or open via localhost.");
+                return;
+            }
+            
             try {
                 // Try to get rear camera first
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -62,15 +70,21 @@
                 video.srcObject = stream;
             } catch (err) {
                 console.error("Camera access denied or unavailable", err);
-                statusMsg.textContent = "Error accessing camera. Please allow permissions.";
+                statusMsg.textContent = "Camera access denied. Please allow permissions.";
                 statusMsg.style.color = "#ff4444";
+                alert("Could not access camera. Please check your browser permissions and ensure you are using HTTPS.");
             }
         }
 
         initCamera();
 
-        captureBtn.addEventListener('click', () => {
-            if (!video.srcObject) return;
+        captureBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent double firing
+            
+            if (!video.srcObject) {
+                alert("Camera feed is not active. Make sure you gave camera permissions and are on an HTTPS connection.");
+                return;
+            }
 
             statusMsg.textContent = "Capturing and uploading...";
             captureBtn.disabled = true;

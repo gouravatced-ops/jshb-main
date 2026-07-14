@@ -72,6 +72,23 @@ Route::get('/clear-cache', function () {
     }
 });
 
+Route::get('/run-python', function () {
+    try {
+        $path = base_path('hello.py');
+        $command = "python " . escapeshellarg($path) . " 2>&1";
+        
+        // Use python3 if we are on linux/mac and python is not aliased
+        if (DIRECTORY_SEPARATOR === '/') {
+            $command = "python3 " . escapeshellarg($path) . " 2>&1";
+        }
+        
+        $output = shell_exec($command);
+        return 'Python Output:<br><strong>' . nl2br(htmlspecialchars($output)) . '</strong>';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
