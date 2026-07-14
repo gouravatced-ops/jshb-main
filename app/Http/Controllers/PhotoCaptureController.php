@@ -13,7 +13,7 @@ class PhotoCaptureController extends Controller
     /**
      * Generate a unique token for the photo capture session.
      */
-    public function generateToken()
+    public function generateToken(Request $request)
     {
         $token = Str::random(40);
         
@@ -22,6 +22,12 @@ class PhotoCaptureController extends Controller
             'status' => 'pending',
             'user_id' => auth()->id()
         ], now()->addMinutes(15));
+
+        \Illuminate\Support\Facades\Log::info("Live Image Capture: QR Generated", [
+            'ip' => $request->ip(),
+            'user_id' => auth()->id(),
+            'token' => $token
+        ]);
 
         return response()->json([
             'token' => $token,
@@ -32,11 +38,14 @@ class PhotoCaptureController extends Controller
     /**
      * Display the mobile camera view.
      */
-    public function captureForm($token)
+    public function captureForm(Request $request, $token)
     {
         if (!Cache::has('photo_session_' . $token)) {
+            \Illuminate\Support\Facades\Log::warning("Live Image Capture: Invalid Token Accessed", ['ip' => $request->ip(), 'token' => $token]);
             abort(404, 'Session expired or invalid token.');
         }
+
+        \Illuminate\Support\Facades\Log::info("Live Image Capture: Mobile View Opened", ['ip' => $request->ip(), 'token' => $token]);
 
         return view('mobile.capture', compact('token'));
     }
@@ -48,6 +57,7 @@ class PhotoCaptureController extends Controller
     {
         $session = Cache::get('photo_session_' . $token);
         if (!$session) {
+            \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Expired Token)", ['ip' => $request->ip(), 'token' => $token]);
             return response()->json(['error' => 'Session expired or invalid token.'], 403);
         }
 
@@ -62,14 +72,17 @@ class PhotoCaptureController extends Controller
             $imageData = substr($imageData, strpos($imageData, ',') + 1);
             $type = strtolower($type[1]); // jpg, png, etc
             if (!in_array($type, ['jpg', 'jpeg', 'png', 'gif'])) {
+                \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Invalid Type)", ['ip' => $request->ip(), 'type' => $type]);
                 return response()->json(['error' => 'Invalid image type.'], 400);
             }
         } else {
+            \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Bad URI Match)", ['ip' => $request->ip()]);
             return response()->json(['error' => 'Did not match data URI with image data.'], 400);
         }
 
         $imageData = base64_decode($imageData);
         if ($imageData === false) {
+            \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Base64 Decode)", ['ip' => $request->ip()]);
             return response()->json(['error' => 'Base64 decode failed.'], 400);
         }
 
@@ -92,6 +105,12 @@ class PhotoCaptureController extends Controller
 
         // Broadcast the event to the desktop
         broadcast(new PhotoCaptured($token, $imageUrl));
+
+        \Illuminate\Support\Facades\Log::info("Live Image Capture: Success", [
+            'ip' => $request->ip(),
+            'user_id' => $session['user_id'],
+            'url' => $imageUrl
+        ]);
 
         // Mark cache as completed
         Cache::put('photo_session_' . $token, ['status' => 'completed', 'url' => $imageUrl], now()->addMinutes(5));
