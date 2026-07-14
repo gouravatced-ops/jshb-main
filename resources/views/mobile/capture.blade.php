@@ -41,7 +41,6 @@
     
     <div class="controls">
         <div id="error-box" style="display:none; background: #ff4444; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; text-align: left; max-height: 100px; overflow-y: auto;"></div>
-        <div id="debug-log" style="background: #222; color: #0f0; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 11px; text-align: left; max-height: 100px; overflow-y: auto; font-family: monospace;"></div>
         <button class="capture-btn" id="capture-btn"></button>
         <div id="status-msg">Align document and tap to capture</div>
     </div>
@@ -53,16 +52,7 @@
         const statusMsg = document.getElementById('status-msg');
         const successOverlay = document.getElementById('success-overlay');
         const errorBox = document.getElementById('error-box');
-        const debugLog = document.getElementById('debug-log');
         const token = '{{ $token }}';
-
-        function logDebug(msg) {
-            console.log(msg);
-            const p = document.createElement('div');
-            p.textContent = '> ' + msg;
-            debugLog.appendChild(p);
-            debugLog.scrollTop = debugLog.scrollHeight;
-        }
 
         function showError(msg) {
             errorBox.style.display = 'block';
@@ -71,29 +61,23 @@
             statusMsg.style.color = "#ff4444";
         }
 
-        logDebug("Page loaded. Initializing camera...");
-
         // Initialize Camera
         async function initCamera() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 showError("Camera API not supported. (Needs HTTPS)");
-                logDebug("getUserMedia is missing.");
                 return;
             }
             
             try {
-                logDebug("Requesting camera access...");
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: 'environment' } 
                 });
                 video.srcObject = stream;
                 
                 video.onloadedmetadata = () => {
-                    logDebug("Video metadata loaded. Resolution: " + video.videoWidth + "x" + video.videoHeight);
                     video.play();
                 };
             } catch (err) {
-                logDebug("Camera Error: " + err.message);
                 showError("Camera error: " + err.message);
             }
         }
@@ -102,7 +86,6 @@
 
         function handleCapture(e) {
             e.preventDefault();
-            logDebug("Capture button tapped.");
             
             if (!video.srcObject) {
                 showError("Camera feed not active.");
@@ -117,18 +100,14 @@
                 let vWidth = video.videoWidth || 640;
                 let vHeight = video.videoHeight || 480;
                 
-                logDebug(`Drawing canvas: ${vWidth}x${vHeight}`);
                 canvas.width = vWidth;
                 canvas.height = vHeight;
                 
                 const context = canvas.getContext('2d');
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                logDebug("Converting to base64...");
                 const imageData = canvas.toDataURL('image/jpeg', 0.8);
-                logDebug("Base64 generated. Length: " + imageData.length);
 
-                logDebug("Sending AJAX request...");
                 $.ajax({
                     url: `/mobile/capture/${token}/upload`,
                     type: 'POST',
@@ -137,22 +116,19 @@
                         image: imageData
                     },
                     success: function(response) {
-                        logDebug("AJAX Success! Response: " + JSON.stringify(response));
                         if (response.success) {
                             successOverlay.style.display = 'flex';
                             statusMsg.textContent = "Upload successful!";
                         }
                     },
                     error: function(xhr) {
-                        logDebug("AJAX Error! Status: " + xhr.status + " Response: " + xhr.responseText);
                         captureBtn.disabled = false;
                         captureBtn.style.opacity = '1';
-                        statusMsg.textContent = "Upload failed. Check logs.";
+                        statusMsg.textContent = "Upload failed. Please try again.";
                         showError("Upload failed: " + xhr.status);
                     }
                 });
             } catch (ex) {
-                logDebug("Exception during capture: " + ex.message);
                 showError("Capture exception: " + ex.message);
                 captureBtn.disabled = false;
                 captureBtn.style.opacity = '1';
