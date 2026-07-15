@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Engineer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Workflow;
+use App\Models\Application;
+use App\Models\WorkflowStep;
+use App\Models\ApplicationMovement;
+use App\Models\ApplicationNote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -89,7 +93,7 @@ class ApplicationController extends Controller
             'notes' => function($q) {
                 $q->orderBy('created_at', 'desc');
             },
-            'notes.createdBy',
+            'notes.user',
             'documents'
         ]);
 
@@ -121,7 +125,7 @@ class ApplicationController extends Controller
     {
         $request->validate([
             'action_type' => 'required|string',
-            'remarks' => 'required|string|max:1000'
+            'remarks' => 'required|string|max:50000'
         ]);
 
         $user = Auth::user();
@@ -151,6 +155,9 @@ class ApplicationController extends Controller
             $newStatus = $nextStep ? 'approved' : 'completed';
         }
 
+        $previousStepId = $application->current_step_id;
+        $previousRoleId = $application->current_role_id;
+
         if ($nextStep) {
             $application->current_step_id = $nextStep->id;
             $application->current_role_id = $nextStep->role_id;
@@ -162,24 +169,76 @@ class ApplicationController extends Controller
         \App\Models\ApplicationNote::create([
             'application_id' => $application->id,
             'user_id' => $user->id,
+            'role_id' => $user->role_id,
             'remarks' => $request->remarks,
             'created_at' => now(),
             'updated_at' => now()
         ]);
 
-        // Optional: you can insert an application_movement here to track that an action happened, 
-        // even if it stays with the same user, or transition it to the next step.
+        // Map action type to DB ENUM values
+        $actionEnumMap = [
+            'forward' => 'forwarded',
+            'send_back' => 'send_back',
+            'reject' => 'rejected',
+            'approve' => 'approved',
+            'verify' => 'verified',
+            'add_note' => 'received' // default or whatever fits
+        ];
+        
+        $dbActionType = $actionEnumMap[$request->action_type] ?? 'forwarded';
+
+        // Generate clean system remarks for the movement log
+        $systemRemark = "Application " . str_replace('_', ' ', $dbActionType);
+        if ($nextStep) {
+            $nextRole = \App\Models\Role::find($nextStep->role_id);
+            if ($nextRole) {
+                $systemRemark .= " to " . $nextRole->name;
+            }
+        }
+
+        // Complete application movement tracking
         \App\Models\ApplicationMovement::create([
             'application_id' => $application->id,
             'from_user_id' => $user->id,
-            'from_role_id' => $user->role_id,
-            'action_type' => $request->action_type,
-            'remarks' => $request->remarks,
+            'from_role_id' => $previousRoleId,
+            'from_step_id' => $previousStepId,
+            'to_role_id' => $nextStep ? $nextStep->role_id : null,
+            'to_step_id' => $nextStep ? $nextStep->id : null,
+            'action_type' => $dbActionType,
+            'remarks' => $systemRemark,
             'movement_date' => now(),
-            'status' => 'completed'
+            'status' => 'completed',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent()
         ]);
 
         return redirect()->route('engineer.applications.show', $application)
                          ->with('success', 'Office noting and action recorded successfully.');
+    }
+
+    public function resetWorkflow(Request $request, Application $application)
+    {
+        // 1. Get the first workflow step
+        $firstStep = WorkflowStep::where('workflow_id', $application->workflow_id)
+            ->orderBy('step_order', 'asc')
+            ->first();
+
+        if (!$firstStep) {
+            return redirect()->back()->with('error', 'Workflow steps not found. Cannot reset.');
+        }
+
+        // 2. Delete all application movements
+        ApplicationMovement::where('application_id', $application->id)->delete();
+
+        // 3. Delete all application notes
+        ApplicationNote::where('application_id', $application->id)->delete();
+
+        // 4. Update the application to pending and assign to the first role/step
+        $application->status = 'pending';
+        $application->current_step_id = $firstStep->id;
+        $application->current_role_id = $firstStep->role_id;
+        $application->save();
+
+        return redirect()->route('engineer.applications.index')->with('success', 'Application workflow has been completely reset and started over.');
     }
 }

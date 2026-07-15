@@ -77,7 +77,8 @@ class PhotoCaptureController extends Controller
             'image' => 'required|string'
         ]);
 
-        $imageData = $request->input('image');
+        try {
+            $imageData = $request->input('image');
         
         // Remove data URI scheme prefix
         if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $type)) {
@@ -146,12 +147,22 @@ class PhotoCaptureController extends Controller
             'url' => $imageUrl
         ]);
 
-        // Mark cache as completed
-        Cache::put('photo_session_' . $token, ['status' => 'completed', 'url' => $imageUrl], now()->addMinutes(5));
+            // Mark cache as completed
+            Cache::put('photo_session_' . $token, ['status' => 'completed', 'url' => $imageUrl], now()->addMinutes(5));
 
-        return response()->json([
-            'success' => true,
-            'image_url' => $imageUrl
-        ]);
+            return response()->json([
+                'success' => true,
+                'image_url' => $imageUrl
+            ]);
+            
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Live Image Capture: Unexpected Error", [
+                'ip' => $request->ip(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json(['error' => 'An unexpected error occurred during upload. Please try again.'], 500);
+        }
     }
 }
