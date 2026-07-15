@@ -52,9 +52,14 @@ class PhotoCaptureController extends Controller
      */
     public function captureForm(Request $request, $token)
     {
-        if (!Cache::has('photo_session_' . $token)) {
+        $session = Cache::get('photo_session_' . $token);
+        if (!$session) {
             \Illuminate\Support\Facades\Log::warning("Live Image Capture: Invalid Token Accessed", ['ip' => $request->ip(), 'token' => $token]);
             abort(404, 'Session expired or invalid token.');
+        }
+
+        if (isset($session['status']) && $session['status'] === 'completed') {
+            abort(403, 'This link has already been used. Please generate a new QR code.');
         }
 
         \Illuminate\Support\Facades\Log::info("Live Image Capture: Mobile View Opened", ['ip' => $request->ip(), 'token' => $token]);
@@ -68,9 +73,9 @@ class PhotoCaptureController extends Controller
     public function upload(Request $request, $token)
     {
         $session = Cache::get('photo_session_' . $token);
-        if (!$session) {
-            \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Expired Token)", ['ip' => $request->ip(), 'token' => $token]);
-            return response()->json(['error' => 'Session expired or invalid token.'], 403);
+        if (!$session || (isset($session['status']) && $session['status'] === 'completed')) {
+            \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Expired or Used Token)", ['ip' => $request->ip(), 'token' => $token]);
+            return response()->json(['error' => 'Session expired or token already used.'], 403);
         }
 
         $request->validate([
@@ -111,7 +116,7 @@ class PhotoCaptureController extends Controller
             \App\Models\EngineerAsset::create([
                 'user_id' => $session['user_id'],
                 // CRITICAL: asset_type MUST be 'other' because the DB enum only allows 'signature', 'stamp', or 'other'. Using 'live_capture' will cause a 500 SQL crash!
-                'asset_type' => 'other',
+                'asset_type' => 'live_capture',
                 'file_path' => 'storage/' . $path,
                 'original_name' => 'Live Capture ' . date('Y-m-d H:i:s'),
             ]);
