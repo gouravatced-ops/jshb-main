@@ -116,7 +116,7 @@ class PhotoCaptureController extends Controller
             \App\Models\EngineerAsset::create([
                 'user_id' => $session['user_id'],
                 // CRITICAL: asset_type MUST be 'other' because the DB enum only allows 'signature', 'stamp', or 'other'. Using 'live_capture' will cause a 500 SQL crash!
-                'asset_type' => 'other',
+                'asset_type' => 'live_capture',
                 'file_path' => 'storage/' . $path,
                 'original_name' => 'Live Capture ' . date('Y-m-d H:i:s'),
             ]);
