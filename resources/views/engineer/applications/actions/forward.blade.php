@@ -15,6 +15,16 @@
             <i class="fa-solid fa-info-circle"></i> <strong>Note:</strong> The official noting you provide below will be permanently recorded in the file history. This is equivalent to signing and stamping a physical green noting sheet.
         </div>
 
+        @if($errors->any())
+            <div class="alert alert-danger" style="margin-bottom: 20px;">
+                <ul style="margin: 0; padding-left: 20px;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('engineer.applications.action', $application) }}" method="POST">
             @csrf
             <input type="hidden" name="action_type" value="forward">

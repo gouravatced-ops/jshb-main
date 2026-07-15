@@ -159,7 +159,11 @@
             Application No: <span style="color: #e74c3c;">{{ $application->application_no }}</span>
         </h4>
     </div>
-    <div>
+    <div style="display: flex; gap: 10px;">
+        <form action="{{ route('engineer.applications.reset', $application->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to completely RESET this application? All notes and movements will be deleted and it will go back to the first step. This cannot be undone.');">
+            @csrf
+            <button type="submit" class="btn-compact" style="background: #dc3545; border: none; box-shadow: none; color: white;"><i class="fa-solid fa-rotate-left"></i> Reset Workflow</button>
+        </form>
         <a href="{{ route('engineer.applications.index') }}" class="btn-compact" style="background: #6c757d; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
     </div>
 </div>
@@ -327,10 +331,10 @@
                     @foreach($application->notes as $note)
                     <li class="note-item">
                         <div class="note-header">
-                            <span class="note-author"><i class="fa-solid fa-user-circle"></i> {{ $note->createdBy ? $note->createdBy->name : 'System' }}</span>
+                            <span class="note-author"><i class="fa-solid fa-user-circle"></i> {{ $note->user ? $note->user->name : 'System' }}</span>
                             <span class="note-date"><i class="fa-regular fa-clock"></i> {{ $note->created_at ? $note->created_at->format('d-M-Y h:i A') : '' }}</span>
                         </div>
-                        <div class="note-content">{{ $note->remarks }}</div>
+                        <div class="note-content">{!! $note->remarks !!}</div>
                     </li>
                     @endforeach
                 </ul>
