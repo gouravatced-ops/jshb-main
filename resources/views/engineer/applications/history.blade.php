@@ -1,20 +1,20 @@
 @extends('layouts.main')
 
-@section('title', 'Pending Applications | JSHB')
+@section('title', 'Application History | JSHB')
 
 @section('content')
 <div class="card">
     <div class="card-head" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <div class="card-title">Pending Applications</div>
-            <div class="card-subtitle">All applications currently awaiting your review</div>
+            <div class="card-title">Application History</div>
+            <div class="card-subtitle">History of applications you have processed or interacted with</div>
         </div>
         <div>
             <button type="button" class="btn-primary" onclick="openFilterModal()" style="padding: 8px 16px; font-size: 14px; background: #0f172a; border-radius: 4px; border: none; cursor: pointer; color: white;">
                 <i class="fa-solid fa-filter"></i> Filter
             </button>
             @if(request()->anyFilled(['application_no', 'status', 'created_date_from', 'created_date_to', 'property_number', 'sub_division_id']))
-                <a href="{{ route('engineer.applications.index') }}" class="btn-secondary" style="padding: 8px 16px; font-size: 14px; background: #e2e8f0; color: #334155; border-radius: 4px; text-decoration: none; margin-left: 10px;">Clear</a>
+                <a href="{{ route('engineer.applications.history') }}" class="btn-secondary" style="padding: 8px 16px; font-size: 14px; background: #e2e8f0; color: #334155; border-radius: 4px; text-decoration: none; margin-left: 10px;">Clear</a>
             @endif
         </div>
     </div>
@@ -23,13 +23,13 @@
     <div id="filterModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1050; align-items: flex-start; padding-top: 50px; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
         <div class="modal-content" style="background: #fff; width: 600px; max-width: 95%; border-radius: 6px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); transform: translateY(-50px); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eaeaea; padding-bottom: 12px; margin-bottom: 15px;">
-                <h3 style="margin: 0; font-size: 17px; color: #333; font-weight: 600;">Filter Applications</h3>
+                <h3 style="margin: 0; font-size: 17px; color: #333; font-weight: 600;">Filter History</h3>
                 <div>
                     <button type="button" onclick="closeFilterModal()" style="background: none; border: none; font-size: 22px; color: #999; cursor: pointer; line-height: 1;">&times;</button>
                 </div>
             </div>
             
-            <form action="{{ route('engineer.applications.index') }}" method="GET">
+            <form action="{{ route('engineer.applications.history') }}" method="GET">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                     <div>
                         <label style="display: block; font-size: 13px; color: #555; margin-bottom: 5px;">Sub Division</label>
@@ -55,6 +55,9 @@
                             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                             <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                             <option value="forwarded" {{ request('status') == 'forwarded' ? 'selected' : '' }}>Forwarded</option>
+                            <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                         </select>
                     </div>
                     <div>
@@ -105,6 +108,7 @@
                     <th>Allottee Details</th>
                     <th>Property / Allotment</th>
                     <th>Created Date</th>
+                    <th>Current Status</th>
                     <th>Priority</th>
                     <th>Action</th>
                 </tr>
@@ -117,18 +121,26 @@
                     <td>
                         <div class="table-user">
                             <div>
-                                <div class="table-name">{{ trim(($app->prefix ?? '') . ' ' . ($app->allottee_name ?? '') . ' ' . ($app->allottee_middle_name ?? '') . ' ' . ($app->allottee_surname ?? '')) ?: '-' }}</div>
-                                <div class="table-subtitle">{{ trim(($app->allottee_prefix_hindi ?? '') . ' ' . ($app->allottee_name_hindi ?? '') . ' ' . ($app->allottee_middle_hindi ?? '') . ' ' . ($app->allottee_surname_hindi ?? '')) ?: '-' }}</div>
+                                <div class="table-name">{{ trim(($app->allottee->prefix ?? '') . ' ' . ($app->allottee->allottee_name ?? '') . ' ' . ($app->allottee->allottee_middle_name ?? '') . ' ' . ($app->allottee->allottee_surname ?? '')) ?: '-' }}</div>
+                                <div class="table-subtitle">{{ trim(($app->allottee->allottee_prefix_hindi ?? '') . ' ' . ($app->allottee->allottee_name_hindi ?? '') . ' ' . ($app->allottee->allottee_middle_hindi ?? '') . ' ' . ($app->allottee->allottee_surname_hindi ?? '')) ?: '-' }}</div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <div>Property: {{ $app->property_number ?? 'N/A' }}</div>
-                        <small class="text-muted">Allotment: {{ $app->allotment_no ?? 'N/A' }}</small>
+                        <div>Property: {{ $app->allottee->property_number ?? 'N/A' }}</div>
+                        <small class="text-muted">Allotment: {{ $app->allottee->allotment_no ?? 'N/A' }}</small>
                     </td>
                     <td>
                         <div>{{ $app->created_date_formatted }}</div>
-                        <small class="text-muted">{{ $app->days_pending }} days pending</small>
+                    </td>
+                    <td>
+                        @if($app->status == 'completed' || $app->status == 'approved')
+                            <span class="badge-status active"><i class="fa-solid fa-check"></i> {{ ucfirst($app->status) }}</span>
+                        @elseif($app->status == 'rejected')
+                            <span class="badge-status inactive"><i class="fa-solid fa-times"></i> {{ ucfirst($app->status) }}</span>
+                        @else
+                            <span class="badge-status" style="background:#e2e8f0; color:#333;"><i class="fa-solid fa-spinner"></i> {{ ucfirst(str_replace('_', ' ', $app->status)) }}</span>
+                        @endif
                     </td>
                     <td>
                         @if($app->priority === 'Urgent' || $app->priority === 'Overdue')
@@ -136,19 +148,13 @@
                         @else
                             <span class="badge-status active"><i class="fa-solid fa-circle"></i> {{ $app->priority }}</span>
                         @endif
-                        
-                        @if($app->total_movements > 0)
-                        <div style="margin-top: 5px; font-size: 11px; color: #666;">
-                            {{ $app->total_movements }} movements
-                        </div>
-                        @endif
                     </td>
                     <td>
-                        <a href="{{ route('engineer.applications.show', $app) }}" class="btn-primary" style="padding: 6px 12px; font-size: 13px; text-decoration: none;">Review Application</a>
+                        <a href="{{ route('engineer.applications.show', $app) }}" class="btn-primary" style="padding: 6px 12px; font-size: 13px; text-decoration: none; background: #475569;">View Details</a>
                     </td>
                 </tr>
                 @empty
-                <x-no-data colspan="7" message="No pending applications found." description="You don't have any pending applications awaiting review right now." icon="fa-inbox" />
+                <x-no-data colspan="7" message="No application history found." description="Applications you process will appear here." icon="fa-clock-rotate-left" />
                 @endforelse
             </tbody>
         </table>

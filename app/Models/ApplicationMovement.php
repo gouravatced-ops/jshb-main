@@ -4,11 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Application;
+use App\Models\User;
+use App\Models\Role;
+use App\Models\WorkflowStep;
 
 class ApplicationMovement extends Model
 {
     use HasFactory;
 
+    protected $connection = 'adms_jshb';
     protected $table = 'application_movements';
 
     protected $fillable = [

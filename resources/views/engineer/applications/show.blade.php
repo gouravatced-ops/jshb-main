@@ -2,154 +2,7 @@
 @section('title', 'Review Application | JSHB')
 @section('content')
 
-<style>
-    /* Refined Layout */
-    .compact-wrapper {
-        display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        gap: 20px;
-        margin-top: 15px;
-    }
-
-    .compact-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border: 1px solid #eef0f2;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .compact-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .compact-card-header {
-        padding: 12px 16px;
-        font-size: 15px;
-        font-weight: 600;
-        border-bottom: 1px solid #eaeaea;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        letter-spacing: 0.3px;
-    }
-    
-    /* Distinct Header Colors with Subtle Gradients */
-    .header-blue { background: linear-gradient(135deg, #e3f2fd, #bbdefb); color: #0d47a1; border-bottom-color: #90caf9; }
-    .header-green { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #1b5e20; border-bottom-color: #a5d6a7; }
-    .header-orange { background: linear-gradient(135deg, #fff3e0, #ffe0b2); color: #e65100; border-bottom-color: #ffcc80; }
-    .header-purple { background: linear-gradient(135deg, #f3e5f5, #e1bee7); color: #4a148c; border-bottom-color: #ce93d8; }
-    .header-gray { background: linear-gradient(135deg, #f5f5f5, #e0e0e0); color: #424242; border-bottom-color: #eeeeee; }
-
-    .compact-card-body {
-        padding: 15px 16px;
-        flex-grow: 1;
-        overflow-y: auto;
-        font-size: 14px;
-        color: #444;
-    }
-
-    .compact-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .compact-table th, .compact-table td {
-        padding: 10px 12px;
-        border-bottom: 1px solid #f0f0f0;
-        text-align: left;
-    }
-
-    .compact-table th {
-        color: #777;
-        font-weight: 600;
-        background: #fcfcfc;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .compact-table tr:last-child td {
-        border-bottom: none;
-    }
-
-    .data-pair {
-        display: flex;
-        margin-bottom: 10px;
-        border-bottom: 1px dashed #f0f0f0;
-        padding-bottom: 8px;
-        align-items: center;
-    }
-
-    .data-pair:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
-
-    .data-label {
-        color: #666;
-        width: 35%;
-        font-weight: 500;
-        font-size: 13px;
-    }
-
-    .data-value {
-        color: #222;
-        width: 65%;
-        font-weight: 600;
-        word-break: break-word;
-    }
-
-    .badge-compact {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .badge-normal { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-    .badge-urgent { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
-    .badge-overdue { background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
-
-    .btn-compact {
-        background: #007bff;
-        color: white;
-        padding: 5px 12px;
-        border-radius: 6px;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 13px;
-        font-weight: 500;
-        transition: opacity 0.2s, transform 0.1s;
-        box-shadow: 0 2px 4px rgba(0,123,255,0.2);
-    }
-    .btn-compact:hover { opacity: 0.9; color: white; transform: translateY(-1px); }
-
-    .notes-list { list-style: none; padding: 0; margin: 0; }
-    .note-item { border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px; }
-    .note-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
-    .note-header { display: flex; justify-content: space-between; margin-bottom: 6px; align-items: center; }
-    .note-author { font-weight: 600; color: #4a148c; font-size: 13px; }
-    .note-date { color: #888; font-size: 12px; display: flex; align-items: center; gap: 4px; }
-    .note-content { color: #333; line-height: 1.5; font-size: 13px; background: #fdfdfd; padding: 10px; border-radius: 6px; border: 1px solid #f5f5f5; }
-
-    /* Layout Grids */
-    .col-span-4 { grid-column: span 4; }
-    .col-span-8 { grid-column: span 8; }
-    .col-span-6 { grid-column: span 6; }
-    .col-span-12 { grid-column: span 12; }
-    
-    @media (max-width: 992px) {
-        .col-span-4, .col-span-8, .col-span-6 { grid-column: span 12; }
-    }
-</style>
+@include('components.partials.compact-css')
 
 <!-- Top Toolbar -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: #fff; padding: 12px 20px; border-radius: 8px; border: 1px solid #eaeaea; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
@@ -322,7 +175,7 @@
     <!-- Application Notes (col-6) -->
     <div class="compact-card col-span-6" style="max-height: 380px;">
         <div class="compact-card-header header-purple">
-            <span><i class="fa-solid fa-comments"></i> Application Notes & Remarks</span>
+            <span><i class="fa-solid fa-comments"></i> Application Notes</span>
             <span class="badge-compact" style="background: rgba(255,255,255,0.6); color: #4a148c;">{{ $application->notes ? $application->notes->count() : 0 }} Notes</span>
         </div>
         <div class="compact-card-body">
@@ -331,7 +184,16 @@
                     @foreach($application->notes as $note)
                     <li class="note-item">
                         <div class="note-header">
-                            <span class="note-author"><i class="fa-solid fa-user-circle"></i> {{ $note->user ? $note->user->name : 'System' }}</span>
+                            <span class="note-author">
+                                <i class="fa-solid fa-user-circle"></i> 
+                                {{ $note->user ? $note->user->name : 'System' }}
+                                @if($note->role)
+                                    , {{ $note->role->name }}
+                                @endif
+                                @if($note->user && $note->user->division)
+                                    ({{ $note->user->division->name }})
+                                @endif
+                            </span>
                             <span class="note-date"><i class="fa-regular fa-clock"></i> {{ $note->created_at ? $note->created_at->format('d-M-Y h:i A') : '' }}</span>
                         </div>
                         <div class="note-content">{!! $note->remarks !!}</div>
@@ -341,7 +203,7 @@
             @else
                 <div style="text-align: center; color: #999; padding: 40px 20px;">
                     <i class="fa-regular fa-comment-dots" style="font-size: 32px; color: #ddd; margin-bottom: 10px;"></i>
-                    <div>No remarks available</div>
+                    <div>No application notes available</div>
                 </div>
             @endif
         </div>

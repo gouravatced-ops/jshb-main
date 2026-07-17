@@ -4,11 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Application;
+use App\Models\ApplicationMovement;
+use App\Models\User;
+use App\Models\Role;
 
 class ApplicationNote extends Model
 {
     use HasFactory;
 
+    protected $connection = 'adms_jshb';
     protected $table = 'application_notes';
 
     protected $fillable = [

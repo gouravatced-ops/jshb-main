@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\EncryptedRouteKey;
+use App\Models\Allottee;
+use App\Models\Workflow;
+use App\Models\WorkflowStep;
+use App\Models\User;
+use App\Models\Role;
+use App\Models\ApplicationMovement;
+use App\Models\ApplicationNote;
+use App\Models\ApplicationDocument;
+use App\Models\ApplicationStatusHistory;
+use App\Models\ApplicationAuditTrail;
 
 class Application extends Model
 {

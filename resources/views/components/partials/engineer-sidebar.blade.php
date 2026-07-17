@@ -8,9 +8,16 @@
 
 <div class="sidebar-section-label">Management</div>
 <div class="nav-item-wrap">
-    <a class="nav-link-custom {{ request()->routeIs('engineer.applications.*') ? 'active' : '' }}" href="{{ route('engineer.applications.index') }}">
+    <a class="nav-link-custom {{ request()->routeIs('engineer.applications.index') ? 'active' : '' }}" href="{{ route('engineer.applications.index') }}">
         <div class="nav-icon"><i class="fa-solid fa-file-contract"></i></div>
-        <span class="nav-text">Applications</span>
+        <span class="nav-text">Pending Applications</span>
+    </a>
+</div>
+
+<div class="nav-item-wrap">
+    <a class="nav-link-custom {{ request()->routeIs('engineer.applications.history') ? 'active' : '' }}" href="{{ route('engineer.applications.history') }}">
+        <div class="nav-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+        <span class="nav-text">Application History</span>
     </a>
 </div>
 

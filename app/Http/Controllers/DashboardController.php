@@ -9,6 +9,9 @@ use App\Models\Organization;
 use App\Models\OtpLog;
 use App\Models\PostType;
 use App\Models\User;
+use App\Models\Workflow;
+use App\Models\Application;
+use App\Models\Allottee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use \Illuminate\Support\Facades\DB;
@@ -179,22 +182,22 @@ class DashboardController extends Controller
         $latestLogin = $loginLogs->first();
         
         $pendingApplications = collect();
-        $workflowId = \App\Models\Workflow::where('application_type', 'allotment')->value('id') ?? 1;
+        $workflowId = Workflow::where('application_type', 'allotment')->value('id') ?? 1;
         // 1. Get all pending application allottee IDs for this role
-        $pendingAllotteeIds = \App\Models\Application::where('current_role_id', $user->role_id)
+        $pendingAllotteeIds = Application::where('current_role_id', $user->role_id)
             ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
             ->pluck('allottee_id')
             ->unique()
             ->toArray();
 
         // 2. Filter these allottees by the user's division using the proper DB connection
-        $validAllotteeIds = \App\Models\Allottee::whereIn('id', $pendingAllotteeIds)
+        $validAllotteeIds = Allottee::whereIn('id', $pendingAllotteeIds)
             ->where('division_id', $user->division_id)
             ->pluck('id')
             ->toArray();
 
         // 3. Fetch applications matching these valid allottees
-        $pendingApplications = \App\Models\Application::with('allottee')
+        $pendingApplications = Application::with('allottee')
             ->where('current_role_id', $user->role_id)
             ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
             ->whereIn('allottee_id', $validAllotteeIds)

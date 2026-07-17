@@ -7,6 +7,12 @@ use App\Models\Scheme;
 use App\Models\SchemeBlock;
 use App\Models\SchemeUnitQuota;
 use App\Models\QuotaType;
+use App\Models\Division;
+use App\Models\SubDivision;
+use App\Models\PropertyCategory;
+use App\Models\PropertyType;
+use App\Models\PropertyMainType;
+use App\Models\QuarterType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -100,12 +106,12 @@ class SchemeController extends Controller
         $scheme = new Scheme();
 
         // Load required data for dropdowns
-        $divisions = \App\Models\Division::orderBy('name')->get();
-        $subDivisions = \App\Models\SubDivision::orderBy('name')->get();
-        $propertyCategories = \App\Models\PropertyCategory::orderBy('name')->get();
-        $propertyTypes = \App\Models\PropertyType::orderBy('name')->get();
-        $propertySubTypes = \App\Models\PropertyMainType::orderBy('name')->get();
-        $quarterTypes = \App\Models\QuarterType::orderBy('quarter_id')->get();
+        $divisions = Division::orderBy('name')->get();
+        $subDivisions = SubDivision::orderBy('name')->get();
+        $propertyCategories = PropertyCategory::orderBy('name')->get();
+        $propertyTypes = PropertyType::orderBy('name')->get();
+        $propertySubTypes = PropertyMainType::orderBy('name')->get();
+        $quarterTypes = QuarterType::orderBy('quarter_id')->get();
 
         return view('admin.schemes.add', compact('scheme', 'divisions', 'subDivisions', 'propertyCategories', 'propertyTypes', 'propertySubTypes', 'quarterTypes'));
     }
@@ -224,12 +230,12 @@ class SchemeController extends Controller
         }
 
         // Load required data for dropdowns
-        $divisions = \App\Models\Division::orderBy('name')->get();
-        $subDivisions = \App\Models\SubDivision::orderBy('name')->get();
-        $propertyCategories = \App\Models\PropertyCategory::orderBy('name')->get();
-        $propertyTypes = \App\Models\PropertyType::orderBy('name')->get();
-        $propertySubTypes = \App\Models\PropertyMainType::orderBy('name')->get();
-        $quarterTypes = \App\Models\QuarterType::orderBy('quarter_id')->get();
+        $divisions = Division::orderBy('name')->get();
+        $subDivisions = SubDivision::orderBy('name')->get();
+        $propertyCategories = PropertyCategory::orderBy('name')->get();
+        $propertyTypes = PropertyType::orderBy('name')->get();
+        $propertySubTypes = PropertyMainType::orderBy('name')->get();
+        $quarterTypes = QuarterType::orderBy('quarter_id')->get();
         $scheme->load([
             'division',
             'subDivision',
