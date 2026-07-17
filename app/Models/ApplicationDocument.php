@@ -4,11 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Application;
+use App\Models\ApplicationMovement;
+use App\Models\User;
 
 class ApplicationDocument extends Model
 {
     use HasFactory;
 
+    protected $connection = 'adms_jshb';
     protected $table = 'application_documents';
 
     protected $fillable = [

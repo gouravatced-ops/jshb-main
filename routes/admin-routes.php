@@ -147,6 +147,11 @@ Route::middleware('auth')
         Route::get('/allottees/delete/{allottee}', [AllotteeController::class, 'deleteAllotteeComponents'])->name('allottee.delete.components');
         Route::get('/allottees/delete/emi/{allottee}', [AllotteeController::class, 'deleteEMISetup'])->name('allottee.delete.emi.setup');
 
+        // Manage Applications
+        Route::get('/allottees/{allottee}/applications', [AllotteeController::class, 'getAllotteeApplications'])->name('allottee.applications');
+        Route::post('/allottees/{allottee}/applications', [AllotteeController::class, 'createApplicationDirect'])->name('allottee.applications.store');
+        Route::delete('/applications/{application}', [AllotteeController::class, 'deleteApplication'])->name('application.delete');
+
         // Initial Payment
         Route::post('/allottees/initial-payment/pay', [AllotteePaymentController::class, 'payInitialPayment'])->name('allottees.initial.payment.pay');
         Route::get('/allottees/payment-success/{payment}', [AllotteePaymentController::class, 'paymentSuccess'])->name('allottees.payment.success');

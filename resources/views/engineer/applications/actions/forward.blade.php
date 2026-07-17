@@ -3,6 +3,7 @@
 @section('title', 'Forward Application | JSHB')
 
 @section('content')
+@include('components.partials.compact-css')
 <div class="compact-wrapper">
     <div class="compact-card col-span-12">
         <div class="compact-card-header header-blue">
@@ -66,6 +67,45 @@
                 <button type="submit" class="btn btn-success" style="font-size: 15px; padding: 8px 20px;"><i class="fa-solid fa-paper-plane"></i> Submit Noting & Forward</button>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="compact-wrapper" style="margin-top: 20px;">
+    <!-- Application Notes -->
+    <div class="compact-card col-span-12">
+        <div class="compact-card-header header-purple">
+            <span><i class="fa-solid fa-comments"></i> Previous Application Notes</span>
+            <span class="badge-compact" style="background: rgba(255,255,255,0.6); color: #4a148c; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">{{ $application->notes ? $application->notes->count() : 0 }} Notes</span>
+        </div>
+        <div class="compact-card-body">
+            @if($application->notes && $application->notes->count() > 0)
+                <ul class="notes-list">
+                    @foreach($application->notes as $note)
+                    <li class="note-item">
+                        <div class="note-header">
+                            <span class="note-author">
+                                <i class="fa-solid fa-user-circle"></i> 
+                                {{ $note->user ? $note->user->name : 'System' }}
+                                @if($note->role)
+                                    , {{ $note->role->name }}
+                                @endif
+                                @if($note->user && $note->user->division)
+                                    ({{ $note->user->division->name }})
+                                @endif
+                            </span>
+                            <span class="note-date"><i class="fa-regular fa-clock"></i> {{ $note->created_at ? $note->created_at->format('d-M-Y h:i A') : '' }}</span>
+                        </div>
+                        <div class="note-content">{!! $note->remarks !!}</div>
+                    </li>
+                    @endforeach
+                </ul>
+            @else
+                <div style="text-align: center; color: #999; padding: 20px;">
+                    <i class="fa-regular fa-comment-dots" style="font-size: 24px; color: #ddd; margin-bottom: 8px;"></i>
+                    <div>No notes have been added to this application yet.</div>
+                </div>
+            @endif
+        </div>
     </div>
 </div>
 

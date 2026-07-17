@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Application;
 
 class Role extends Model
 {
@@ -21,5 +22,10 @@ class Role extends Model
         return [
             'status' => 'boolean',
         ];
+    }
+
+    public function applications()
+    {
+        return $this->hasMany(Application::class, 'current_role_id');
     }
 }

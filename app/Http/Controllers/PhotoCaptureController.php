@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use App\Events\PhotoCaptured;
+use App\Models\EngineerAsset;
 
 class PhotoCaptureController extends Controller
 {
@@ -113,7 +114,7 @@ class PhotoCaptureController extends Controller
 
         // Save to Database so it shows up in "My Saved Assets"
         if (!empty($session['user_id'])) {
-            \App\Models\EngineerAsset::create([
+            EngineerAsset::create([
                 'user_id' => $session['user_id'],
                 // CRITICAL: asset_type MUST be 'other' because the DB enum only allows 'signature', 'stamp', or 'other'. Using 'live_capture' will cause a 500 SQL crash!
                 'asset_type' => 'live_capture',

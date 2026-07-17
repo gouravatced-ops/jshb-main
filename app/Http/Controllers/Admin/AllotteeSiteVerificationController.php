@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AllotteeSiteVerification;
 use App\Models\Allottee;
+use App\Models\AllotteeProcessStep;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -142,7 +143,7 @@ class AllotteeSiteVerificationController extends Controller
             }
 
             // Update steps: mark 17 as completed and 18 as pending
-            $step16 = \App\Models\AllotteeProcessStep::where('allottee_id', $allottee_id)
+            $step16 = AllotteeProcessStep::where('allottee_id', $allottee_id)
                 ->where('step_no', 16)
                 ->first();
                 
@@ -150,7 +151,7 @@ class AllotteeSiteVerificationController extends Controller
                 $step16->markAsCompleted(Auth::id() ?? 1, 'Site Verification completed');
             }
             
-            $step17 = \App\Models\AllotteeProcessStep::where('allottee_id', $allottee_id)
+            $step17 = AllotteeProcessStep::where('allottee_id', $allottee_id)
                 ->where('step_no', 17)
                 ->first();
                 

@@ -28,3 +28,4 @@ storage
 .htaccess
 documents
 config/database.php
+/.agents

@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Application;
+use App\Models\User;
 
 class ApplicationPdfHistory extends Model
 {
     use HasFactory;
 
+    protected $connection = 'adms_jshb';
     protected $table = 'application_pdf_history';
 
     // Disable standard timestamps as we use generated_at

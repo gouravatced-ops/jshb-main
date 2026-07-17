@@ -13,6 +13,7 @@ use App\Models\OtpLog;
 use App\Models\UserDetail;
 use App\Notifications\CustomResetPasswordNotification;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Application;
 
 class User extends Authenticatable
 {
@@ -243,5 +244,15 @@ class User extends Authenticatable
         } while (self::where('username', $username)->exists());
 
         return $username;
+    }
+
+    public function currentApplications()
+    {
+        return $this->hasMany(Application::class, 'current_user_id');
+    }
+
+    public function createdApplications()
+    {
+        return $this->hasMany(Application::class, 'created_by');
     }
 }

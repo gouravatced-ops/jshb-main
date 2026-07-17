@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\UserDetail;
+use App\Models\LoginLog;
+use App\Models\OtpLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -20,12 +22,12 @@ class AdminController extends Controller
         $user = Auth::user();
         $userDetail = $user->detail ?? new UserDetail(['user_id' => $user->id]);
         
-        $loginLogs = \App\Models\LoginLog::where('user_id', $user->id)
+        $loginLogs = LoginLog::where('user_id', $user->id)
             ->latest()
             ->limit(50)
             ->get();
 
-        $otpLogs = \App\Models\OtpLog::where('user_id', $user->id)
+        $otpLogs = OtpLog::where('user_id', $user->id)
             ->latest()
             ->limit(50)
             ->get();
@@ -42,11 +44,11 @@ class AdminController extends Controller
         $user = Auth::user();
         
         // Paginate logs for the dedicated activity page
-        $loginLogs = \App\Models\LoginLog::where('user_id', $user->id)
+        $loginLogs = LoginLog::where('user_id', $user->id)
             ->latest()
             ->paginate(15, ['*'], 'login_page');
 
-        $otpLogs = \App\Models\OtpLog::where('user_id', $user->id)
+        $otpLogs = OtpLog::where('user_id', $user->id)
             ->latest()
             ->paginate(15, ['*'], 'otp_page');
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Application;
 
 class WorkflowStep extends Model
 {
@@ -51,5 +52,10 @@ class WorkflowStep extends Model
     public function previousStep()
     {
         return $this->belongsTo(WorkflowStep::class, 'previous_step_id');
+    }
+
+    public function applications()
+    {
+        return $this->hasMany(Application::class, 'current_step_id');
     }
 }

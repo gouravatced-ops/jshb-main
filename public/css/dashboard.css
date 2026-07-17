@@ -1984,7 +1984,7 @@ a {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
+    padding: 10px 15px;
     border-bottom: 1px solid var(--border);
     background: url('../img/header-new-2.png');
     background-repeat: no-repeat;

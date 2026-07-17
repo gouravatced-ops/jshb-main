@@ -15,6 +15,7 @@ Route::middleware('auth')
         
         // Applications
         Route::get('/applications', [App\Http\Controllers\Engineer\ApplicationController::class, 'index'])->name('applications.index');
+        Route::get('/applications/history', [App\Http\Controllers\Engineer\ApplicationController::class, 'history'])->name('applications.history');
         Route::get('/applications/{application}', [App\Http\Controllers\Engineer\ApplicationController::class, 'show'])->name('applications.show');
         Route::get('/applications/{application}/action/{action_type}', [App\Http\Controllers\Engineer\ApplicationController::class, 'actionForm'])->name('applications.action.form');
         Route::post('/applications/{application}/action', [App\Http\Controllers\Engineer\ApplicationController::class, 'processAction'])->name('applications.action');

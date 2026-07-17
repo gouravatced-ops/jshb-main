@@ -8,9 +8,13 @@ use App\Models\Application;
 use App\Models\WorkflowStep;
 use App\Models\ApplicationMovement;
 use App\Models\ApplicationNote;
+use App\Models\Allottee;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ApplicationController extends Controller
 {
@@ -24,24 +28,47 @@ class ApplicationController extends Controller
         $workflowId = Workflow::where('application_type', 'allotment')->value('id') ?? 1;
         
         // 1. Get all pending application allottee IDs for this role
-        $pendingAllotteeIds = \App\Models\Application::where('current_role_id', $user->role_id)
+        $pendingAllotteeIds = Application::where('current_role_id', $user->role_id)
             ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
             ->pluck('allottee_id')
             ->unique()
             ->toArray();
 
         // 2. Filter these allottees by the user's division using the proper DB connection
-        $validAllotteeIds = \App\Models\Allottee::whereIn('id', $pendingAllotteeIds)
-            ->where('division_id', $user->division_id)
-            ->pluck('id')
-            ->toArray();
+        $query = Application::with('allottee')
+            ->where('current_user_id', $user->id)
+            ->where('status', '!=', 'completed')
+            ->where('status', '!=', 'approved')
+            ->where('status', '!=', 'rejected');
 
-        // 3. Fetch applications matching these valid allottees
-        $applications = \App\Models\Application::with('allottee')
-            ->where('current_role_id', $user->role_id)
-            ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
-            ->whereIn('allottee_id', $validAllotteeIds)
-            ->select(
+        // Apply Filters
+        if ($request->filled('application_no')) {
+            $query->where('application_no', 'like', '%' . $request->application_no . '%');
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('created_date_from')) {
+            $query->whereDate('created_date', '>=', $request->created_date_from);
+        }
+        if ($request->filled('created_date_to')) {
+            $query->whereDate('created_date', '<=', $request->created_date_to);
+        }
+        if ($request->filled('property_number') || $request->filled('sub_division_id')) {
+            $allotteeQuery = \App\Models\Allottee::query();
+            
+            if ($request->filled('property_number')) {
+                $allotteeQuery->where('property_number', 'like', '%' . $request->property_number . '%');
+            }
+            if ($request->filled('sub_division_id')) {
+                $allotteeQuery->where('subdivision_id', $request->sub_division_id);
+            }
+            
+            $matchingAllotteeIds = $allotteeQuery->pluck('id')->toArray();
+            $query->whereIn('allottee_id', $matchingAllotteeIds);
+        }
+
+        $applications = $query->select(
                 'applications.id',
                 'applications.application_no',
                 'applications.application_type',
@@ -60,7 +87,8 @@ class ApplicationController extends Controller
                 DB::raw("(SELECT remarks FROM application_notes WHERE application_id = applications.id ORDER BY created_at DESC LIMIT 1) as last_remark")
             )
             ->orderBy('applications.created_date', 'ASC')
-            ->paginate(15);
+            ->paginate(15)
+            ->appends($request->all());
             
         // Map allottee data so views don't break
         $applications->getCollection()->transform(function($app) {
@@ -79,10 +107,75 @@ class ApplicationController extends Controller
             return $app;
         });
 
-        return view('engineer.applications.index', compact('applications'));
+        $subDivisions = \App\Models\SubDivision::where('status', 1)
+            ->where('division_id', $user->division_id)
+            ->get();
+
+        return view('engineer.applications.index', compact('applications', 'subDivisions'));
     }
 
-    public function show(\App\Models\Application $application)
+    public function history(Request $request)
+    {
+        $user = Auth::user();
+
+        // Fetch application IDs that the user has interacted with (took action on)
+        $historyApplicationIds = ApplicationMovement::where('from_user_id', $user->id)
+            ->pluck('application_id')
+            ->unique()
+            ->toArray();
+
+        $query = Application::with('allottee')
+            ->whereIn('id', $historyApplicationIds);
+
+        // Apply Filters
+        if ($request->filled('application_no')) {
+            $query->where('application_no', 'like', '%' . $request->application_no . '%');
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('created_date_from')) {
+            $query->whereDate('created_date', '>=', $request->created_date_from);
+        }
+        if ($request->filled('created_date_to')) {
+            $query->whereDate('created_date', '<=', $request->created_date_to);
+        }
+        if ($request->filled('property_number') || $request->filled('sub_division_id')) {
+            $allotteeQuery = \App\Models\Allottee::query();
+            
+            if ($request->filled('property_number')) {
+                $allotteeQuery->where('property_number', 'like', '%' . $request->property_number . '%');
+            }
+            if ($request->filled('sub_division_id')) {
+                $allotteeQuery->where('subdivision_id', $request->sub_division_id);
+            }
+            
+            $matchingAllotteeIds = $allotteeQuery->pluck('id')->toArray();
+            $query->whereIn('allottee_id', $matchingAllotteeIds);
+        }
+
+        $applications = $query->select(
+                'applications.id',
+                'applications.application_no',
+                'applications.application_type',
+                'applications.allottee_id',
+                'applications.status',
+                'applications.priority',
+                'applications.created_date',
+                DB::raw("DATE_FORMAT(applications.created_date, '%d-%b-%Y %H:%i') as created_date_formatted")
+            )
+            ->orderBy('applications.updated_at', 'desc')
+            ->paginate(15)
+            ->appends($request->all());
+
+        $subDivisions = \App\Models\SubDivision::where('status', 1)
+            ->where('division_id', $user->division_id)
+            ->get();
+
+        return view('engineer.applications.history', compact('applications', 'subDivisions'));
+    }
+
+    public function show(Application $application)
     {
         $application->load([
             'allottee',
@@ -100,7 +193,7 @@ class ApplicationController extends Controller
         return view('engineer.applications.show', compact('application'));
     }
 
-    public function actionForm(\App\Models\Application $application, $action_type)
+    public function actionForm(Application $application, $action_type)
     {
         $validActions = ['forward', 'send_back', 'reject', 'verify', 'approve', 'add_note'];
         if(!in_array($action_type, $validActions)) {
@@ -109,19 +202,33 @@ class ApplicationController extends Controller
 
         $nextStep = null;
         if ($action_type == 'forward' && $application->currentStep) {
-            $nextStep = \App\Models\WorkflowStep::with('role')
+            $nextStep = WorkflowStep::with('role')
                 ->where('workflow_id', $application->workflow_id)
                 ->where('step_order', '>', $application->currentStep->step_order)
                 ->orderBy('step_order', 'asc')
                 ->first();
+        } elseif ($action_type == 'send_back' && $application->currentStep) {
+            $nextStep = WorkflowStep::with('role')
+                ->where('workflow_id', $application->workflow_id)
+                ->where('step_order', '<', $application->currentStep->step_order)
+                ->orderBy('step_order', 'desc')
+                ->first();
         }
 
-        $roles = \App\Models\Role::where('id', '!=', Auth::user()->role_id)->get();
+        $application->load([
+            'notes' => function($q) {
+                $q->orderBy('created_at', 'desc');
+            },
+            'notes.user.division',
+            'notes.role'
+        ]);
+
+        $roles = Role::where('id', '!=', Auth::user()->role_id)->get();
 
         return view('engineer.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep'));
     }
 
-    public function processAction(Request $request, \App\Models\Application $application)
+    public function processAction(Request $request, Application $application)
     {
         $request->validate([
             'action_type' => 'required|string',
@@ -134,13 +241,13 @@ class ApplicationController extends Controller
         $newStatus = $application->status;
 
         if ($request->action_type == 'forward') {
-            $nextStep = \App\Models\WorkflowStep::where('workflow_id', $application->workflow_id)
+            $nextStep = WorkflowStep::where('workflow_id', $application->workflow_id)
                 ->where('step_order', '>', $application->currentStep->step_order)
                 ->orderBy('step_order', 'asc')
                 ->first();
             $newStatus = 'forwarded';
         } elseif ($request->action_type == 'send_back') {
-            $nextStep = \App\Models\WorkflowStep::where('workflow_id', $application->workflow_id)
+            $nextStep = WorkflowStep::where('workflow_id', $application->workflow_id)
                 ->where('step_order', '<', $application->currentStep->step_order)
                 ->orderBy('step_order', 'desc')
                 ->first();
@@ -148,7 +255,7 @@ class ApplicationController extends Controller
         } elseif ($request->action_type == 'reject') {
             $newStatus = 'rejected';
         } elseif ($request->action_type == 'approve') {
-            $nextStep = \App\Models\WorkflowStep::where('workflow_id', $application->workflow_id)
+            $nextStep = WorkflowStep::where('workflow_id', $application->workflow_id)
                 ->where('step_order', '>', $application->currentStep->step_order)
                 ->orderBy('step_order', 'asc')
                 ->first();
@@ -158,15 +265,31 @@ class ApplicationController extends Controller
         $previousStepId = $application->current_step_id;
         $previousRoleId = $application->current_role_id;
 
+        $targetUser = null;
         if ($nextStep) {
             $application->current_step_id = $nextStep->id;
             $application->current_role_id = $nextStep->role_id;
+            
+            // Find Target User based on division
+            $divisionId = $application->allottee->division_id ?? null;
+            $targetUserQuery = User::on('adms_jshb')->where('role_id', $nextStep->role_id)->where('status', 1);
+
+            if ($divisionId) {
+                $targetUser = (clone $targetUserQuery)->where('division_id', $divisionId)->first();
+                if (!$targetUser) {
+                    $targetUser = $targetUserQuery->first();
+                }
+            } else {
+                $targetUser = $targetUserQuery->first();
+            }
+                
+            $application->current_user_id = $targetUser ? $targetUser->id : null;
         }
         $application->status = $newStatus;
         $application->save();
 
         // Save the noting/remarks
-        \App\Models\ApplicationNote::create([
+        ApplicationNote::create([
             'application_id' => $application->id,
             'user_id' => $user->id,
             'role_id' => $user->role_id,
@@ -190,16 +313,17 @@ class ApplicationController extends Controller
         // Generate clean system remarks for the movement log
         $systemRemark = "Application " . str_replace('_', ' ', $dbActionType);
         if ($nextStep) {
-            $nextRole = \App\Models\Role::find($nextStep->role_id);
+            $nextRole = Role::find($nextStep->role_id);
             if ($nextRole) {
                 $systemRemark .= " to " . $nextRole->name;
             }
         }
 
         // Complete application movement tracking
-        \App\Models\ApplicationMovement::create([
+        ApplicationMovement::create([
             'application_id' => $application->id,
             'from_user_id' => $user->id,
+            'to_user_id' => $targetUser ? $targetUser->id : null,
             'from_role_id' => $previousRoleId,
             'from_step_id' => $previousStepId,
             'to_role_id' => $nextStep ? $nextStep->role_id : null,
@@ -210,6 +334,17 @@ class ApplicationController extends Controller
             'status' => 'completed',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent()
+        ]);
+
+        // Log the action details
+        Log::info("Application Action Processed", [
+            'application_id' => $application->id,
+            'action_type' => $request->action_type,
+            'previous_step_id' => $previousStepId,
+            'next_step_id' => $nextStep ? $nextStep->id : null,
+            'from_user_id' => $user->id,
+            'target_user_id' => $targetUser ? $targetUser->id : null,
+            'target_user_name' => $targetUser ? $targetUser->name : 'N/A'
         ]);
 
         return redirect()->route('engineer.applications.show', $application)

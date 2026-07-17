@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\EncryptedRouteKey;
+use App\Models\Application;
 
 class Allottee extends Model
 {
@@ -204,5 +205,10 @@ class Allottee extends Model
         );
 
         return $propertyNumber;
+    }
+
+    public function applications()
+    {
+        return $this->hasMany(Application::class, 'allottee_id');
     }
 }
