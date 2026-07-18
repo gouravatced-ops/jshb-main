@@ -22,6 +22,9 @@ class WorkflowController extends Controller
         $search = trim((string) $request->get('search', ''));
 
         $workflows = $this->filteredQuery($search)
+            ->with(['steps' => function($q) {
+                $q->orderBy('step_order', 'asc');
+            }, 'steps.role'])
             ->orderByDesc('id')
             ->paginate(20)
             ->withQueryString();
@@ -38,6 +41,9 @@ class WorkflowController extends Controller
         $search = trim((string) $request->get('search', ''));
 
         $workflows = $this->filteredQuery($search)
+            ->with(['steps' => function($q) {
+                $q->orderBy('step_order', 'asc');
+            }, 'steps.role'])
             ->orderByDesc('id')
             ->get()
             ->map(function (Workflow $workflow) {
@@ -50,6 +56,16 @@ class WorkflowController extends Controller
                     'edit_url' => route('admin.workflows.edit', $workflow),
                     'delete_url' => route('admin.workflows.destroy', $workflow),
                     'toggle_status_url' => route('admin.workflows.toggle-status', $workflow),
+                    'steps' => $workflow->steps->map(function($step) {
+                        return [
+                            'step_order' => $step->step_order,
+                            'step_name' => $step->step_name,
+                            'role_name' => $step->role ? $step->role->name : 'N/A',
+                            'can_forward' => $step->can_forward,
+                            'can_send_back' => $step->can_send_back,
+                            'can_reject' => $step->can_reject,
+                        ];
+                    })->toArray()
                 ];
             })
             ->values();

@@ -30,6 +30,7 @@ class ApplicationDocument extends Model
         'verified_by',
         'verified_at',
         'uploaded_by',
+        'uploader_type',
         'uploaded_at',
     ];
 
@@ -53,6 +54,14 @@ class ApplicationDocument extends Model
     public function uploadedBy()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function getUploaderNameAttribute()
+    {
+        $uploader = $this->uploadedBy;
+        if (!$uploader) return 'Unknown';
+        
+        return $uploader->name;
     }
 
     public function verifiedBy()

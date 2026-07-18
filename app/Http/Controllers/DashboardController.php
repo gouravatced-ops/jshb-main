@@ -240,12 +240,34 @@ class DashboardController extends Controller
             return $app;
         });
 
+        // Stats
+        $totalPending = Application::where('current_role_id', $user->role_id)
+            ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
+            ->whereIn('allottee_id', $validAllotteeIds)
+            ->count();
+            
+        $totalReceived = Application::whereHas('movements', function($q) use ($user) {
+                $q->where('to_role_id', $user->role_id);
+            })
+            ->whereIn('allottee_id', $validAllotteeIds)
+            ->count();
+            
+        // Applications that were with the engineer but are now moved forward/completed
+        $totalProcessed = Application::whereHas('movements', function($q) use ($user) {
+                $q->where('from_role_id', $user->role_id);
+            })
+            ->whereIn('allottee_id', $validAllotteeIds)
+            ->count();
+
         return view('engineer.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
-            'pendingApplications'
+            'pendingApplications',
+            'totalPending',
+            'totalReceived',
+            'totalProcessed'
         ));
     }
 

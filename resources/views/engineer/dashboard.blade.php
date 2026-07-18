@@ -31,7 +31,45 @@
             <div class="hero-date">{{ now()->format('l, d M Y') }}</div>
         </div>
     </div>
-    @if(Auth::user()->roleRelation?->slug === 'dealing-assistant' && isset($pendingApplications) && $pendingApplications->count() > 0)
+
+    <!-- Stat Cards -->
+    <div class="row g-2 mb-3 mt-4">
+        <div class="col-6 col-xl-4">
+            <div class="stat-card landed" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);">
+                <div class="stat-icon teal" style="width: 48px; height: 48px; border-radius: 8px; background: rgba(20, 184, 166, 0.1); color: #14b8a6; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 16px;">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <div class="stat-info">
+                    <p class="stat-label" style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">Total Received</p>
+                    <p class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--text-main); margin: 0;">{{ $totalReceived ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-4">
+            <div class="stat-card landed" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);">
+                <div class="stat-icon yellow" style="width: 48px; height: 48px; border-radius: 8px; background: rgba(234, 179, 8, 0.1); color: #eab308; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 16px;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <p class="stat-label" style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">Pending Applications</p>
+                    <p class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--text-main); margin: 0;">{{ $totalPending ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-4">
+            <div class="stat-card landed" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);">
+                <div class="stat-icon green" style="width: 48px; height: 48px; border-radius: 8px; background: rgba(34, 197, 94, 0.1); color: #22c55e; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 16px;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <p class="stat-label" style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">Processed Applications</p>
+                    <p class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--text-main); margin: 0;">{{ $totalProcessed ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if(isset($pendingApplications) && $pendingApplications->count() > 0)
     <div class="card mt-4" style="margin-top: 20px;">
         <div class="card-head">
             <div>
@@ -83,6 +121,14 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    @else
+    <div class="card mt-4" style="margin-top: 20px; text-align: center; padding: 40px;">
+        <div style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h4 style="color: var(--text-main); margin-bottom: 8px;">All Caught Up!</h4>
+        <p style="color: var(--text-muted); margin-bottom: 0;">You have no pending applications to review at the moment.</p>
     </div>
     @endif
 </div>
