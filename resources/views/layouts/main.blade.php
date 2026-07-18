@@ -145,7 +145,7 @@
 
     <script src="{{ asset('js/dashboard.js') }}"></script>
     <script src="{{ asset('js/fieldvalidation.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="{{ asset('js/chart.umd.min.js') }}"></script>
     <script>
         // Sparkline helper
         function sparkline(id, data, color) {
