@@ -59,7 +59,13 @@
         </div>
 
         <div id="confirm-actions" style="display:none; width: 100%; flex-direction: column; max-width: 400px; margin: 0 auto;">
-            <div class="edit-controls" id="edit-controls">
+            <div class="edit-controls" id="rotate-controls" style="margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 10px;">
+                <span style="font-size: 14px; color: #aaa;">Rotate:</span>
+                <input type="range" id="rotate-slider" min="-180" max="180" value="0" style="flex: 1; max-width: 180px;">
+                <span id="rotate-val" style="font-size: 14px; width: 35px; text-align: left;">0°</span>
+                <button type="button" id="rotate-90-btn" style="background: #333; border: 1px solid #555; color: white; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">+90°</button>
+            </div>
+            <div class="edit-controls" id="edit-controls" style="margin-top: 0;">
                 <button type="button" class="filter-btn active" data-filter="none">Normal</button>
                 <button type="button" class="filter-btn" data-filter="grayscale">B&W Document</button>
                 <button type="button" class="filter-btn" data-filter="contrast">High Contrast</button>
@@ -87,12 +93,17 @@
         const cropperContainer = document.getElementById('cropper-container');
         const imageToCrop = document.getElementById('image-to-crop');
         const editControls = document.getElementById('edit-controls');
+        const rotateControls = document.getElementById('rotate-controls');
+        const rotateSlider = document.getElementById('rotate-slider');
+        const rotateVal = document.getElementById('rotate-val');
+        const rotate90Btn = document.getElementById('rotate-90-btn');
         const filterBtns = document.querySelectorAll('.filter-btn');
         
         const token = '{{ $token }}';
         
         let cropper = null;
         let currentFilter = 'none';
+        let currentRotation = 0;
         let errorTimeout;
 
         function showError(msg) {
@@ -165,21 +176,22 @@
                 
                 cropper = new Cropper(imageToCrop, {
                     viewMode: 1,
-                    dragMode: 'move',
-                    autoCropArea: 1,
+                    dragMode: 'crop',
+                    autoCropArea: 0.8,
                     restore: false,
                     guides: true,
                     center: true,
-                    highlight: false,
+                    highlight: true,
                     cropBoxMovable: true,
                     cropBoxResizable: true,
-                    toggleDragModeOnDblclick: false,
+                    toggleDragModeOnDblclick: true,
                 });
 
                 // Switch UI
                 captureActions.style.display = 'none';
                 confirmActions.style.display = 'flex';
                 editControls.style.display = 'block';
+                rotateControls.style.display = 'flex';
                 
             } catch (ex) {
                 showError("Capture exception: " + ex.message);
@@ -201,12 +213,16 @@
             // Switch UI
             confirmActions.style.display = 'none';
             editControls.style.display = 'none';
+            rotateControls.style.display = 'none';
             captureActions.style.display = 'block';
             statusMsg.textContent = "Align document and tap to capture";
             statusMsg.style.color = "#fff";
             
-            // Reset filter
+            // Reset filter & rotation
             applyFilter('none');
+            currentRotation = 0;
+            rotateSlider.value = 0;
+            rotateVal.textContent = '0°';
         }
 
         function applyFilter(filterType) {
@@ -231,6 +247,25 @@
             btn.addEventListener('click', (e) => {
                 applyFilter(e.target.dataset.filter);
             });
+        });
+
+        rotateSlider.addEventListener('input', (e) => {
+            currentRotation = parseInt(e.target.value);
+            rotateVal.textContent = currentRotation + '°';
+            if (cropper) {
+                cropper.rotateTo(currentRotation);
+            }
+        });
+
+        rotate90Btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            currentRotation += 90;
+            if (currentRotation > 180) currentRotation -= 360;
+            rotateSlider.value = currentRotation;
+            rotateVal.textContent = currentRotation + '°';
+            if (cropper) {
+                cropper.rotateTo(currentRotation);
+            }
         });
 
         function handleUpload(e) {
