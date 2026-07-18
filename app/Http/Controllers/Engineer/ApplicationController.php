@@ -204,18 +204,58 @@ class ApplicationController extends Controller
         }
 
         $nextStep = null;
+        $forwardOptions = [];
+        $sendBackOptions = [];
+        
         if ($action_type == 'forward' && $application->currentStep) {
-            $nextStep = WorkflowStep::with('role')
+            $eligibleSteps = WorkflowStep::with('role')
                 ->where('workflow_id', $application->workflow_id)
+                ->whereIn('action_type', ['verify', 'approve'])
                 ->where('step_order', '>', $application->currentStep->step_order)
                 ->orderBy('step_order', 'asc')
-                ->first();
+                ->get();
+
+            $divisionId = $application->allottee->division_id ?? null;
+
+            foreach($eligibleSteps as $step) {
+                // Get engineers with this role_id and division_id
+                $engineersQuery = User::on('adms_jshb')->where('role_id', $step->role_id)->where('status', 1);
+                if ($divisionId) {
+                    $engineersQuery->where('division_id', $divisionId);
+                }
+                $engineers = $engineersQuery->get();
+
+                if ($engineers->count() > 0) {
+                    $forwardOptions[] = [
+                        'step' => $step,
+                        'engineers' => $engineers
+                    ];
+                }
+            }
         } elseif ($action_type == 'send_back' && $application->currentStep) {
-            $nextStep = WorkflowStep::with('role')
+            $eligibleSteps = WorkflowStep::with('role')
                 ->where('workflow_id', $application->workflow_id)
                 ->where('step_order', '<', $application->currentStep->step_order)
                 ->orderBy('step_order', 'desc')
-                ->first();
+                ->get();
+            
+            $divisionId = $application->allottee->division_id ?? null;
+
+            foreach($eligibleSteps as $step) {
+                // Get engineers with this role_id and division_id
+                $engineersQuery = User::on('adms_jshb')->where('role_id', $step->role_id)->where('status', 1);
+                if ($divisionId) {
+                    $engineersQuery->where('division_id', $divisionId);
+                }
+                $engineers = $engineersQuery->get();
+
+                if ($engineers->count() > 0) {
+                    $sendBackOptions[] = [
+                        'step' => $step,
+                        'engineers' => $engineers
+                    ];
+                }
+            }
         }
 
         $application->load([
@@ -228,7 +268,7 @@ class ApplicationController extends Controller
 
         $roles = Role::where('id', '!=', Auth::user()->role_id)->get();
 
-        return view('engineer.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep'));
+        return view('engineer.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep', 'forwardOptions', 'sendBackOptions'));
     }
 
     public function processAction(Request $request, Application $application)
@@ -256,18 +296,31 @@ class ApplicationController extends Controller
 
         $nextStep = null;
         $newStatus = $application->status;
+        $targetUser = null;
 
         if ($request->action_type == 'forward') {
-            $nextStep = WorkflowStep::where('workflow_id', $application->workflow_id)
-                ->where('step_order', '>', $application->currentStep->step_order)
-                ->orderBy('step_order', 'asc')
-                ->first();
+            $request->validate([
+                'forward_to_user' => 'required'
+            ]);
+            
+            $parts = explode('|', $request->forward_to_user);
+            $targetUserId = $parts[0] ?? null;
+            $nextStepId = $parts[1] ?? null;
+            
+            $nextStep = WorkflowStep::find($nextStepId);
+            $targetUser = User::on('adms_jshb')->find($targetUserId);
             $newStatus = 'forwarded';
         } elseif ($request->action_type == 'send_back') {
-            $nextStep = WorkflowStep::where('workflow_id', $application->workflow_id)
-                ->where('step_order', '<', $application->currentStep->step_order)
-                ->orderBy('step_order', 'desc')
-                ->first();
+            $request->validate([
+                'send_back_to_user' => 'required'
+            ]);
+            
+            $parts = explode('|', $request->send_back_to_user);
+            $targetUserId = $parts[0] ?? null;
+            $nextStepId = $parts[1] ?? null;
+            
+            $nextStep = WorkflowStep::find($nextStepId);
+            $targetUser = User::on('adms_jshb')->find($targetUserId);
             $newStatus = 'in_progress';
         } elseif ($request->action_type == 'reject') {
             $newStatus = 'rejected';
@@ -282,22 +335,24 @@ class ApplicationController extends Controller
         $previousStepId = $application->current_step_id;
         $previousRoleId = $application->current_role_id;
 
-        $targetUser = null;
         if ($nextStep) {
             $application->current_step_id = $nextStep->id;
             $application->current_role_id = $nextStep->role_id;
             
-            // Find Target User based on division
-            $divisionId = $application->allottee->division_id ?? null;
-            $targetUserQuery = User::on('adms_jshb')->where('role_id', $nextStep->role_id)->where('status', 1);
-
-            if ($divisionId) {
-                $targetUser = (clone $targetUserQuery)->where('division_id', $divisionId)->first();
-                if (!$targetUser) {
+            // If it's a forward or send_back action, we already explicitly know the target user
+            if (!in_array($request->action_type, ['forward', 'send_back'])) {
+                // Find Target User based on division for other actions (approve)
+                $divisionId = $application->allottee->division_id ?? null;
+                $targetUserQuery = User::on('adms_jshb')->where('role_id', $nextStep->role_id)->where('status', 1);
+    
+                if ($divisionId) {
+                    $targetUser = (clone $targetUserQuery)->where('division_id', $divisionId)->first();
+                    if (!$targetUser) {
+                        $targetUser = $targetUserQuery->first();
+                    }
+                } else {
                     $targetUser = $targetUserQuery->first();
                 }
-            } else {
-                $targetUser = $targetUserQuery->first();
             }
                 
             $application->current_user_id = $targetUser ? $targetUser->id : null;
