@@ -162,6 +162,37 @@
                 const context = canvas.getContext('2d');
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
+                // Document/Signature Detection Check
+                let imgData = context.getImageData(0, 0, canvas.width, canvas.height).data;
+                let lightPixels = 0;
+                let darkPixels = 0;
+                let totalPixels = imgData.length / 4;
+                
+                for(let i = 0; i < imgData.length; i += 4) {
+                    // Perceived brightness formula
+                    let brightness = (0.299 * imgData[i] + 0.587 * imgData[i+1] + 0.114 * imgData[i+2]);
+                    
+                    if (brightness > 140) {
+                        lightPixels++; // Count as white/light background
+                    } else if (brightness < 100) {
+                        darkPixels++; // Count as text/ink/stamp
+                    }
+                }
+                
+                let lightRatio = lightPixels / totalPixels;
+                let darkRatio = darkPixels / totalPixels;
+                
+                let isInvalid = false;
+                let captureErrorMsg = "";
+                
+                if (lightRatio < 0.30) {
+                    isInvalid = true;
+                    captureErrorMsg = "Invalid Image! Please ensure the capture has a clear white background (like a document or signature) and good lighting.";
+                } else if (darkRatio < 0.005) {
+                    isInvalid = true;
+                    captureErrorMsg = "No text or signature detected! Please ensure the ink/content is clearly visible.";
+                }
+                
                 let capturedImageData = canvas.toDataURL('image/jpeg', 1.0);
 
                 // Pause video and show cropper
@@ -176,22 +207,31 @@
                 
                 cropper = new Cropper(imageToCrop, {
                     viewMode: 1,
-                    dragMode: 'crop',
-                    autoCropArea: 0.8,
+                    dragMode: 'none', // Prevents drawing a new crop box anywhere
+                    autoCropArea: 0.9,
                     restore: false,
                     guides: true,
                     center: true,
                     highlight: true,
                     cropBoxMovable: true,
                     cropBoxResizable: true,
-                    toggleDragModeOnDblclick: true,
+                    toggleDragModeOnDblclick: false,
                 });
 
                 // Switch UI
                 captureActions.style.display = 'none';
                 confirmActions.style.display = 'flex';
-                editControls.style.display = 'block';
-                rotateControls.style.display = 'flex';
+                
+                if (isInvalid) {
+                    editControls.style.display = 'none';
+                    rotateControls.style.display = 'none';
+                    uploadBtn.style.display = 'none';
+                    showError(captureErrorMsg);
+                } else {
+                    editControls.style.display = 'block';
+                    rotateControls.style.display = 'flex';
+                    uploadBtn.style.display = 'block';
+                }
                 
             } catch (ex) {
                 showError("Capture exception: " + ex.message);
