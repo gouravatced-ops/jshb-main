@@ -31,7 +31,8 @@ trait DocumentUploadTrait
         $yyyy,
         $mm,
         $dd,
-        $oldFilePath = null
+        $oldFilePath = null,
+        $extraData = []
     ) {
         // Delete old file if provided
         if (!empty($oldFilePath)) {
@@ -50,6 +51,10 @@ trait DocumentUploadTrait
             'mm'              => $mm,
             'dd'              => $dd,
         ];
+
+        if (!empty($extraData)) {
+            $apiPayload = array_merge($apiPayload, $extraData);
+        }
 
         Log::info('Document API Request', [
             'url'     => env('DOC_API_URL'),
@@ -78,6 +83,75 @@ trait DocumentUploadTrait
             ];
         } else {
             throw new \Exception('Failed to upload document to API: ' . $response->body());
+        }
+    }
+
+    /**
+     * Upload raw file content via the central Document API.
+     *
+     * @param string $fileContent The raw file content (e.g. generated PDF stream).
+     * @param string $fileName The name of the file to save as.
+     * @param string $category The category (e.g. 'ALLOTMENT').
+     * @param string $schemeCode The scheme code.
+     * @param string $propertyNumber The property number.
+     * @param string|int $yyyy Year
+     * @param string|int $mm Month
+     * @param string|int $dd Day
+     * @return array [ 'file_path' => ..., 'file_name' => ... ]
+     * @throws \Exception
+     */
+    public function uploadContentToDocumentApi(
+        $fileContent,
+        $fileName,
+        $category,
+        $schemeCode,
+        $propertyNumber,
+        $yyyy,
+        $mm,
+        $dd,
+        $extraData = []
+    ) {
+        $apiPayload = [
+            'project'         => 'jshb',
+            'category'        => $category,
+            'scheme_code'     => $schemeCode ?? 'SCH',
+            'property_number' => $propertyNumber ?? 'PROP',
+            'yyyy'            => $yyyy,
+            'mm'              => $mm,
+            'dd'              => $dd,
+        ];
+
+        if (!empty($extraData)) {
+            $apiPayload = array_merge($apiPayload, $extraData);
+        }
+
+        Log::info('Document API Request (Content)', [
+            'url'     => env('DOC_API_URL'),
+            'payload' => $apiPayload,
+            'file'    => $fileName
+        ]);
+
+        $response = Http::withToken(env('DOC_API_TOKEN'))
+            ->withHeaders(['X-API-KEY' => env('DOC_API_TOKEN')])
+            ->attach('file', $fileContent, $fileName)
+            ->post(env('DOC_API_URL'), $apiPayload);
+
+        Log::info('Document API Response', [
+            'status'   => $response->status(),
+            'response' => $response->json()
+        ]);
+
+        if ($response->successful() && $response->json('status') === 'success') {
+            $responseData = $response->json('data');
+            $receiptPath = ltrim($responseData['file_path'], '/');
+            $receiptFile = basename($receiptPath);
+
+            return [
+                'file_path' => $receiptPath,
+                'file_name' => $receiptFile
+            ];
+        } else {
+            throw new \Exception('Failed to upload document content to API: ' . $response->body());
         }
     }
 }

@@ -15,9 +15,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Traits\DocumentUploadTrait;
 
 class ApplicationController extends Controller
 {
+    use DocumentUploadTrait;
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -195,7 +198,7 @@ class ApplicationController extends Controller
 
     public function actionForm(Application $application, $action_type)
     {
-        $validActions = ['forward', 'send_back', 'reject', 'verify', 'approve', 'add_note'];
+        $validActions = ['forward', 'send_back', 'reject', 'approve', 'add_note'];
         if(!in_array($action_type, $validActions)) {
             abort(404);
         }
@@ -236,6 +239,20 @@ class ApplicationController extends Controller
         ]);
 
         $user = Auth::user();
+
+        if ($request->action_type == 'add_note') {
+            ApplicationNote::create([
+                'application_id' => $application->id,
+                'user_id' => $user->id,
+                'role_id' => $user->role_id,
+                'remarks' => $request->remarks,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            
+            return redirect()->route('engineer.applications.show', $application)
+                ->with('success', 'Note added successfully.');
+        }
 
         $nextStep = null;
         $newStatus = $application->status;
@@ -288,6 +305,83 @@ class ApplicationController extends Controller
         $application->status = $newStatus;
         $application->save();
 
+        if ($newStatus === 'completed') {
+            try {
+                $allottee = $application->allottee;
+                
+                // 1. Generate PDF
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
+                    ->setOptions([
+                        'isRemoteEnabled' => false,
+                        'isHtml5ParserEnabled' => true,
+                        'chroot' => [public_path(), storage_path(), base_path()]
+                    ])
+                    ->setPaper('a4', 'portrait');
+                    
+                $pdfContent = $pdf->output();
+                $fileName = 'allotment_letter_' . ($allottee->allotment_no ?? $application->application_no) . '_' . time() . '.pdf';
+
+                // 2. Upload to Document API
+                $scheme = $allottee->scheme ?? null;
+                $yyyy = date('Y');
+                $mm = date('m');
+                $dd = date('d');
+                
+                $extraData = [
+                    'application_for' => $application->application_type ?? '',
+                    'division_code' => $allottee->division->division_code ?? '',
+                    'subdivision_code' => $allottee->subDivision->subdivision_code ?? '',
+                    'property_category' => $allottee->propertyCategory->category_code ?? '',
+                    'property_type' => $allottee->propertyType->type_code ?? '',
+                    'property_income' => $allottee->quarterType->quarter_code ?? '',
+                    'username' => $allottee->username ?? ''
+                ];
+
+                $uploadResult = $this->uploadContentToDocumentApi(
+                    $pdfContent,
+                    $fileName,
+                    'ALLOTMENT_LETTER',
+                    $scheme->scheme_code ?? 'SCH',
+                    $allottee->property_number ?? 'PROP',
+                    $yyyy,
+                    $mm,
+                    $dd,
+                    $extraData
+                );
+
+                // 3. Save to application_documents
+                \App\Models\ApplicationDocument::create([
+                    'application_id' => $application->id,
+                    'movement_id'    => null,
+                    'document_type'  => 'ALLOTMENT_LETTER',
+                    'document_name'  => 'Allotment Letter (Auto Generated)',
+                    'file_name'      => $uploadResult['file_name'],
+                    'file_path'      => $uploadResult['file_path'],
+                    'file_size'      => strlen($pdfContent),
+                    'file_mime_type' => 'application/pdf',
+                    'uploaded_by'    => $user->id,
+                    'uploader_type'  => 'System',
+                    'uploaded_at'    => now(),
+                ]);
+
+                // 4. Save to allottee_generated_documents
+                \App\Models\AllotteeGeneratedDocument::create([
+                    'allottee_id'    => $allottee->id,
+                    'document_name'  => 'Allotment Letter',
+                    'document_type'  => 'allotment-letter',
+                    'file_name'      => $uploadResult['file_name'],
+                    'file_path'      => $uploadResult['file_path'],
+                    'generated_by'   => $user->id,
+                    'generated_at'   => now(),
+                    'issue_date'     => now()->format('Y-m-d'),
+                    'document_number'=> $allottee->allotment_no ?? $application->application_no
+                ]);
+
+            } catch (\Exception $e) {
+                Log::error("Failed to auto-generate allotment PDF: " . $e->getMessage());
+            }
+        }
+
         // Save the noting/remarks
         ApplicationNote::create([
             'application_id' => $application->id,
@@ -303,9 +397,7 @@ class ApplicationController extends Controller
             'forward' => 'forwarded',
             'send_back' => 'send_back',
             'reject' => 'rejected',
-            'approve' => 'approved',
-            'verify' => 'verified',
-            'add_note' => 'received' // default or whatever fits
+            'approve' => 'approved'
         ];
         
         $dbActionType = $actionEnumMap[$request->action_type] ?? 'forwarded';
@@ -375,5 +467,93 @@ class ApplicationController extends Controller
         $application->save();
 
         return redirect()->route('engineer.applications.index')->with('success', 'Application workflow has been completely reset and started over.');
+    }
+
+    public function uploadDocument(Request $request, Application $application)
+    {
+        $request->validate([
+            'document_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120' // 5MB max
+        ]);
+
+        $file = $request->file('document_file');
+        
+        $allottee = $application->allottee;
+        $schemeCode = $allottee->scheme->scheme_code ?? 'SCH';
+        $propertyNumber = $allottee->property_number ?? 'PROP';
+        $yyyy = date('Y');
+        $mm = date('m');
+        $dd = date('d');
+
+        $extraData = [
+            'application_for' => $application->application_type ?? '',
+            'division_code' => $allottee->division->division_code ?? '',
+            'subdivision_code' => $allottee->subDivision->subdivision_code ?? '',
+            'property_category' => $allottee->propertyCategory->category_code ?? '',
+            'property_type' => $allottee->propertyType->type_code ?? '',
+            'property_income' => $allottee->quarterType->quarter_code ?? '',
+            'username' => $allottee->username ?? ''
+        ];
+
+        try {
+            $uploadResult = $this->uploadToDocumentApi(
+                $file,
+                'APPLICATION',
+                $schemeCode,
+                $propertyNumber,
+                $yyyy,
+                $mm,
+                $dd,
+                null,
+                $extraData
+            );
+            
+            $path = $uploadResult['file_path'];
+            $originalName = $uploadResult['file_name'];
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to upload document to Document Store: ' . $e->getMessage());
+        }
+
+        $userType = Auth::user()->user_type ?? 'engineer';
+        $latestMovement = $application->movements()->latest()->first();
+
+        \App\Models\ApplicationDocument::create([
+            'application_id' => $application->id,
+            'movement_id' => $latestMovement ? $latestMovement->id : null,
+            'document_type' => $userType . '_upload',
+            'document_name' => ucfirst($userType) . ' Upload',
+            'file_name' => $originalName,
+            'file_path' => $path,
+            'file_size' => $file->getSize(),
+            'file_mime_type' => $file->getMimeType(),
+            'uploaded_by' => Auth::id(),
+            'uploader_type' => $userType,
+            'uploaded_at' => now()
+        ]);
+
+        return redirect()->back()->with('success', 'Document uploaded successfully.');
+    }
+
+    public function previewNotesPdf(Application $application)
+    {
+        $application->load(['notes' => function($query) {
+            $query->orderBy('id', 'asc');
+        }, 'notes.user', 'notes.role', 'notes.user.division']);
+
+        $localPath = str_replace('\\', '/', storage_path('app/public/'));
+        foreach($application->notes as $note) {
+            if ($note->remarks) {
+                $note->remarks = preg_replace('/https?:\/\/[^\/]+\/storage\//i', $localPath, $note->remarks);
+            }
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('engineer.applications.notes-pdf', compact('application'))
+            ->setOptions([
+                'isRemoteEnabled' => false, 
+                'isHtml5ParserEnabled' => true,
+                'chroot' => [public_path(), storage_path(), base_path()]
+            ])
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('application_' . $application->application_no . '_notes.pdf');
     }
 }

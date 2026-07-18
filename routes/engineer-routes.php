@@ -20,6 +20,8 @@ Route::middleware('auth')
         Route::get('/applications/{application}/action/{action_type}', [App\Http\Controllers\Engineer\ApplicationController::class, 'actionForm'])->name('applications.action.form');
         Route::post('/applications/{application}/action', [App\Http\Controllers\Engineer\ApplicationController::class, 'processAction'])->name('applications.action');
         Route::post('/applications/{application}/reset', [App\Http\Controllers\Engineer\ApplicationController::class, 'resetWorkflow'])->name('applications.reset');
+        Route::post('/applications/{application}/upload-document', [App\Http\Controllers\Engineer\ApplicationController::class, 'uploadDocument'])->name('applications.upload-document');
+        Route::get('/applications/{application}/notes-pdf', [App\Http\Controllers\Engineer\ApplicationController::class, 'previewNotesPdf'])->name('applications.notes.pdf');
 
         // Assets (Signatures, Stamps)
         Route::get('/assets', [App\Http\Controllers\Engineer\AssetController::class, 'index'])->name('assets.index');
