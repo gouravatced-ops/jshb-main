@@ -61,6 +61,7 @@ class ApplicationService
                         return $query->where('division_id', $divisionId);
                     })
                     ->where('status', 1)
+                    ->orderByDesc('is_default')
                     ->first() : null;
                 
                 $applicationNo = 'APL-' . date('Y') . '-' . rand(12345678, 99999999);
@@ -86,11 +87,11 @@ class ApplicationService
                 $systemMovement = ApplicationMovement::create([
                     'application_id' => $application->id,
                     'from_user_id' => auth()->id(),
-                    'to_user_id' => $targetUser ? $targetUser->id : auth()->id(), 
+                    'to_user_id' => null, 
                     'from_role_id' => auth()->check() ? auth()->user()->role_id : null,
-                    'to_role_id' => $nextStep ? $nextStep->role_id : ($startingStep ? $startingStep->role_id : null),
+                    'to_role_id' => null,
                     'from_step_id' => $startingStep ? $startingStep->id : null,
-                    'to_step_id' => $nextStep ? $nextStep->id : ($startingStep ? $startingStep->id : null),
+                    'to_step_id' => null,
                     'action_type' => 'created',
                     'status' => 'completed',
                     'remarks' => 'Application created by system',
@@ -157,7 +158,7 @@ class ApplicationService
                         'application_id' => $application->id,
                         'from_user_id' => auth()->id() ?? 1,
                         'to_user_id' => $targetUser ? $targetUser->id : null,
-                        'from_role_id' => $startingStep->role_id,
+                        'from_role_id' => auth()->check() ? auth()->user()->role_id : $startingStep->role_id,
                         'to_role_id' => $nextStep->role_id,
                         'from_step_id' => $startingStep->id,
                         'to_step_id' => $nextStep->id,

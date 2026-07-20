@@ -95,6 +95,11 @@
                                     <option value="1" {{ old('login_with_otp') === '1' ? 'selected' : '' }}>Enabled (Requires OTP)</option>
                                 </select>
                             </div>
+
+                            <div class="form-group" style="display:flex; align-items:center; gap: 10px; margin-top: 30px;">
+                                <input type="checkbox" name="is_default" id="isDefault" value="1" {{ old('is_default') ? 'checked' : '' }} style="width:20px; height:20px;">
+                                <label for="isDefault" style="margin:0; cursor:pointer;">Set as Default Member for this Role/Division</label>
+                            </div>
                         </div>
                     </div>
 

@@ -29,3 +29,6 @@ storage
 documents
 config/database.php
 /.agents
+/routes/dev.php
+/app/Http/Controllers/Dev/
+/resources/views/dev/

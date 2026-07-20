@@ -193,7 +193,15 @@ class ApplicationController extends Controller
             'documents'
         ]);
 
-        return view('engineer.applications.show', compact('application'));
+        $documentMasters = \App\Models\DocumentMaster::where('status', 1)->orderBy('sort_order')->get();
+        $allotteeDocuments = $application->allottee_id ? \App\Models\AllotteeDocument::where('allottee_id', $application->allottee_id)
+            ->with('document')
+            ->get() : collect();
+        $documentRequests = \App\Models\DocumentRequest::where('application_id', $application->id)
+            ->with(['documentMaster', 'requestedBy', 'uploadedDocument'])
+            ->get();
+
+        return view('engineer.applications.show', compact('application', 'documentMasters', 'allotteeDocuments', 'documentRequests'));
     }
 
     public function actionForm(Application $application, $action_type)
@@ -610,5 +618,52 @@ class ApplicationController extends Controller
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream('application_' . $application->application_no . '_notes.pdf');
+    }
+    public function requestDocument(Request $request)
+    {
+        $request->validate([
+            'application_id' => 'required|exists:applications,id',
+            'allottee_id' => 'required',
+            'document_master_id' => 'required',
+        ]);
+
+        $existingRequest = \App\Models\DocumentRequest::where('application_id', $request->application_id)
+            ->where('document_master_id', $request->document_master_id)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existingRequest) {
+            return back()->with('error', 'This document is already requested and pending.');
+        }
+
+        $docRequest = \App\Models\DocumentRequest::create([
+            'application_id' => $request->application_id,
+            'allottee_id' => $request->allottee_id,
+            'document_master_id' => $request->document_master_id,
+            'requested_by' => \Illuminate\Support\Facades\Auth::id(),
+            'remarks' => $request->remarks,
+            'expires_at' => now()->addDays(2),
+            'status' => 'pending'
+        ]);
+
+        $allottee = \App\Models\Allottee::find($request->allottee_id);
+        if ($allottee && $allottee->user_id) {
+            $message = 'Engineer has requested an additional document for your application. Please upload within 2 days.';
+            \Illuminate\Support\Facades\DB::table('notifications')->insert([
+                'application_id' => $request->application_id,
+                'user_id' => $allottee->user_id,
+                'notification_type' => 'document_request',
+                'subject' => 'Document Request - Action Required',
+                'message' => $message,
+                'link' => '/allottee/dashboard',
+                'is_read' => 0,
+                'is_email_sent' => 0,
+                'is_sms_sent' => 0,
+                'is_whatsapp_sent' => 0,
+                'created_at' => now(),
+            ]);
+        }
+
+        return back()->with('success', 'Document request sent to the allottee.');
     }
 }

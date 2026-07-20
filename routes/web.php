@@ -135,6 +135,11 @@ Route::middleware('auth')->group(function () {
 );
 });
 
+// Development Routes
+if (file_exists(base_path('routes/dev.php'))) {
+    require base_path('routes/dev.php');
+}
+
 // Photo Capture Routes
 Route::post('/api/photo-session/generate', [App\Http\Controllers\PhotoCaptureController::class, 'generateToken'])->name('photo-session.generate');
 Route::get('/api/photo-session/check/{token}', [App\Http\Controllers\PhotoCaptureController::class, 'checkSession'])->name('photo-session.check');

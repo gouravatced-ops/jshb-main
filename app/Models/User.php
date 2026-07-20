@@ -74,6 +74,7 @@ class User extends Authenticatable
         'failed_login_attempts',
         'account_blocked_until',
         'has_been_blocked_once',
+        'is_default',
     ];
 
     /**

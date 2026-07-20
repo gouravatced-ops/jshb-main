@@ -93,6 +93,9 @@
     <div class="compact-card col-span-6">
         <div class="compact-card-header header-green">
             <span><i class="fa-solid fa-user-shield"></i> Allottee Information</span>
+            <button type="button" class="btn btn-sm" style="background: #1b5e20; color: #ffffff; border: none; padding: 3px 10px; font-size: 11px; float: right; font-weight: 600;" data-bs-toggle="modal" data-bs-target="#allotteeShowMoreModal">
+                Show More
+            </button>
         </div>
         <div class="compact-card-body">
             @if($application->allottee)
@@ -215,6 +218,95 @@
                     <div>No application notes available</div>
                 </div>
             @endif
+        </div>
+    </div>
+
+    <!-- Allottee Central Documents & Requests (col-12) -->
+    <div class="compact-card col-span-12">
+        <div class="compact-card-header header-blue" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span><i class="fa-solid fa-folder-tree"></i> Allottee Central Documents & Requests</span>
+            </div>
+            <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#requestDocModal" style="background: #17a2b8; color: white; border: none;"><i class="fa-solid fa-plus"></i> Request Additional Document</button>
+        </div>
+        <div class="compact-card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="compact-table">
+                    <thead>
+                        <tr>
+                            <th>Document Name</th>
+                            <th>Status / Source</th>
+                            <th>Remarks</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($allotteeDocuments as $adoc)
+                        <tr>
+                            <td style="font-weight: 500;">
+                                {{ $adoc->document ? $adoc->document->document_name : 'Unknown' }}
+                                <div style="color: #888; font-size: 11px;">{{ \Illuminate\Support\Str::limit($adoc->file_name, 30) }}</div>
+                            </td>
+                            <td><span class="badge-compact badge-normal" style="background:#d4edda; color:#155724;">Uploaded by Allottee</span></td>
+                            <td style="color: #666; font-size: 12px;">{{ $adoc->remarks ?: '-' }}</td>
+                            <td style="text-align: right;">
+                                @if($adoc->file_path)
+                                    @php
+                                        $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
+                                        $previewSrc = $docBaseUrl . '/' . ltrim($adoc->file_path, '/');
+                                    @endphp
+                                    <button type="button" onclick="viewDocument('{{ $previewSrc }}', '{{ addslashes($adoc->document ? $adoc->document->document_name : '') }}')" class="btn-compact" style="border: none; cursor: pointer;">
+                                        <i class="fa-solid fa-eye" style="font-size: 10px;"></i> View
+                                    </button>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        @endforelse
+
+                        @forelse($documentRequests as $req)
+                        <tr style="background: #fdfdfd;">
+                            <td style="font-weight: 500; color: {{ $req->status == 'pending' ? '#d97706' : ($req->status == 'expired' ? '#dc3545' : '#28a745') }};">
+                                {{ $req->documentMaster ? $req->documentMaster->document_name : 'Unknown' }}
+                                <div style="color: #888; font-size: 11px;">Requested by: {{ $req->requestedBy ? $req->requestedBy->name : 'Engineer' }}</div>
+                            </td>
+                            <td>
+                                @if($req->status == 'pending')
+                                    <span class="badge-compact" style="background:#fff3cd; color:#856404;">Pending Request (Expires: {{ $req->expires_at->format('d-M-Y H:i') }})</span>
+                                @elseif($req->status == 'expired')
+                                    <span class="badge-compact" style="background:#f8d7da; color:#721c24;">Request Expired</span>
+                                @elseif($req->status == 'uploaded')
+                                    <span class="badge-compact" style="background:#d4edda; color:#155724;">Fulfilled</span>
+                                @endif
+                            </td>
+                            <td style="color: #666; font-size: 12px;">{{ $req->remarks ?: '-' }}</td>
+                            <td style="text-align: right;">
+                                @if($req->status == 'uploaded' && $req->uploadedDocument && $req->uploadedDocument->file_path)
+                                    @php
+                                        $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
+                                        $previewSrc = $docBaseUrl . '/' . ltrim($req->uploadedDocument->file_path, '/');
+                                    @endphp
+                                    <button type="button" onclick="viewDocument('{{ $previewSrc }}', '{{ addslashes($req->documentMaster ? $req->documentMaster->document_name : '') }}')" class="btn-compact" style="border: none; cursor: pointer;">
+                                        <i class="fa-solid fa-eye" style="font-size: 10px;"></i> View Upload
+                                    </button>
+                                @elseif($req->status == 'pending')
+                                    <span style="font-size: 12px; color: #888;">Waiting for upload...</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        @endforelse
+
+                        @if($allotteeDocuments->isEmpty() && $documentRequests->isEmpty())
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #999; padding: 20px;">
+                                No central documents or requests found for this allottee.
+                            </td>
+                        </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -433,6 +525,52 @@
     </div>
   </div>
 </div>
+
+<!-- Request Document Modal -->
+<div class="modal fade" id="requestDocModal" tabindex="-1" aria-labelledby="requestDocModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content upload-modal-content">
+      <div class="modal-header upload-modal-header" style="background: #17a2b8; border-bottom: none;">
+        <h5 class="modal-title upload-modal-title" id="requestDocModalLabel" style="color: white;">
+            <i class="fa-solid fa-file-circle-plus"></i> Request Additional Document
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ route('engineer.document-requests.store') }}" method="POST">
+        @csrf
+        <input type="hidden" name="application_id" value="{{ $application->id }}">
+        <input type="hidden" name="allottee_id" value="{{ $application->allottee_id }}">
+        <div class="modal-body upload-modal-body" style="padding: 24px;">
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
+                <i class="fa-solid fa-circle-info" style="color: #17a2b8;"></i>
+                The allottee will be notified via SMS, WhatsApp, and Email. They will have <strong>2 days</strong> to upload this document before the request expires.
+            </p>
+            
+            <div class="form-group mb-3">
+                <label style="font-weight: 500; font-size: 13px; color: #444; margin-bottom: 6px; display: block;">Select Document Type <span class="text-danger">*</span></label>
+                <select name="document_master_id" class="form-select" required style="border-radius: 6px; border: 1px solid #dce1e6;">
+                    <option value="" disabled selected>-- Select Document --</option>
+                    @foreach($documentMasters as $dm)
+                        <option value="{{ $dm->id }}">{{ $dm->document_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="form-group mb-0">
+                <label style="font-weight: 500; font-size: 13px; color: #444; margin-bottom: 6px; display: block;">Remarks / Instructions</label>
+                <textarea name="remarks" class="form-control" rows="3" placeholder="Provide specific instructions for the allottee..." style="border-radius: 6px; border: 1px solid #dce1e6; resize: none;"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer upload-modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border: 1px solid #dce1e6; font-weight: 500;">Cancel</button>
+            <button type="submit" class="btn btn-info" style="background: #17a2b8; color: white; border: none; font-weight: 500; padding: 8px 20px;">
+                <i class="fa-solid fa-paper-plane"></i> Send Request
+            </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.querySelector('.upload-file-input');
@@ -511,5 +649,60 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('documentImage').src = '';
     });
 </script>
+
+<!-- Allottee Show More Modal -->
+<div class="modal fade" id="allotteeShowMoreModal" tabindex="-1" aria-labelledby="allotteeShowMoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 8px;">
+            <div class="modal-header header-green" style="border-radius: 8px 8px 0 0; color: rgb(3, 73, 24);">
+                <h5 class="modal-title" id="allotteeShowMoreModalLabel">
+                    <i class="fa-solid fa-list-ul me-2"></i> Additional Allottee Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="background: #fdfdfd;">
+                @if($application->allottee)
+                <table class="table table-bordered table-striped" style="font-size: 13px;">
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: 600; width: 40%; color: #555;">Division</td>
+                            <td>{{ $application->allottee->division ? $application->allottee->division->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Sub Division</td>
+                            <td>{{ $application->allottee->subDivision ? $application->allottee->subDivision->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Property No</td>
+                            <td><strong style="color: #1b5e20;">{{ $application->allottee->property_number ?? 'N/A' }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Property Category</td>
+                            <td>{{ $application->allottee->propertyCategory ? $application->allottee->propertyCategory->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Property Type</td>
+                            <td>{{ $application->allottee->propertyType ? $application->allottee->propertyType->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Property Sub Type</td>
+                            <td>{{ $application->allottee->propertySubType ? $application->allottee->propertySubType->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Quarter Type</td>
+                            <td>{{ $application->allottee->quarterType ? $application->allottee->quarterType->quarter_name : 'N/A' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                @else
+                <div class="text-center text-muted">No Additional Details Found.</div>
+                @endif
+            </div>
+            <div class="modal-footer" style="background: #f5f5f5; border-radius: 0 0 8px 8px;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection

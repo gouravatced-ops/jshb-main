@@ -30,6 +30,8 @@ class Notification extends Model
         'sms_sent_at',
         'is_push_sent',
         'push_sent_at',
+        'is_whatsapp_sent',
+        'whatsapp_sent_at',
     ];
 
     protected $casts = [
@@ -37,10 +39,12 @@ class Notification extends Model
         'email_sent_at' => 'datetime',
         'sms_sent_at' => 'datetime',
         'push_sent_at' => 'datetime',
+        'whatsapp_sent_at' => 'datetime',
         'is_read' => 'boolean',
         'is_email_sent' => 'boolean',
         'is_sms_sent' => 'boolean',
         'is_push_sent' => 'boolean',
+        'is_whatsapp_sent' => 'boolean',
     ];
 
     public function application()
