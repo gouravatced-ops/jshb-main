@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Workflow;
 use App\Models\WorkflowStep;
 use App\Models\Role;
+use App\Models\DocumentMaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -82,11 +83,12 @@ class WorkflowController extends Controller
         }
 
         $roles = Role::orderBy('name')->get();
+        $documents = DocumentMaster::orderBy('document_name')->get();
         $workflow = new Workflow([
             'is_active' => 1,
         ]);
 
-        return view('admin.workflows.add', compact('roles', 'workflow'));
+        return view('admin.workflows.add', compact('roles', 'workflow', 'documents'));
     }
 
     public function store(Request $request)
@@ -126,6 +128,10 @@ class WorkflowController extends Controller
                     ]);
                 }
             }
+
+            if (isset($data['required_documents']) && is_array($data['required_documents'])) {
+                $workflow->requiredDocuments()->sync($data['required_documents']);
+            }
         });
 
         return redirect()
@@ -140,9 +146,10 @@ class WorkflowController extends Controller
         }
 
         $roles = Role::orderBy('name')->get();
-        $workflow->load('steps');
+        $documents = DocumentMaster::orderBy('document_name')->get();
+        $workflow->load('steps', 'requiredDocuments');
 
-        return view('admin.workflows.edit', compact('workflow', 'roles'));
+        return view('admin.workflows.edit', compact('workflow', 'roles', 'documents'));
     }
 
     public function update(Request $request, Workflow $workflow)
@@ -213,6 +220,12 @@ class WorkflowController extends Controller
 
             // Delete removed steps
             $workflow->steps()->whereNotIn('id', $existingStepIds)->delete();
+            
+            if (isset($data['required_documents']) && is_array($data['required_documents'])) {
+                $workflow->requiredDocuments()->sync($data['required_documents']);
+            } else {
+                $workflow->requiredDocuments()->sync([]);
+            }
         });
 
         return redirect()
@@ -288,6 +301,8 @@ class WorkflowController extends Controller
             'steps.*.is_starting_step' => ['nullable', 'boolean'],
             'steps.*.is_final_step' => ['nullable', 'boolean'],
             'steps.*.notification_template' => ['nullable', 'string'],
+            'required_documents' => ['nullable', 'array'],
+            'required_documents.*' => ['integer'],
         ]);
     }
 

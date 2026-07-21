@@ -18,4 +18,11 @@ class DocumentMaster extends Model
         'sort_order',
         'status'
     ];
+
+    public function workflows()
+    {
+        return $this->belongsToMany(Workflow::class, 'workflow_document_master', 'document_master_id', 'workflow_id')
+                    ->withPivot('is_required')
+                    ->withTimestamps();
+    }
 }

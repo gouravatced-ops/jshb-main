@@ -190,7 +190,9 @@ class ApplicationController extends Controller
                 $q->orderBy('created_at', 'desc');
             },
             'notes.user',
-            'documents'
+            'notes.user',
+            'documents',
+            'workflow.requiredDocuments'
         ]);
 
         $documentMasters = \App\Models\DocumentMaster::where('status', 1)->orderBy('sort_order')->get();
@@ -200,8 +202,12 @@ class ApplicationController extends Controller
         $documentRequests = \App\Models\DocumentRequest::where('application_id', $application->id)
             ->with(['documentMaster', 'requestedBy', 'uploadedDocument'])
             ->get();
+            
+        $requiredDocumentIds = $application->workflow && $application->workflow->requiredDocuments 
+            ? $application->workflow->requiredDocuments->pluck('id')->toArray() 
+            : [];
 
-        return view('engineer.applications.show', compact('application', 'documentMasters', 'allotteeDocuments', 'documentRequests'));
+        return view('engineer.applications.show', compact('application', 'documentMasters', 'allotteeDocuments', 'documentRequests', 'requiredDocumentIds'));
     }
 
     public function actionForm(Application $application, $action_type)
@@ -649,18 +655,31 @@ class ApplicationController extends Controller
         $allottee = \App\Models\Allottee::find($request->allottee_id);
         if ($allottee && $allottee->user_id) {
             $message = 'Engineer has requested an additional document for your application. Please upload within 2 days.';
-            \Illuminate\Support\Facades\DB::table('notifications')->insert([
-                'application_id' => $request->application_id,
+            
+            // Get the document name
+            $documentMaster = \App\Models\DocumentMaster::find($request->document_master_id);
+            $docName = $documentMaster ? $documentMaster->document_name : 'Requested Document';
+            $dueDate = now()->addDays(2)->format('d M Y, h:i A');
+            $dashboardUrl = url('/dashboard'); // Link to allottee dashboard
+            
+            $customMailable = new \App\Mail\DocumentRequestMail(
+                $allottee->user->name ?? 'Allottee',
+                $docName,
+                $dueDate,
+                $dashboardUrl,
+                $message
+            );
+            
+            app(\App\Services\NotificationService::class)->send([
                 'user_id' => $allottee->user_id,
                 'notification_type' => 'document_request',
                 'subject' => 'Document Request - Action Required',
                 'message' => $message,
-                'link' => '/allottee/dashboard',
-                'is_read' => 0,
-                'is_email_sent' => 0,
-                'is_sms_sent' => 0,
-                'is_whatsapp_sent' => 0,
-                'created_at' => now(),
+                'send_email' => true,
+                'send_sms' => true,
+                'send_whatsapp' => true,
+                'link' => '/dashboard',
+                'mailable' => $customMailable
             ]);
         }
 

@@ -1,5 +1,12 @@
 <!-- Common Settings and Footer for all roles -->
 <div class="nav-item-wrap">
+    <a class="nav-link-custom {{ request()->routeIs('my-notifications.index') ? 'active' : '' }}" href="{{ route('my-notifications.index') }}">
+        <div class="nav-icon"><i class="fa-solid fa-bell"></i></div>
+        <span class="nav-text">My Notifications</span>
+    </a>
+</div>
+
+<div class="nav-item-wrap">
     <div class="nav-link-custom" onclick="toggleSubmenu('settingsub',this)">
         <div class="nav-icon">
             <i class="fa-solid fa-sliders"></i>

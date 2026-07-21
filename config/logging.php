@@ -93,6 +93,34 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'notification_log' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/notification.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
+        'send_mail' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/send_mail.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
+        'sms' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/sms.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
+        'whatsapp' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/whatsapp.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

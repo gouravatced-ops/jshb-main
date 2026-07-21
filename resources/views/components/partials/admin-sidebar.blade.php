@@ -57,6 +57,16 @@
                 </a>
             </div>
         </div>
+        
+        <!-- Notifications -->
+        <div class="nav-item-wrap">
+            <a class="nav-link-custom {{ request()->routeIs('admin.notifications.index') ? 'active' : '' }}" href="{{ route('admin.notifications.index') }}">
+                <div class="nav-icon">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <span class="nav-text">Notify Engineers</span>
+            </a>
+        </div>
     @endif
 
     <!-- Workflows -->

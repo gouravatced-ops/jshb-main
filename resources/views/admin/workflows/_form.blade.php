@@ -64,6 +64,30 @@
         </div>
     </div>
 
+    <!-- Required Documents Section -->
+    <div class="form-section mt-4" style="margin-top: 30px;">
+        <h5 class="section-title">Required Documents</h5>
+        <div class="form-group full-width">
+            <p class="text-muted" style="font-size: 13px;">Select the documents that engineers can request from allottees for this workflow.</p>
+            <div class="checkbox-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
+                @php
+                    $selectedDocs = old('required_documents', isset($workflow) && $workflow->exists ? $workflow->requiredDocuments->pluck('id')->toArray() : []);
+                @endphp
+                @foreach($documents as $doc)
+                    <label class="custom-checkbox" style="display: flex; align-items: center; background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0; cursor: pointer;">
+                        <input type="checkbox" name="required_documents[]" value="{{ $doc->id }}" 
+                            {{ in_array($doc->id, $selectedDocs) ? 'checked' : '' }}
+                            style="margin-right: 10px; width: 16px; height: 16px;">
+                        <span>{{ $doc->document_name }}</span>
+                    </label>
+                @endforeach
+            </div>
+            @error('required_documents')
+                <div class="invalid-feedback" style="display:block;">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-3 mt-4" style="display: flex; justify-content: space-between; margin-bottom: 15px; margin-top: 30px;">
         <h5 class="section-title" style="margin:0; border:none; padding:0;">Workflow Steps</h5>
         <button type="button" class="btn-submit" id="addStepBtn" style="padding: 8px 15px;">

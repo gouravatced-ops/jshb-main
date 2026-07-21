@@ -28,4 +28,11 @@ class Workflow extends Model
     {
         return $this->hasMany(Application::class, 'workflow_id');
     }
+
+    public function requiredDocuments()
+    {
+        return $this->belongsToMany(DocumentMaster::class, 'workflow_document_master', 'workflow_id', 'document_master_id')
+                    ->withPivot('is_required')
+                    ->withTimestamps();
+    }
 }

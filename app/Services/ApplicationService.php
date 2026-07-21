@@ -83,6 +83,21 @@ class ApplicationService
                     'created_by' => auth()->id() ?? 1,
                 ]);
 
+                // Notify Allottee
+                if ($allottee->user_id) {
+                    app(\App\Services\NotificationService::class)->send([
+                        'user_id' => $allottee->user_id,
+                        'notification_type' => 'success',
+                        'subject' => 'Application Created',
+                        'message' => "Your application ({$applicationNo}) for {$applicationType} has been successfully created.",
+                        'send_email' => true,
+                        'send_sms' => true,
+                        'send_whatsapp' => true,
+                        'link' => null
+                    ]);
+                }
+
+
                 // 1. Create Application Movement (System Generation)
                 $systemMovement = ApplicationMovement::create([
                     'application_id' => $application->id,

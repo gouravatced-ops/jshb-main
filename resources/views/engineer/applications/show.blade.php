@@ -550,9 +550,22 @@
                 <label style="font-weight: 500; font-size: 13px; color: #444; margin-bottom: 6px; display: block;">Select Document Type <span class="text-danger">*</span></label>
                 <select name="document_master_id" class="form-select" required style="border-radius: 6px; border: 1px solid #dce1e6;">
                     <option value="" disabled selected>-- Select Document --</option>
-                    @foreach($documentMasters as $dm)
-                        <option value="{{ $dm->id }}">{{ $dm->document_name }}</option>
-                    @endforeach
+                    @if(count($requiredDocumentIds) > 0)
+                        <optgroup label="Required for this Workflow">
+                            @foreach($documentMasters->whereIn('id', $requiredDocumentIds) as $dm)
+                                <option value="{{ $dm->id }}">{{ $dm->document_name }} (Required)</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="Other Optional Documents">
+                            @foreach($documentMasters->whereNotIn('id', $requiredDocumentIds) as $dm)
+                                <option value="{{ $dm->id }}">{{ $dm->document_name }}</option>
+                            @endforeach
+                        </optgroup>
+                    @else
+                        @foreach($documentMasters as $dm)
+                            <option value="{{ $dm->id }}">{{ $dm->document_name }}</option>
+                        @endforeach
+                    @endif
                 </select>
             </div>
             
