@@ -81,7 +81,7 @@
             <div class="hero-image-wrapper">
                 <div class="blob blob-1"></div>
                 <div class="blob blob-2"></div>
-                
+
                 <div class="glass-card" style="padding: 1rem;">
                     <!-- Carousel Container -->
                     <div class="carousel-container" id="heroCarousel">
@@ -89,20 +89,24 @@
                             <img src="{{ asset('img/slider1.png') }}" alt="Slider 1" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Jharkhand+Housing'">
                         </div>
                         <div class="carousel-slide">
+                            <img src="{{ asset('img/slider_3.png') }}" alt="Slider 3" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Digital+Governance'">
+                        </div>
+                        <div class="carousel-slide">
                             <img src="{{ asset('img/slider2.png') }}" alt="Slider 2" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Building+Jharkhand'">
                         </div>
                         <div class="carousel-slide">
-                            <img src="{{ asset('img/slider3.png') }}" alt="Slider 3" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Digital+Governance'">
+                            <img src="{{ asset('img/slider_4.png') }}" alt="Slider 3" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Digital+Governance'">
                         </div>
-                        
+
                         <!-- Indicators -->
                         <div class="carousel-indicators">
                             <span class="indicator active" onclick="goToSlide(0)"></span>
                             <span class="indicator" onclick="goToSlide(1)"></span>
                             <span class="indicator" onclick="goToSlide(2)"></span>
+                            <span class="indicator" onclick="goToSlide(3)"></span>
                         </div>
                     </div>
-                    
+
                     <div class="stats-grid">
                         <div class="stat-box">
                             <i class="fa-solid fa-building-user stat-icon"></i>
@@ -127,7 +131,7 @@
                 <span class="section-subtitle">Our Services</span>
                 <h2 class="section-title">Everything you need to <br>manage your housing journey</h2>
             </div>
-            
+
             <div class="features-grid">
                 <!-- Feature 1 -->
                 <div class="feature-card">
@@ -137,7 +141,7 @@
                     <h3>Digital Allotments</h3>
                     <p>Apply for housing schemes, track your application status, and manage your property allotments completely online without visiting the office.</p>
                 </div>
-                
+
                 <!-- Feature 2 -->
                 <div class="feature-card">
                     <div class="feature-icon-wrapper">
@@ -146,7 +150,7 @@
                     <h3>Online Payments</h3>
                     <p>Securely pay your EMI, maintenance charges, and processing fees through our integrated digital payment gateway.</p>
                 </div>
-                
+
                 <!-- Feature 3 -->
                 <div class="feature-card">
                     <div class="feature-icon-wrapper">
@@ -155,7 +159,7 @@
                     <h3>Public Works</h3>
                     <p>Track ongoing construction, view public works tenders, and monitor the progress of housing board development projects.</p>
                 </div>
-                
+
                 <!-- Feature 4 -->
                 <div class="feature-card">
                     <div class="feature-icon-wrapper">
@@ -175,7 +179,7 @@
                 <span class="section-subtitle" style="color: var(--primary-dark);">Stay Updated</span>
                 <h2 class="section-title light">Latest Announcements & <br>Important Notices</h2>
             </div>
-            
+
             <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem;">
                 <!-- News 1 -->
                 <div class="news-card">
@@ -186,7 +190,7 @@
                         <p class="news-desc">The board has announced a new affordable housing scheme for LIG/MIG categories. Apply online before September 30th.</p>
                     </div>
                 </div>
-                
+
                 <!-- News 2 -->
                 <div class="news-card">
                     <img src="{{ asset('img/slider1.png') }}" alt="News" class="news-image" onerror="this.src='https://placehold.co/400x250/e2e8f0/64748b?text=Digital+Payment'">
@@ -199,7 +203,7 @@
 
                 <!-- News 3 -->
                 <div class="news-card">
-                    <img src="{{ asset('img/slider3.png') }}" alt="News" class="news-image" onerror="this.src='https://placehold.co/400x250/e2e8f0/64748b?text=Public+Notice'">
+                    <img src="{{ asset('img/slider_4.png') }}" alt="News" class="news-image" onerror="this.src='https://placehold.co/400x250/e2e8f0/64748b?text=Public+Notice'">
                     <div class="news-content">
                         <span class="news-date">July 10, 2026</span>
                         <h3 class="news-title">Important Notice for Defaulters</h3>
@@ -207,7 +211,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div style="text-align: center; margin-top: 3rem;">
                 <a href="#all-news" class="btn-primary" style="padding: 1rem 2.5rem;">View All Updates</a>
             </div>
@@ -218,7 +222,7 @@
     <footer class="footer" id="contact">
         <div class="container">
             <div class="footer-grid">
-                
+
                 <!-- Brand Info -->
                 <div class="footer-brand">
                     <div class="footer-logo">
@@ -264,7 +268,7 @@
                     </ul>
                 </div>
             </div>
-            
+
             <div class="footer-bottom" style="border-top: 1px solid #334155; padding-top: 2rem;">
                 <div>&copy; {{ date('Y') }} {{ config('panel.organization', 'Jharkhand State Housing Board') }}. All rights reserved.</div>
                 <div class="footer-links">
@@ -287,14 +291,14 @@
                 // Remove active class from all
                 slides.forEach(slide => slide.classList.remove('active'));
                 indicators.forEach(indicator => indicator.classList.remove('active'));
-                
+
                 // Set new active slide
                 currentSlide = index;
                 if (currentSlide >= slides.length) currentSlide = 0;
                 if (currentSlide < 0) currentSlide = slides.length - 1;
-                
+
                 slides[currentSlide].classList.add('active');
-                indicators[currentSlide].classList.add('active');
+                if (indicators[currentSlide]) indicators[currentSlide].classList.add('active');
             }
 
             function nextSlide() {
@@ -317,10 +321,11 @@
             }
 
             // Start auto slide
-            if(slides.length > 0) {
+            if (slides.length > 0) {
                 startInterval();
             }
         });
     </script>
 </body>
+
 </html>
