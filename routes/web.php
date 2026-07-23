@@ -10,6 +10,10 @@ Route::get('/', function () {
     return view('landing');
 })->name('landing');
 
+Route::get('/grievance', function () {
+    return view('grievance');
+})->name('grievance');
+
 Route::get('/run-storage-link', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('storage:link');

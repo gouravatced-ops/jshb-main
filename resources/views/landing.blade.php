@@ -239,6 +239,7 @@
                     <ul class="footer-menu">
                         <li><a href="#about"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> About Us</a></li>
                         <li><a href="#schemes"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Latest Schemes</a></li>
+                        <li><a href="{{ route('grievance') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Register Grievance</a></li>
                         <li><a href="#"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Tenders & Notices</a></li>
                         <li><a href="{{ route('login') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Member Login</a></li>
                     </ul>
