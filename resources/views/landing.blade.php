@@ -102,22 +102,105 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
+    <!-- Key Features Section -->
+    <section id="schemes" class="section-padding bg-slate-50">
         <div class="container">
-            <div class="footer-top">
-                <div class="footer-logo">
-                    <img src="{{ asset(config('panel.logo')) }}" alt="Logo" onerror="this.src='https://placehold.co/80x80/ffffff/1f7b4d?text=JH'">
-                    <span>{{ config('panel.organization', 'Jharkhand State Housing Board') }}</span>
+            <div class="section-title-wrapper">
+                <span class="section-subtitle">Our Services</span>
+                <h2 class="section-title">Everything you need to <br>manage your housing journey</h2>
+            </div>
+            
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fa-solid fa-house-user"></i>
+                    </div>
+                    <h3>Digital Allotments</h3>
+                    <p>Apply for housing schemes, track your application status, and manage your property allotments completely online without visiting the office.</p>
                 </div>
-                <div class="social-links">
-                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
-                    <a href="#"><i class="fa-brands fa-facebook"></i></a>
-                    <a href="#"><i class="fa-solid fa-envelope"></i></a>
+                
+                <!-- Feature 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
+                    <h3>Online Payments</h3>
+                    <p>Securely pay your EMI, maintenance charges, and processing fees through our integrated digital payment gateway.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fa-solid fa-helmet-safety"></i>
+                    </div>
+                    <h3>Public Works</h3>
+                    <p>Track ongoing construction, view public works tenders, and monitor the progress of housing board development projects.</p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3>Support & Grievances</h3>
+                    <p>Lodge complaints, submit requests for property transfers, and communicate directly with the housing board officials.</p>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="footer-bottom">
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                
+                <!-- Brand Info -->
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <img src="{{ asset(config('panel.logo')) }}" alt="Logo" onerror="this.src='https://placehold.co/80x80/ffffff/1f7b4d?text=JH'">
+                        <span>{{ config('panel.organization', 'Jharkhand State Housing Board') }}</span>
+                    </div>
+                    <p>Empowering the citizens of Jharkhand with transparent, digital, and efficient housing solutions and public infrastructure management.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="footer-heading">Quick Links</h4>
+                    <ul class="footer-menu">
+                        <li><a href="#about"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> About Us</a></li>
+                        <li><a href="#schemes"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Latest Schemes</a></li>
+                        <li><a href="#"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Tenders & Notices</a></li>
+                        <li><a href="{{ route('login') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Member Login</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div>
+                    <h4 class="footer-heading">Contact Us</h4>
+                    <ul class="footer-menu footer-contact">
+                        <li>
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>Harmu Housing Colony,<br>Ranchi, Jharkhand 834002</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-phone"></i>
+                            <span>+91 1800-XXX-XXXX</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-envelope"></i>
+                            <span>support@jshb.gov.in</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom" style="border-top: 1px solid #334155; padding-top: 2rem;">
                 <div>&copy; {{ date('Y') }} {{ config('panel.organization', 'Jharkhand State Housing Board') }}. All rights reserved.</div>
                 <div class="footer-links">
                     <a href="#">Privacy Policy</a>
