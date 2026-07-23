@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Notification;
+use App\Models\AllotteeNotification;
 use App\Services\NotificationService;
 
 class NotificationController extends Controller
@@ -50,10 +52,12 @@ class NotificationController extends Controller
         $sendSms = $request->has('send_sms');
         $sendWhatsapp = $request->has('send_whatsapp');
 
+        $isAllottee = ($request->type === 'allottees');
         $count = 0;
         foreach ($request->user_ids as $userId) {
             $notificationService->send([
                 'user_id' => $userId,
+                'is_allottee' => $isAllottee,
                 'notification_type' => 'info',
                 'subject' => $subject,
                 'message' => $message,
@@ -70,7 +74,11 @@ class NotificationController extends Controller
 
     public function markAllRead()
     {
-        \App\Models\Notification::where('user_id', auth()->id())
+        $user = auth()->user();
+        $isAllottee = ($user && ($user->user_type === 'allottee' || $user->getConnectionName() === 'adms_allottees'));
+        $model = $isAllottee ? AllotteeNotification::class : Notification::class;
+
+        $model::where('user_id', auth()->id())
             ->where('is_read', 0)
             ->update(['is_read' => 1]);
 

@@ -9,6 +9,7 @@ class Workflow extends Model
 {
     use HasFactory;
 
+    protected $connection = 'adms_jshb';
     protected $table = 'workflows';
 
     protected $fillable = [
@@ -31,7 +32,8 @@ class Workflow extends Model
 
     public function requiredDocuments()
     {
-        return $this->belongsToMany(DocumentMaster::class, 'workflow_document_master', 'workflow_id', 'document_master_id')
+        $database = config('database.connections.adms_jshb.database', '30062026_adms_jshb');
+        return $this->belongsToMany(DocumentMaster::class, "{$database}.workflow_document_master", 'workflow_id', 'document_master_id')
                     ->withPivot('is_required')
                     ->withTimestamps();
     }

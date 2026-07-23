@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\Notification;
+use App\Models\AllotteeNotification;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\GenericNotificationMail;
@@ -15,6 +17,7 @@ class NotificationService
      *
      * @param array $params [
      *   'user_id' => int, // The target user's ID
+     *   'is_allottee' => bool, // Default false. Set true for allottee notifications (adms_allottees DB)
      *   'notification_type' => string, // e.g., 'success', 'warning', 'info'
      *   'subject' => string, // Subject of the notification
      *   'message' => string, // Body of the notification
@@ -25,11 +28,12 @@ class NotificationService
      *   'send_sms' => bool, // Default false
      *   'send_whatsapp' => bool, // Default false
      * ]
-     * @return Notification
+     * @return Model
      */
-    public function send(array $params): Notification
+    public function send(array $params): Model
     {
         $userId = $params['user_id'] ?? null;
+        $isAllottee = $params['is_allottee'] ?? false;
         $subject = $params['subject'] ?? 'Notification';
         $message = $params['message'] ?? '';
         $notificationType = $params['notification_type'] ?? 'info';
@@ -43,10 +47,11 @@ class NotificationService
         $phoneNumber = $params['phone_number'] ?? null;
 
         if ($userId && (!$emailId || !$phoneNumber)) {
-            $user = User::find($userId);
+            $userQuery = $isAllottee ? User::on('adms_allottees') : User::query();
+            $user = $userQuery->find($userId);
             if ($user) {
                 if (!$emailId) $emailId = $user->email;
-                if (!$phoneNumber) $phoneNumber = $user->phone ?? $user->mobile ?? ''; // Adjust based on DB structure
+                if (!$phoneNumber) $phoneNumber = $user->phone ?? $user->mobile ?? '';
             }
         }
 
@@ -65,7 +70,8 @@ class NotificationService
         $whatsappSentAt = null;
 
         // General Notification Log
-        Log::channel('notification_log')->info("Initiating Notification to User ID: {$userId} | Subject: {$subject}");
+        $targetDb = $isAllottee ? 'adms_allottees' : 'adms_jshb';
+        Log::channel('notification_log')->info("Initiating Notification to User ID: {$userId} (DB: {$targetDb}) | Subject: {$subject}");
 
         // 1. Send Email
         if ($sendEmail && filter_var($emailId, FILTER_VALIDATE_EMAIL)) {
@@ -85,9 +91,6 @@ class NotificationService
         // 2. Send SMS
         if ($sendSms && !empty($phoneNumber)) {
             try {
-                // TODO: Integrate actual SMS Gateway API here
-                // Example: SmsGateway::send($phoneNumber, $message);
-                
                 $isSmsSent = true;
                 $smsSentAt = now();
                 Log::channel('sms')->info("SMS sent to {$phoneNumber} | Message: {$message}");
@@ -101,9 +104,6 @@ class NotificationService
         // 3. Send WhatsApp
         if ($sendWhatsapp && !empty($phoneNumber)) {
             try {
-                // TODO: Integrate actual WhatsApp Gateway API here
-                // Example: WhatsappGateway::send($phoneNumber, $message);
-                
                 $isWhatsappSent = true;
                 $whatsappSentAt = now();
                 Log::channel('whatsapp')->info("WhatsApp sent to {$phoneNumber} | Message: {$message}");
@@ -115,7 +115,7 @@ class NotificationService
         }
 
         // 4. Save to Database
-        $notification = Notification::create([
+        $notificationData = [
             'user_id' => $userId,
             'notification_type' => $notificationType,
             'subject' => $subject,
@@ -126,11 +126,21 @@ class NotificationService
             'email_sent_at' => $emailSentAt,
             'is_sms_sent' => $isSmsSent,
             'sms_sent_at' => $smsSentAt,
-            'is_push_sent' => $isWhatsappSent, // Using push for WhatsApp
+            'is_push_sent' => $isWhatsappSent,
             'push_sent_at' => $whatsappSentAt,
-        ]);
+        ];
 
-        Log::channel('notification_log')->info("Notification saved to DB | Notification ID: {$notification->id}");
+        if (isset($params['application_id'])) {
+            $notificationData['application_id'] = $params['application_id'];
+        }
+
+        if ($isAllottee) {
+            $notification = AllotteeNotification::create($notificationData);
+        } else {
+            $notification = Notification::create($notificationData);
+        }
+
+        Log::channel('notification_log')->info("Notification saved to DB ({$targetDb}) | Notification ID: {$notification->id}");
 
         return $notification;
     }

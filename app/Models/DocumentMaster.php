@@ -21,7 +21,8 @@ class DocumentMaster extends Model
 
     public function workflows()
     {
-        return $this->belongsToMany(Workflow::class, 'workflow_document_master', 'document_master_id', 'workflow_id')
+        $database = config('database.connections.adms_jshb.database', '30062026_adms_jshb');
+        return $this->belongsToMany(Workflow::class, "{$database}.workflow_document_master", 'document_master_id', 'workflow_id')
                     ->withPivot('is_required')
                     ->withTimestamps();
     }

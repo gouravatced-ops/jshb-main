@@ -112,6 +112,14 @@
                     <div class="data-value" style="color: #1b5e20;">{{ $application->allottee->property_number ?? 'N/A' }}</div>
                 </div>
                 <div class="data-pair">
+                    <div class="data-label">Username</div>
+                    <div class="data-value">{{ $application->allottee->username ?? 'N/A' }}</div>
+                </div>
+                <div class="data-pair">
+                    <div class="data-label">Email</div>
+                    <div class="data-value">{{ $application->allottee->alloteeAdresses->email ?? 'N/A' }}</div>
+                </div>
+                <div class="data-pair">
                     <div class="data-label">Allotment No</div>
                     <div class="data-value">{{ $application->allottee->allotment_no ?? 'N/A' }}</div>
                 </div>
@@ -221,11 +229,11 @@
         </div>
     </div>
 
-    <!-- Allottee Central Documents & Requests (col-12) -->
+    <!-- Allottee Document Status (col-12) -->
     <div class="compact-card col-span-12">
         <div class="compact-card-header header-blue" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <span><i class="fa-solid fa-folder-tree"></i> Allottee Central Documents & Requests</span>
+                <span><i class="fa-solid fa-list-check"></i> Document Upload Status</span>
             </div>
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#requestDocModal" style="background: #17a2b8; color: white; border: none;"><i class="fa-solid fa-plus"></i> Request Additional Document</button>
         </div>
@@ -235,75 +243,106 @@
                     <thead>
                         <tr>
                             <th>Document Name</th>
-                            <th>Status / Source</th>
-                            <th>Remarks</th>
-                            <th style="text-align: right;">Action</th>
+                            <th style="text-align: center;">Upload Status</th>
+                            <th>Remarks / Details</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($allotteeDocuments as $adoc)
+                        @php
+                            $statusDocs = collect();
+                            
+                            foreach($documentMasters as $dm) {
+                                $isRequired = in_array($dm->id, $requiredDocumentIds);
+                                
+                                $uploaded = $allotteeDocuments->first(function($item) use ($dm) {
+                                    return $item->document_id == $dm->id; 
+                                });
+                                
+                                $requestPending = $documentRequests->first(function($item) use ($dm) {
+                                    return $item->document_master_id == $dm->id;
+                                });
+
+                                // Check if the request is fulfilled but wasn't matched above for some reason
+                                if (!$uploaded && $requestPending && $requestPending->uploadedDocument) {
+                                    $uploaded = $requestPending->uploadedDocument;
+                                }
+
+                                if ($isRequired || $uploaded || $requestPending) {
+                                    $statusDocs->push((object)[
+                                        'master' => $dm,
+                                        'is_required' => $isRequired,
+                                        'uploaded_doc' => $uploaded,
+                                        'request' => $requestPending,
+                                    ]);
+                                }
+                            }
+
+                            // Catch any uploaded documents that didn't map to a DocumentMaster but have document_type
+                            foreach($allotteeDocuments as $adoc) {
+                                if (!$adoc->document_id && !empty($adoc->document_type) && !is_numeric($adoc->document_type)) {
+                                    $statusDocs->push((object)[
+                                        'master' => (object)['document_name' => ucwords(str_replace('_', ' ', $adoc->document_type))],
+                                        'is_required' => false,
+                                        'uploaded_doc' => $adoc,
+                                        'request' => null,
+                                    ]);
+                                }
+                            }
+                        @endphp
+
+                        @forelse($statusDocs as $doc)
                         <tr>
                             <td style="font-weight: 500;">
-                                {{ $adoc->document ? $adoc->document->document_name : 'Unknown' }}
-                                <div style="color: #888; font-size: 11px;">{{ \Illuminate\Support\Str::limit($adoc->file_name, 30) }}</div>
-                            </td>
-                            <td><span class="badge-compact badge-normal" style="background:#d4edda; color:#155724;">Uploaded by Allottee</span></td>
-                            <td style="color: #666; font-size: 12px;">{{ $adoc->remarks ?: '-' }}</td>
-                            <td style="text-align: right;">
-                                @if($adoc->file_path)
-                                    @php
-                                        $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
-                                        $previewSrc = $docBaseUrl . '/' . ltrim($adoc->file_path, '/');
-                                    @endphp
-                                    <button type="button" onclick="viewDocument('{{ $previewSrc }}', '{{ addslashes($adoc->document ? $adoc->document->document_name : '') }}')" class="btn-compact" style="border: none; cursor: pointer;">
-                                        <i class="fa-solid fa-eye" style="font-size: 10px;"></i> View
-                                    </button>
+                                {{ $doc->master->document_name }}
+                                @if($doc->is_required)
+                                    <span style="color: #dc3545; font-size: 11px; margin-left: 5px;">(Required)</span>
+                                @endif
+                                @if($doc->uploaded_doc)
+                                    <div style="color: #888; font-size: 11px;">{{ \Illuminate\Support\Str::limit($doc->uploaded_doc->file_name, 30) }}</div>
                                 @endif
                             </td>
-                        </tr>
-                        @empty
-                        @endforelse
-
-                        @forelse($documentRequests as $req)
-                        <tr style="background: #fdfdfd;">
-                            <td style="font-weight: 500; color: {{ $req->status == 'pending' ? '#d97706' : ($req->status == 'expired' ? '#dc3545' : '#28a745') }};">
-                                {{ $req->documentMaster ? $req->documentMaster->document_name : 'Unknown' }}
-                                <div style="color: #888; font-size: 11px;">Requested by: {{ $req->requestedBy ? $req->requestedBy->name : 'Engineer' }}</div>
+                            <td style="text-align: center; vertical-align: middle;">
+                                @if($doc->uploaded_doc && $doc->uploaded_doc->file_path)
+                                    @php
+                                        $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
+                                        $previewSrc = $docBaseUrl . '/' . ltrim($doc->uploaded_doc->file_path, '/');
+                                        $docName = addslashes($doc->master->document_name);
+                                    @endphp
+                                    <a href="javascript:void(0)" onclick="viewDocument('{{ $previewSrc }}', '{{ $docName }}')" style="display: inline-block; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Click to view document">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </a>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" title="Not Uploaded">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                                    </svg>
+                                @endif
                             </td>
                             <td>
-                                @if($req->status == 'pending')
-                                    <span class="badge-compact" style="background:#fff3cd; color:#856404;">Pending Request (Expires: {{ $req->expires_at->format('d-M-Y H:i') }})</span>
-                                @elseif($req->status == 'expired')
-                                    <span class="badge-compact" style="background:#f8d7da; color:#721c24;">Request Expired</span>
-                                @elseif($req->status == 'uploaded')
-                                    <span class="badge-compact" style="background:#d4edda; color:#155724;">Fulfilled</span>
-                                @endif
-                            </td>
-                            <td style="color: #666; font-size: 12px;">{{ $req->remarks ?: '-' }}</td>
-                            <td style="text-align: right;">
-                                @if($req->status == 'uploaded' && $req->uploadedDocument && $req->uploadedDocument->file_path)
-                                    @php
-                                        $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
-                                        $previewSrc = $docBaseUrl . '/' . ltrim($req->uploadedDocument->file_path, '/');
-                                    @endphp
-                                    <button type="button" onclick="viewDocument('{{ $previewSrc }}', '{{ addslashes($req->documentMaster ? $req->documentMaster->document_name : '') }}')" class="btn-compact" style="border: none; cursor: pointer;">
-                                        <i class="fa-solid fa-eye" style="font-size: 10px;"></i> View Upload
-                                    </button>
-                                @elseif($req->status == 'pending')
-                                    <span style="font-size: 12px; color: #888;">Waiting for upload...</span>
+                                @if($doc->request && $doc->request->status == 'pending')
+                                    <span class="badge-compact" style="background:#fff3cd; color:#856404; display: block; margin-bottom: 5px; width: fit-content;">Pending Request (Expires: {{ $doc->request->expires_at->format('d-M-Y') }})</span>
+                                    <div style="color: #666; font-size: 11px;">Requested by: {{ $doc->request->requestedBy ? $doc->request->requestedBy->name : 'Engineer' }}</div>
+                                @elseif($doc->uploaded_doc)
+                                    <span class="badge-compact" style="background:#d4edda; color:#155724;">Uploaded by Allottee</span>
+                                    @if($doc->uploaded_doc->remarks)
+                                        <div style="color: #666; font-size: 11px; margin-top: 4px;">{{ $doc->uploaded_doc->remarks }}</div>
+                                    @endif
+                                @elseif($doc->is_required)
+                                    <span style="color: #888; font-size: 12px; font-style: italic;">Awaiting Upload</span>
                                 @endif
                             </td>
                         </tr>
                         @empty
-                        @endforelse
-
-                        @if($allotteeDocuments->isEmpty() && $documentRequests->isEmpty())
                         <tr>
-                            <td colspan="4" style="text-align: center; color: #999; padding: 20px;">
-                                No central documents or requests found for this allottee.
+                            <td colspan="3" style="text-align: center; color: #999; padding: 20px;">
+                                No document requirements found for this application.
                             </td>
                         </tr>
-                        @endif
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -552,17 +591,17 @@
                     <option value="" disabled selected>-- Select Document --</option>
                     @if(count($requiredDocumentIds) > 0)
                         <optgroup label="Required for this Workflow">
-                            @foreach($documentMasters->whereIn('id', $requiredDocumentIds) as $dm)
+                            @foreach($documentMasters->whereIn('id', $requiredDocumentIds)->whereNotIn('id', $excludedDocIds) as $dm)
                                 <option value="{{ $dm->id }}">{{ $dm->document_name }} (Required)</option>
                             @endforeach
                         </optgroup>
                         <optgroup label="Other Optional Documents">
-                            @foreach($documentMasters->whereNotIn('id', $requiredDocumentIds) as $dm)
+                            @foreach($documentMasters->whereNotIn('id', $requiredDocumentIds)->whereNotIn('id', $excludedDocIds) as $dm)
                                 <option value="{{ $dm->id }}">{{ $dm->document_name }}</option>
                             @endforeach
                         </optgroup>
                     @else
-                        @foreach($documentMasters as $dm)
+                        @foreach($documentMasters->whereNotIn('id', $excludedDocIds) as $dm)
                             <option value="{{ $dm->id }}">{{ $dm->document_name }}</option>
                         @endforeach
                     @endif

@@ -31,5 +31,7 @@
             <div class="hero-date">{{ now()->format('l, d M Y') }}</div>
         </div>
     </div>
+    @include('components.partials.notice-calendar')
 </div>
 @endsection
+

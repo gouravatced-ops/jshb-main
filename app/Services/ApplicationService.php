@@ -87,6 +87,8 @@ class ApplicationService
                 if ($allottee->user_id) {
                     app(\App\Services\NotificationService::class)->send([
                         'user_id' => $allottee->user_id,
+                        'is_allottee' => true,
+                        'application_id' => $application->id,
                         'notification_type' => 'success',
                         'subject' => 'Application Created',
                         'message' => "Your application ({$applicationNo}) for {$applicationType} has been successfully created.",
@@ -191,7 +193,8 @@ class ApplicationService
                             'application_created',
                             'New ' . ucfirst($applicationType) . ' Application Created',
                             "Your " . strtolower($applicationType) . " application {$applicationNo} has been created and forwarded to {$nextStep->step_name} for verification.",
-                            "/dashboard/section/application"
+                            "/dashboard/section/application",
+                            true
                         );
                     }
 
@@ -203,7 +206,8 @@ class ApplicationService
                             'application_forwarded',
                             'New ' . ucfirst($applicationType) . ' Application for Verification',
                             "A new " . strtolower($applicationType) . " application {$applicationNo} has been forwarded to you for document verification.",
-                            "/applications/view/{$application->id}"
+                            "/applications/view/{$application->id}",
+                            false
                         );
                     }
                 }

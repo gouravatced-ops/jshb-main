@@ -3,6 +3,11 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
+use App\Models\User;
+use App\Models\Notification;
+use App\Models\AllotteeNotification;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,18 +21,22 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        \Illuminate\Support\Facades\Gate::define('super-admin', function (\App\Models\User $user) {
+        Gate::define('super-admin', function (User $user) {
             return $user->roleRelation?->slug === 'super-admin';
         });
 
-        // Inject notifications into header
-        \Illuminate\Support\Facades\View::composer('components.header', function ($view) {
+        // Inject notifications into header and sidebar components
+        View::composer(['components.header', 'components.partials.common-sidebar-elements'], function ($view) {
             if (auth()->check()) {
-                $notifications = \App\Models\Notification::where('user_id', auth()->id())
+                $user = auth()->user();
+                $isAllottee = ($user->user_type === 'allottee' || $user->getConnectionName() === 'adms_allottees');
+                $model = $isAllottee ? AllotteeNotification::class : Notification::class;
+
+                $notifications = $model::where('user_id', $user->id)
                                     ->orderBy('created_at', 'desc')
                                     ->take(10)
                                     ->get();
-                $unreadCount = $notifications->where('is_read', 0)->count();
+                $unreadCount = $model::where('user_id', $user->id)->where('is_read', 0)->count();
                 $view->with('headerNotifications', $notifications)->with('unreadNotifCount', $unreadCount);
             }
         });

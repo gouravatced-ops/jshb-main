@@ -200,6 +200,9 @@ Route::middleware('auth')
                 ->name('emi.refresh-penalties');
         });
 
+        // Notices and Announcements
+        Route::resource('notices', \App\Http\Controllers\Admin\NoticeController::class)->except(['show']);
+        
         // Members Management (Only accessible to super-admin)
         Route::middleware('can:super-admin')->group(function () {
             Route::get('/members', [\App\Http\Controllers\Admin\MemberController::class, 'index'])->name('members.index');
