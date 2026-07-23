@@ -1,14 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grievance Portal - {{ config('panel.organization', 'Jharkhand State Housing Board') }}</title>
-    
-    <link rel="stylesheet" href="{{ asset('css/font/font.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/icons/all.css') }}">
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset(config('panel.faviconIcon', 'favicon.ico')) }}">
-    <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
+@extends('layouts.public')
+@section('title', 'Grievance Portal - ' . config('panel.organization', 'Jharkhand State Housing Board'))
+
+@push('styles')
     
     <style>
         /* Grievance Page Specific Styles */
@@ -428,29 +421,9 @@
         }
 
     </style>
-</head>
-<body>
+@endpush
 
-    <!-- Navbar (Reused from landing with modified position for non-fixed) -->
-    <nav class="navbar" style="position: relative; border-bottom: none; box-shadow: none;">
-        <div class="container nav-inner">
-            <a href="{{ route('landing') }}" class="nav-brand">
-                <img src="{{ asset(config('panel.logo')) }}" alt="JSHB Logo" class="nav-logo" onerror="this.src='https://placehold.co/80x80/ffffff/1f7b4d?text=JH'">
-                <div class="nav-title">
-                    <small>{{ config('panel.organization_hindi', 'झारखण्ड राज्य आवास बोर्ड') }}</small>
-                    <strong>{{ config('panel.organization', 'Jharkhand State Housing Board') }}</strong>
-                </div>
-            </a>
-            
-            <div class="nav-links">
-                <a href="{{ route('landing') }}" class="nav-link"><i class="fa-solid fa-home"></i> Home</a>
-                <a href="{{ route('login') }}" class="btn-primary" style="padding: 0.5rem 1.25rem;">
-                    <span>Member Login</span>
-                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                </a>
-            </div>
-        </div>
-    </nav>
+@section('content')
 
     <!-- Grievance Hero Header -->
     <section class="grievance-hero">
@@ -678,67 +651,9 @@
         
     </section>
 
-    <!-- Footer -->
-    <footer class="footer" id="contact">
-        <div class="container">
-            <div class="footer-grid">
-                
-                <!-- Brand Info -->
-                <div class="footer-brand">
-                    <div class="footer-logo">
-                        <img src="{{ asset(config('panel.logo')) }}" alt="Logo" onerror="this.src='https://placehold.co/80x80/ffffff/1f7b4d?text=JH'">
-                        <span>{{ config('panel.organization', 'Jharkhand State Housing Board') }}</span>
-                    </div>
-                    <p>Empowering the citizens of Jharkhand with transparent, digital, and efficient housing solutions and public infrastructure management.</p>
-                    <div class="social-links">
-                        <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                    </div>
-                </div>
+@endsection
 
-                <!-- Quick Links -->
-                <div>
-                    <h4 class="footer-heading">Quick Links</h4>
-                    <ul class="footer-menu">
-                        <li><a href="#about"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> About Us</a></li>
-                        <li><a href="#schemes"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Latest Schemes</a></li>
-                        <li><a href="{{ route('grievance') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Register Grievance</a></li>
-                        <li><a href="#"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Tenders & Notices</a></li>
-                        <li><a href="{{ route('login') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Member Login</a></li>
-                    </ul>
-                </div>
-
-                <!-- Contact -->
-                <div>
-                    <h4 class="footer-heading">Contact Us</h4>
-                    <ul class="footer-menu footer-contact">
-                        <li>
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Harmu Housing Colony,<br>Ranchi, Jharkhand 834002</span>
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-phone"></i>
-                            <span>+91 1800-XXX-XXXX</span>
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-envelope"></i>
-                            <span>support@jshb.gov.in</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="footer-bottom" style="border-top: 1px solid #334155; padding-top: 2rem;">
-                <div>&copy; {{ date('Y') }} {{ config('panel.organization', 'Jharkhand State Housing Board') }}. All rights reserved.</div>
-                <div class="footer-links">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
+@push('scripts')
     <script>
         // Simple script to update the file input text
         document.getElementById('documentUpload').addEventListener('change', function(e) {
@@ -746,5 +661,4 @@
             document.querySelector('.file-upload-text').textContent = fileName;
         });
     </script>
-</body>
-</html>
+@endpush
