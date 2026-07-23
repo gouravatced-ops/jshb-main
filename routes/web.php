@@ -7,8 +7,8 @@ use App\Http\Controllers\CommonController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('landing');
-})->name('landing');
+    return redirect()->route('login');
+});
 
 Route::get('/run-storage-link', function () {
     try {
