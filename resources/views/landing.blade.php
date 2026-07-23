@@ -29,16 +29,23 @@
                 <a href="#about" class="nav-link">About Us</a>
                 <a href="#schemes" class="nav-link">Schemes</a>
                 <a href="#contact" class="nav-link">Contact</a>
+                
+                <a href="https://portal.adms.jshb.computered.co.in/" target="_blank" class="btn-maroon">
+                    <i class="fa-solid fa-house-user"></i> Allottee Portal
+                </a>
+                
                 <a href="{{ route('login') }}" class="btn-primary">
-                    <span>Member Portal</span>
-                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    <i class="fa-solid fa-user-shield"></i> Official Login
                 </a>
             </div>
 
-            <!-- Mobile Login Button -->
-            <div class="mobile-login">
-                <a href="{{ route('login') }}" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.75rem;">
-                    Login <i class="fa-solid fa-arrow-right"></i>
+            <!-- Mobile Login Buttons -->
+            <div class="mobile-login-container">
+                <a href="https://portal.adms.jshb.computered.co.in/" target="_blank" class="btn-maroon" style="padding: 0.5rem; font-size: 0.75rem; border-radius: 0.5rem;">
+                    <i class="fa-solid fa-house-user"></i>
+                </a>
+                <a href="{{ route('login') }}" class="btn-primary" style="padding: 0.5rem; font-size: 0.75rem; border-radius: 0.5rem;">
+                    <i class="fa-solid fa-user-shield"></i>
                 </a>
             </div>
         </div>
@@ -167,6 +174,33 @@
                     </div>
                     <h3>Support & Grievances</h3>
                     <p>Lodge complaints, submit requests for property transfers, and communicate directly with the housing board officials.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Allottee Portal Dedicated Section -->
+    <section id="allottee" class="section-padding" style="background-color: #7f1d1d; color: white;">
+        <div class="container">
+            <div class="hero-grid" style="align-items: center;">
+                <div>
+                    <span class="live-badge" style="background: rgba(255,255,255,0.1); color: var(--primary); border-color: rgba(250, 204, 21, 0.3);">
+                        <i class="fa-solid fa-star"></i> For Existing Allottees
+                    </span>
+                    <h2 class="section-title" style="color: white; margin-bottom: 1rem;">Exclusive Allottee Portal</h2>
+                    <p class="hero-desc" style="color: #f1f5f9; margin-bottom: 2rem;">
+                        Are you an existing property owner under the Jharkhand State Housing Board? Access your dedicated dashboard to manage your property, pay EMIs, view maintenance dues, and download important documents.
+                    </p>
+                    <a href="https://portal.adms.jshb.computered.co.in/" target="_blank" class="btn-large btn-dark" style="background: var(--primary); color: var(--secondary-dark);">
+                        Go to Allottee Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+                <div style="text-align: right;">
+                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2.5rem; display: inline-block;">
+                        <i class="fa-solid fa-house-chimney-user" style="font-size: 6rem; color: var(--primary); margin-bottom: 1.5rem;"></i>
+                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Manage Your Property</h3>
+                        <p style="color: #cbd5e1; font-size: 0.95rem;">Secure, Digital & Transparent</p>
+                    </div>
                 </div>
             </div>
         </div>
