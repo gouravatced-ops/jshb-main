@@ -106,13 +106,19 @@ a {
     gap: 2rem;
 }
 
+.mobile-login-container {
+    display: flex; /* Show on mobile */
+    gap: 0.5rem;
+    align-items: center;
+}
+
 @media (min-width: 768px) {
     .nav-links {
         display: flex;
     }
 
-    .mobile-login {
-        display: none;
+    .mobile-login-container {
+        display: none; /* Hide on desktop */
     }
 }
 
@@ -148,6 +154,29 @@ a {
     background: var(--primary-light);
     transform: translateY(-1px);
     box-shadow: 0 10px 15px -3px rgba(250, 204, 21, 0.4);
+}
+
+.btn-maroon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: white;
+    background: #7f1d1d; /* Maroon */
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(127, 29, 29, 0.3);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-maroon:hover {
+    background: #991b1b;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(127, 29, 29, 0.4);
 }
 
 /* Hero Section */
