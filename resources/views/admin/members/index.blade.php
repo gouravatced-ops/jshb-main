@@ -32,6 +32,7 @@
             </div>
             <div class="card-actions">
                 <form method="GET" action="{{ route('admin.members.index') }}" class="search-box">
+                    <input type="hidden" name="type" value="{{ $type }}">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" name="search" value="{{ $search }}"
                         placeholder="Search members..." autocomplete="off">
@@ -40,6 +41,21 @@
                     <i class="fa-solid fa-user-plus"></i> Add Member
                 </a>
             </div>
+        </div>
+
+        <div class="members-tabs" style="display: flex; gap: 20px; margin: 0 24px 20px; border-bottom: 1px solid #e2e8f0;">
+            <a href="{{ route('admin.members.index', ['type' => 'all', 'search' => $search]) }}" 
+               style="text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 4px; border-bottom: 2px solid {{ $type === 'all' ? '#0ea5e9' : 'transparent' }}; color: {{ $type === 'all' ? '#0ea5e9' : '#64748b' }}; transition: all 0.2s;">
+                All Members
+            </a>
+            <a href="{{ route('admin.members.index', ['type' => 'divisional', 'search' => $search]) }}" 
+               style="text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 4px; border-bottom: 2px solid {{ $type === 'divisional' ? '#0ea5e9' : 'transparent' }}; color: {{ $type === 'divisional' ? '#0ea5e9' : '#64748b' }}; transition: all 0.2s;">
+                Divisional Based
+            </a>
+            <a href="{{ route('admin.members.index', ['type' => 'non_divisional', 'search' => $search]) }}" 
+               style="text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 4px; border-bottom: 2px solid {{ $type === 'non_divisional' ? '#0ea5e9' : 'transparent' }}; color: {{ $type === 'non_divisional' ? '#0ea5e9' : '#64748b' }}; transition: all 0.2s;">
+                Non-Divisional Based
+            </a>
         </div>
 
         <div class="table-responsive">
@@ -64,7 +80,12 @@
                             <td>
                                 <div class="table-user">
                                     <div>
-                                        <div class="table-name">{{ $member->name }}</div>
+                                        <div class="table-name">
+                                            {{ $member->name }}
+                                            @if($member->is_default)
+                                                <span class="badge-status active" style="background:#fef3c7;color:#d97706;font-size: 11px; margin-left: 5px; padding: 2px 6px;">Default</span>
+                                            @endif
+                                        </div>
                                         <div class="table-email">
                                             <span class="badge-status active" title="{{ $member->roleRelation?->short_name ?: 'No Role' }}" style="background:#e0f2fe;color:#0369a1;font-size: 14px;">
                                                 {{ $member->roleRelation?->name ?: 'No Role' }}

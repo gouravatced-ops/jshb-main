@@ -772,11 +772,13 @@ if (!function_exists('sendNotification')) {
      * @param string $subject
      * @param string $message
      * @param string $link
+     * @param bool $isAllottee Whether to route to adms_allottees notification table
      * @return bool
      */
-    function sendNotification($applicationId, $userId, $notificationType, $subject, $message, $link)
+    function sendNotification($applicationId, $userId, $notificationType, $subject, $message, $link, $isAllottee = false)
     {
-        return \Illuminate\Support\Facades\DB::table('notifications')->insert([
+        $connection = $isAllottee ? 'adms_allottees' : config('database.default', 'adms_jshb');
+        return \Illuminate\Support\Facades\DB::connection($connection)->table('notifications')->insert([
             'application_id' => $applicationId,
             'user_id' => $userId,
             'notification_type' => $notificationType,

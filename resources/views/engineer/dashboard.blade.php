@@ -13,15 +13,15 @@
             <h2 class="dashboard-hero-title" style="text-transform: capitalize;">{{ Auth::user()->user_type }} Dashboard</h2>
 
             @if($latestLogin)
-                <div class="login-meta" style="margin-top:15px;">
-                    <span class="login-ip">
-                        Current Login IP: {{ $latestLogin->ip_address }}
-                    </span>
+            <div class="login-meta" style="margin-top:15px;">
+                <span class="login-ip">
+                    Current Login IP: {{ $latestLogin->ip_address }}
+                </span>
 
-                    <span class="login-time">
-                        Login Since {{ $latestLogin->created_at->diffForHumans() }}
-                    </span>
-                </div>
+                <span class="login-time">
+                    Login Since {{ $latestLogin->created_at->diffForHumans() }}
+                </span>
+            </div>
             @endif
         </div>
 
@@ -33,37 +33,115 @@
     </div>
 
     <!-- Stat Cards -->
-    <div class="row g-2 mb-3 mt-4">
-        <div class="col-6 col-xl-4">
-            <div class="stat-card landed" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);">
-                <div class="stat-icon teal" style="width: 48px; height: 48px; border-radius: 8px; background: rgba(20, 184, 166, 0.1); color: #14b8a6; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 16px;">
-                    <i class="fas fa-inbox"></i>
+    <style>
+        .stat-card-modern {
+            background: #ffffff;
+            border: 1px solid #eef2f7;
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+        .stat-card-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            border-color: #d1d5db;
+        }
+        .stat-icon-modern {
+            width: 54px;
+            height: 54px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .stat-label-modern {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 2px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-value-modern {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #323a46;
+            margin: 0;
+            line-height: 1.2;
+        }
+    </style>
+    
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-3 mb-4 mt-3">
+        <!-- Total Received -->
+        <div class="col">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: rgba(20, 184, 166, 0.15); color: #0d9488;">
+                    <i class="fa-solid fa-inbox"></i>
                 </div>
                 <div class="stat-info">
-                    <p class="stat-label" style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">Total Received</p>
-                    <p class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--text-main); margin: 0;">{{ $totalReceived ?? 0 }}</p>
+                    <p class="stat-label-modern">Total Received</p>
+                    <p class="stat-value-modern">{{ $totalReceived ?? 0 }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-xl-4">
-            <div class="stat-card landed" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);">
-                <div class="stat-icon yellow" style="width: 48px; height: 48px; border-radius: 8px; background: rgba(234, 179, 8, 0.1); color: #eab308; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 16px;">
-                    <i class="fas fa-clock"></i>
+        
+        <!-- Pending Applications -->
+        <div class="col">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: rgba(234, 179, 8, 0.15); color: #ca8a04;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
                 <div class="stat-info">
-                    <p class="stat-label" style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">Pending Applications</p>
-                    <p class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--text-main); margin: 0;">{{ $totalPending ?? 0 }}</p>
+                    <p class="stat-label-modern">Pending Apps</p>
+                    <p class="stat-value-modern">{{ $totalPending ?? 0 }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-xl-4">
-            <div class="stat-card landed" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);">
-                <div class="stat-icon green" style="width: 48px; height: 48px; border-radius: 8px; background: rgba(34, 197, 94, 0.1); color: #22c55e; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 16px;">
-                    <i class="fas fa-check-circle"></i>
+        
+        <!-- Processed Applications -->
+        <div class="col">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: rgba(34, 197, 94, 0.15); color: #16a34a;">
+                    <i class="fa-solid fa-check-circle"></i>
                 </div>
                 <div class="stat-info">
-                    <p class="stat-label" style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">Processed Applications</p>
-                    <p class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--text-main); margin: 0;">{{ $totalProcessed ?? 0 }}</p>
+                    <p class="stat-label-modern">Processed Apps</p>
+                    <p class="stat-value-modern">{{ $totalProcessed ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sent Back -->
+        <div class="col">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: rgba(249, 115, 22, 0.15); color: #ea580c;">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                </div>
+                <div class="stat-info">
+                    <p class="stat-label-modern">Sent Back</p>
+                    <p class="stat-value-modern">{{ $totalSentBack ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rejected -->
+        <div class="col">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: rgba(239, 68, 68, 0.15); color: #dc2626;">
+                    <i class="fa-solid fa-ban"></i>
+                </div>
+                <div class="stat-info">
+                    <p class="stat-label-modern">Rejected</p>
+                    <p class="stat-value-modern">{{ $totalRejected ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -99,7 +177,7 @@
                         <td style="text-transform: capitalize;">{{ str_replace('_', ' ', $app->application_type) }}</td>
                         <td>
                             <div class="table-name">{{ trim(($app->prefix ?? '') . ' ' . ($app->allottee_name ?? '') . ' ' . ($app->allottee_middle_name ?? '') . ' ' . ($app->allottee_surname ?? '')) ?: '-' }}</div>
-                            <div class="table-subtitle">{{ trim(($app->allottee_prefix_hindi ?? '') . ' ' . ($app->allottee_name_hindi ?? '') . ' ' . ($app->allottee_middle_hindi ?? '') . ' ' . ($app->allottee_surname_hindi ?? '')) ?: '-' }}</div>
+                            <!-- <div class="table-subtitle">{{ trim(($app->allottee_prefix_hindi ?? '') . ' ' . ($app->allottee_name_hindi ?? '') . ' ' . ($app->allottee_middle_hindi ?? '') . ' ' . ($app->allottee_surname_hindi ?? '')) ?: '-' }}</div> -->
                             <small class="text-muted">{{ $app->property_number }}</small>
                         </td>
                         <td>
@@ -108,9 +186,9 @@
                         </td>
                         <td>
                             @if($app->priority === 'Urgent' || $app->priority === 'Overdue')
-                                <span class="badge-status inactive"><i class="fa-solid fa-circle"></i> {{ $app->priority }}</span>
+                            <span class="badge-status inactive"><i class="fa-solid fa-circle"></i> {{ $app->priority }}</span>
                             @else
-                                <span class="badge-status active"><i class="fa-solid fa-circle"></i> {{ $app->priority }}</span>
+                            <span class="badge-status active"><i class="fa-solid fa-circle"></i> {{ $app->priority }}</span>
                             @endif
                         </td>
                         <td>
@@ -131,5 +209,6 @@
         <p style="color: var(--text-muted); margin-bottom: 0;">You have no pending applications to review at the moment.</p>
     </div>
     @endif
+    @include('components.partials.notice-calendar')
 </div>
 @endsection

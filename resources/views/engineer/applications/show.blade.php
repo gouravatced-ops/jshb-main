@@ -93,6 +93,9 @@
     <div class="compact-card col-span-6">
         <div class="compact-card-header header-green">
             <span><i class="fa-solid fa-user-shield"></i> Allottee Information</span>
+            <button type="button" class="btn btn-sm" style="background: #1b5e20; color: #ffffff; border: none; padding: 3px 10px; font-size: 11px; float: right; font-weight: 600;" data-bs-toggle="modal" data-bs-target="#allotteeShowMoreModal">
+                Show More
+            </button>
         </div>
         <div class="compact-card-body">
             @if($application->allottee)
@@ -107,6 +110,14 @@
                 <div class="data-pair">
                     <div class="data-label">Property Number</div>
                     <div class="data-value" style="color: #1b5e20;">{{ $application->allottee->property_number ?? 'N/A' }}</div>
+                </div>
+                <div class="data-pair">
+                    <div class="data-label">Username</div>
+                    <div class="data-value">{{ $application->allottee->username ?? 'N/A' }}</div>
+                </div>
+                <div class="data-pair">
+                    <div class="data-label">Email</div>
+                    <div class="data-value">{{ $application->allottee->alloteeAdresses->email ?? 'N/A' }}</div>
                 </div>
                 <div class="data-pair">
                     <div class="data-label">Allotment No</div>
@@ -215,6 +226,126 @@
                     <div>No application notes available</div>
                 </div>
             @endif
+        </div>
+    </div>
+
+    <!-- Allottee Document Status (col-12) -->
+    <div class="compact-card col-span-12">
+        <div class="compact-card-header header-blue" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span><i class="fa-solid fa-list-check"></i> Document Upload Status</span>
+            </div>
+            <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#requestDocModal" style="background: #17a2b8; color: white; border: none;"><i class="fa-solid fa-plus"></i> Request Additional Document</button>
+        </div>
+        <div class="compact-card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="compact-table">
+                    <thead>
+                        <tr>
+                            <th>Document Name</th>
+                            <th style="text-align: center;">Upload Status</th>
+                            <th>Remarks / Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $statusDocs = collect();
+                            
+                            foreach($documentMasters as $dm) {
+                                $isRequired = in_array($dm->id, $requiredDocumentIds);
+                                
+                                $uploaded = $allotteeDocuments->first(function($item) use ($dm) {
+                                    return $item->document_id == $dm->id; 
+                                });
+                                
+                                $requestPending = $documentRequests->first(function($item) use ($dm) {
+                                    return $item->document_master_id == $dm->id;
+                                });
+
+                                // Check if the request is fulfilled but wasn't matched above for some reason
+                                if (!$uploaded && $requestPending && $requestPending->uploadedDocument) {
+                                    $uploaded = $requestPending->uploadedDocument;
+                                }
+
+                                if ($isRequired || $uploaded || $requestPending) {
+                                    $statusDocs->push((object)[
+                                        'master' => $dm,
+                                        'is_required' => $isRequired,
+                                        'uploaded_doc' => $uploaded,
+                                        'request' => $requestPending,
+                                    ]);
+                                }
+                            }
+
+                            // Catch any uploaded documents that didn't map to a DocumentMaster but have document_type
+                            foreach($allotteeDocuments as $adoc) {
+                                if (!$adoc->document_id && !empty($adoc->document_type) && !is_numeric($adoc->document_type)) {
+                                    $statusDocs->push((object)[
+                                        'master' => (object)['document_name' => ucwords(str_replace('_', ' ', $adoc->document_type))],
+                                        'is_required' => false,
+                                        'uploaded_doc' => $adoc,
+                                        'request' => null,
+                                    ]);
+                                }
+                            }
+                        @endphp
+
+                        @forelse($statusDocs as $doc)
+                        <tr>
+                            <td style="font-weight: 500;">
+                                {{ $doc->master->document_name }}
+                                @if($doc->is_required)
+                                    <span style="color: #dc3545; font-size: 11px; margin-left: 5px;">(Required)</span>
+                                @endif
+                                @if($doc->uploaded_doc)
+                                    <div style="color: #888; font-size: 11px;">{{ \Illuminate\Support\Str::limit($doc->uploaded_doc->file_name, 30) }}</div>
+                                @endif
+                            </td>
+                            <td style="text-align: center; vertical-align: middle;">
+                                @if($doc->uploaded_doc && $doc->uploaded_doc->file_path)
+                                    @php
+                                        $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
+                                        $previewSrc = $docBaseUrl . '/' . ltrim($doc->uploaded_doc->file_path, '/');
+                                        $docName = addslashes($doc->master->document_name);
+                                    @endphp
+                                    <a href="javascript:void(0)" onclick="viewDocument('{{ $previewSrc }}', '{{ $docName }}')" style="display: inline-block; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Click to view document">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </a>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" title="Not Uploaded">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                                    </svg>
+                                @endif
+                            </td>
+                            <td>
+                                @if($doc->request && $doc->request->status == 'pending')
+                                    <span class="badge-compact" style="background:#fff3cd; color:#856404; display: block; margin-bottom: 5px; width: fit-content;">Pending Request (Expires: {{ $doc->request->expires_at->format('d-M-Y') }})</span>
+                                    <div style="color: #666; font-size: 11px;">Requested by: {{ $doc->request->requestedBy ? $doc->request->requestedBy->name : 'Engineer' }}</div>
+                                @elseif($doc->uploaded_doc)
+                                    <span class="badge-compact" style="background:#d4edda; color:#155724;">Uploaded by Allottee</span>
+                                    @if($doc->uploaded_doc->remarks)
+                                        <div style="color: #666; font-size: 11px; margin-top: 4px;">{{ $doc->uploaded_doc->remarks }}</div>
+                                    @endif
+                                @elseif($doc->is_required)
+                                    <span style="color: #888; font-size: 12px; font-style: italic;">Awaiting Upload</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #999; padding: 20px;">
+                                No document requirements found for this application.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -433,6 +564,65 @@
     </div>
   </div>
 </div>
+
+<!-- Request Document Modal -->
+<div class="modal fade" id="requestDocModal" tabindex="-1" aria-labelledby="requestDocModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content upload-modal-content">
+      <div class="modal-header upload-modal-header" style="background: #17a2b8; border-bottom: none;">
+        <h5 class="modal-title upload-modal-title" id="requestDocModalLabel" style="color: white;">
+            <i class="fa-solid fa-file-circle-plus"></i> Request Additional Document
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ route('engineer.document-requests.store') }}" method="POST">
+        @csrf
+        <input type="hidden" name="application_id" value="{{ $application->id }}">
+        <input type="hidden" name="allottee_id" value="{{ $application->allottee_id }}">
+        <div class="modal-body upload-modal-body" style="padding: 24px;">
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
+                <i class="fa-solid fa-circle-info" style="color: #17a2b8;"></i>
+                The allottee will be notified via SMS, WhatsApp, and Email. They will have <strong>2 days</strong> to upload this document before the request expires.
+            </p>
+            
+            <div class="form-group mb-3">
+                <label style="font-weight: 500; font-size: 13px; color: #444; margin-bottom: 6px; display: block;">Select Document Type <span class="text-danger">*</span></label>
+                <select name="document_master_id" class="form-select" required style="border-radius: 6px; border: 1px solid #dce1e6;">
+                    <option value="" disabled selected>-- Select Document --</option>
+                    @if(count($requiredDocumentIds) > 0)
+                        <optgroup label="Required for this Workflow">
+                            @foreach($documentMasters->whereIn('id', $requiredDocumentIds)->whereNotIn('id', $excludedDocIds) as $dm)
+                                <option value="{{ $dm->id }}">{{ $dm->document_name }} (Required)</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="Other Optional Documents">
+                            @foreach($documentMasters->whereNotIn('id', $requiredDocumentIds)->whereNotIn('id', $excludedDocIds) as $dm)
+                                <option value="{{ $dm->id }}">{{ $dm->document_name }}</option>
+                            @endforeach
+                        </optgroup>
+                    @else
+                        @foreach($documentMasters->whereNotIn('id', $excludedDocIds) as $dm)
+                            <option value="{{ $dm->id }}">{{ $dm->document_name }}</option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+            
+            <div class="form-group mb-0">
+                <label style="font-weight: 500; font-size: 13px; color: #444; margin-bottom: 6px; display: block;">Remarks / Instructions</label>
+                <textarea name="remarks" class="form-control" rows="3" placeholder="Provide specific instructions for the allottee..." style="border-radius: 6px; border: 1px solid #dce1e6; resize: none;"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer upload-modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border: 1px solid #dce1e6; font-weight: 500;">Cancel</button>
+            <button type="submit" class="btn btn-info" style="background: #17a2b8; color: white; border: none; font-weight: 500; padding: 8px 20px;">
+                <i class="fa-solid fa-paper-plane"></i> Send Request
+            </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.querySelector('.upload-file-input');
@@ -511,5 +701,60 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('documentImage').src = '';
     });
 </script>
+
+<!-- Allottee Show More Modal -->
+<div class="modal fade" id="allotteeShowMoreModal" tabindex="-1" aria-labelledby="allotteeShowMoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 8px;">
+            <div class="modal-header header-green" style="border-radius: 8px 8px 0 0; color: rgb(3, 73, 24);">
+                <h5 class="modal-title" id="allotteeShowMoreModalLabel">
+                    <i class="fa-solid fa-list-ul me-2"></i> Additional Allottee Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="background: #fdfdfd;">
+                @if($application->allottee)
+                <table class="table table-bordered table-striped" style="font-size: 13px;">
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: 600; width: 40%; color: #555;">Division</td>
+                            <td>{{ $application->allottee->division ? $application->allottee->division->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Sub Division</td>
+                            <td>{{ $application->allottee->subDivision ? $application->allottee->subDivision->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Property No</td>
+                            <td><strong style="color: #1b5e20;">{{ $application->allottee->property_number ?? 'N/A' }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Property Category</td>
+                            <td>{{ $application->allottee->propertyCategory ? $application->allottee->propertyCategory->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Property Type</td>
+                            <td>{{ $application->allottee->propertyType ? $application->allottee->propertyType->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Property Sub Type</td>
+                            <td>{{ $application->allottee->propertySubType ? $application->allottee->propertySubType->name : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #555;">Quarter Type</td>
+                            <td>{{ $application->allottee->quarterType ? $application->allottee->quarterType->quarter_name : 'N/A' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                @else
+                <div class="text-center text-muted">No Additional Details Found.</div>
+                @endif
+            </div>
+            <div class="modal-footer" style="background: #f5f5f5; border-radius: 0 0 8px 8px;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection

@@ -65,11 +65,16 @@ class DashboardController extends Controller
         $otpLogs = OtpLog::latest()->take(10)->get();
         $latestLogin = $loginLogs->first();
 
+        $dashboardNotices = $this->getNoticesForUser($user);
+        $dashboardNotifications = $this->getNotificationsForUser($user);
+
         return view('admin.module.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
+            'dashboardNotices',
+            'dashboardNotifications'
         ));
     }
 
@@ -91,14 +96,19 @@ class DashboardController extends Controller
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
-        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $otpLogs = OtpLog::latest()->take(10)->get();
         $latestLogin = $loginLogs->first();
+
+        $dashboardNotices = $this->getNoticesForUser($user);
+        $dashboardNotifications = $this->getNotificationsForUser($user);
 
         return view('staff.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
+            'dashboardNotices',
+            'dashboardNotifications'
         ));
     }
 
@@ -120,14 +130,19 @@ class DashboardController extends Controller
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
-        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $otpLogs = OtpLog::latest()->take(10)->get();
         $latestLogin = $loginLogs->first();
+
+        $dashboardNotices = $this->getNoticesForUser($user);
+        $dashboardNotifications = $this->getNotificationsForUser($user);
 
         return view('division.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
+            'dashboardNotices',
+            'dashboardNotifications'
         ));
     }
 
@@ -149,14 +164,19 @@ class DashboardController extends Controller
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
-        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $otpLogs = OtpLog::latest()->take(10)->get();
         $latestLogin = $loginLogs->first();
+
+        $dashboardNotices = $this->getNoticesForUser($user);
+        $dashboardNotifications = $this->getNotificationsForUser($user);
 
         return view('subdivision.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
+            'dashboardNotices',
+            'dashboardNotifications'
         ));
     }
 
@@ -178,9 +198,9 @@ class DashboardController extends Controller
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
-        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $otpLogs = OtpLog::latest()->take(10)->get();
         $latestLogin = $loginLogs->first();
-        
+
         $pendingApplications = collect();
         $workflowId = Workflow::where('application_type', 'allotment')->value('id') ?? 1;
         // 1. Get all pending application allottee IDs for this role
@@ -210,7 +230,7 @@ class DashboardController extends Controller
                 DB::raw("DATE_FORMAT(applications.created_date, '%d-%b-%Y %H:%i') as created_date_formatted"),
                 DB::raw("DATEDIFF(NOW(), applications.created_date) as days_pending"),
                 DB::raw("
-                    CASE 
+                    CASE
                         WHEN DATEDIFF(NOW(), applications.created_date) <= 3 THEN 'Normal'
                         WHEN DATEDIFF(NOW(), applications.created_date) <= 7 THEN 'Urgent'
                         ELSE 'Overdue'
@@ -222,9 +242,9 @@ class DashboardController extends Controller
             ->orderBy('applications.created_date', 'ASC')
             ->take(5)
             ->get();
-            
+
         // Map allottee data so views don't break
-        $pendingApplications->transform(function($app) {
+        $pendingApplications->transform(function ($app) {
             if ($app->allottee) {
                 $app->prefix = $app->allottee->prefix;
                 $app->allottee_name = $app->allottee->allottee_name;
@@ -245,19 +265,61 @@ class DashboardController extends Controller
             ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
             ->whereIn('allottee_id', $validAllotteeIds)
             ->count();
-            
-        $totalReceived = Application::whereHas('movements', function($q) use ($user) {
-                $q->where('to_role_id', $user->role_id);
-            })
+
+        $totalReceived = Application::whereHas('movements', function ($q) use ($user) {
+            $q->where('to_role_id', $user->role_id);
+        })
             ->whereIn('allottee_id', $validAllotteeIds)
             ->count();
-            
+
         // Applications that were with the engineer but are now moved forward/completed
-        $totalProcessed = Application::whereHas('movements', function($q) use ($user) {
-                $q->where('from_role_id', $user->role_id);
-            })
+        $totalProcessed = Application::whereHas('movements', function ($q) use ($user) {
+            $q->where('from_role_id', $user->role_id);
+        })
             ->whereIn('allottee_id', $validAllotteeIds)
             ->count();
+            
+        $totalSentBack = Application::where('current_role_id', $user->role_id)
+            ->where('status', 'send_back')
+            ->whereIn('allottee_id', $validAllotteeIds)
+            ->count();
+            
+        $totalRejected = Application::where('current_role_id', $user->role_id)
+            ->where('status', 'rejected')
+            ->whereIn('allottee_id', $validAllotteeIds)
+            ->count();
+
+        $currentMonthReceivedCount = Application::whereHas('movements', function ($q) use ($user) {
+            $q->where('to_role_id', $user->role_id);
+        })
+            ->whereIn('allottee_id', $validAllotteeIds)
+            ->whereYear('created_date', now()->year)
+            ->whereMonth('created_date', now()->month)
+            ->count();
+
+        $dashboardNotices = $this->getNoticesForUser($user);
+        $dashboardNotifications = $this->getNotificationsForUser($user);
+
+        // Fetch all pending applications for the calendar
+        $dashboardForwardedApps = Application::with('allottee')
+            ->where('current_role_id', $user->role_id)
+            ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
+            ->whereIn('allottee_id', $validAllotteeIds)
+            ->select(
+                'applications.id',
+                'applications.application_no',
+                'applications.application_type',
+                'applications.allottee_id',
+                'applications.created_date'
+            )
+            ->get();
+
+        $dashboardForwardedApps->transform(function ($app) {
+            if ($app->allottee) {
+                $app->allottee_name = trim("{$app->allottee->prefix} {$app->allottee->allottee_name} {$app->allottee->allottee_surname}");
+            }
+            return $app;
+        });
 
         return view('engineer.dashboard', compact(
             'users',
@@ -267,7 +329,13 @@ class DashboardController extends Controller
             'pendingApplications',
             'totalPending',
             'totalReceived',
-            'totalProcessed'
+            'totalProcessed',
+            'totalSentBack',
+            'totalRejected',
+            'currentMonthReceivedCount',
+            'dashboardNotices',
+            'dashboardNotifications',
+            'dashboardForwardedApps'
         ));
     }
 
@@ -289,14 +357,19 @@ class DashboardController extends Controller
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
-        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $otpLogs = OtpLog::latest()->take(10)->get();
         $latestLogin = $loginLogs->first();
+
+        $dashboardNotices = $this->getNoticesForUser($user);
+        $dashboardNotifications = $this->getNotificationsForUser($user);
 
         return view('accountant.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
+            'dashboardNotices',
+            'dashboardNotifications'
         ));
     }
 
@@ -318,14 +391,19 @@ class DashboardController extends Controller
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
-        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $otpLogs = OtpLog::latest()->take(10)->get();
         $latestLogin = $loginLogs->first();
+
+        $dashboardNotices = $this->getNoticesForUser($user);
+        $dashboardNotifications = $this->getNotificationsForUser($user);
 
         return view('managing.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
+            'dashboardNotices',
+            'dashboardNotifications'
         ));
     }
 
@@ -347,18 +425,66 @@ class DashboardController extends Controller
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
-        $otpLogs = OtpLog::latest()->take(10)->get();    
+        $otpLogs = OtpLog::latest()->take(10)->get();
         $latestLogin = $loginLogs->first();
+
+        $dashboardNotices = $this->getNoticesForUser($user);
+        $dashboardNotifications = $this->getNotificationsForUser($user);
 
         return view('operator.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
+            'dashboardNotices',
+            'dashboardNotifications'
         ));
     }
 
 
+
+    private function getNotificationsForUser($user)
+    {
+        return \App\Models\Notification::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    private function getNoticesForUser($user)
+    {
+        $now = now();
+        
+        if ($user->role === 'admin') {
+            return \App\Models\Notice::with('creator')
+                ->where(function($q) use ($now) {
+                    $q->whereNull('end_date')
+                      ->orWhere('end_date', '>=', $now);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        return \App\Models\Notice::with('creator')
+            ->where(function($q) use ($now) {
+                $q->whereNull('end_date')
+                  ->orWhere('end_date', '>=', $now);
+            })
+            ->where(function ($q) use ($user) {
+                $q->whereNull('target_user_type')
+                  ->orWhere(function ($q2) use ($user) {
+                      $q2->where('target_user_type', $user->user_type)
+                         ->where(function ($q3) use ($user) {
+                             $q3->whereNull('target_division_id')
+                                ->orWhere('target_division_id', $user->division_id);
+                         })
+                         ->where(function ($q4) use ($user) {
+                             $q4->whereNull('target_user_id')
+                                ->orWhereJsonContains('target_user_id', (string)$user->id)
+                                ->orWhereJsonContains('target_user_id', $user->id);
+                         });
+                  });
+            })->orderBy('created_at', 'desc')->get();
+    }
 
     private function checkSessionExpiry(Request $request)
     {

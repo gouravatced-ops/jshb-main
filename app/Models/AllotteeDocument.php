@@ -14,6 +14,7 @@ class AllotteeDocument extends Model
     protected $fillable = [
         'allottee_id',
         'document_id',
+        'document_type',
         'doc_no',
         'doc_day',
         'doc_month',

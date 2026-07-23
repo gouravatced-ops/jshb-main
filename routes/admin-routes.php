@@ -200,6 +200,9 @@ Route::middleware('auth')
                 ->name('emi.refresh-penalties');
         });
 
+        // Notices and Announcements
+        Route::resource('notices', \App\Http\Controllers\Admin\NoticeController::class)->except(['show']);
+        
         // Members Management (Only accessible to super-admin)
         Route::middleware('can:super-admin')->group(function () {
             Route::get('/members', [\App\Http\Controllers\Admin\MemberController::class, 'index'])->name('members.index');
@@ -209,5 +212,9 @@ Route::middleware('auth')
             Route::put('/members/{member}', [\App\Http\Controllers\Admin\MemberController::class, 'update'])->name('members.update');
             Route::delete('/members/{member}', [\App\Http\Controllers\Admin\MemberController::class, 'destroy'])->name('members.destroy');
             Route::post('/members/{member}/toggle-status', [\App\Http\Controllers\Admin\MemberController::class, 'toggleStatus'])->name('members.toggle-status');
+
+            // Bulk Notifications
+            Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+            Route::post('/notifications/send', [\App\Http\Controllers\Admin\NotificationController::class, 'sendBulk'])->name('notifications.send');
         });
     });

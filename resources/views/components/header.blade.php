@@ -47,48 +47,60 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
         </button>
         <!-- Notifications -->
         <div style="position:relative">
-            <!-- <button class="header-icon-btn" id="notifBtn" onclick="toggleNotif()" title="Notifications">
+            <button class="header-icon-btn" id="notifBtn" onclick="toggleNotif()" title="Notifications">
                 <i class="fa-solid fa-bell"></i>
+                @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
                 <span class="notif-dot"></span>
-            </button> -->
+                @endif
+            </button>
             <div class="notif-dropdown" id="notifDropdown">
                 <div class="notif-head">
-                    <span class="notif-head-title">Notifications <span
-                            style="font-size:11px;background:var(--pink-light);color:var(--primary-color);border-radius:20px;padding:2px 7px;margin-left:5px;">4
-                            New</span></span>
-                    <span class="notif-mark">Mark all read</span>
+                    <span class="notif-head-title">Notifications 
+                        @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
+                        <span style="font-size:11px;background:var(--pink-light);color:var(--primary-color);border-radius:20px;padding:2px 7px;margin-left:5px;">
+                            {{ $unreadNotifCount }} New
+                        </span>
+                        @endif
+                    </span>
+                    @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
+                    <span class="notif-mark" style="cursor:pointer;" onclick="markAllNotificationsRead()">Mark all read</span>
+                    @endif
                 </div>
-                <div class="notif-item">
-                    <div class="notif-avatar pink"><i class="fa-solid fa-hard-hat"></i></div>
-                    <div class="notif-body">
-                        <div class="notif-msg">New engineer post submitted for approval — Rahul Verma</div>
-                        <div class="notif-time"><i class="fa-regular fa-clock"></i> 5 mins ago</div>
+                
+                @if(isset($headerNotifications) && count($headerNotifications) > 0)
+                    @foreach($headerNotifications as $notif)
+                    <div class="notif-item">
+                        <div class="notif-avatar {{ $notif->notification_type == 'success' ? 'green' : ($notif->notification_type == 'warning' ? 'pink' : 'sky') }}">
+                            @if($notif->notification_type == 'success')
+                                <i class="fa-solid fa-circle-check"></i>
+                            @elseif($notif->notification_type == 'warning' || $notif->notification_type == 'document_request')
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            @else
+                                <i class="fa-solid fa-bell"></i>
+                            @endif
+                        </div>
+                        <div class="notif-body">
+                            <div class="notif-msg">
+                                @if($notif->link)
+                                    <a href="{{ $notif->link }}" style="text-decoration:none; color:inherit;">
+                                        <strong>{{ $notif->subject }}</strong>: {{ \Illuminate\Support\Str::limit($notif->message, 50) }}
+                                    </a>
+                                @else
+                                    <strong>{{ $notif->subject }}</strong>: {{ \Illuminate\Support\Str::limit($notif->message, 50) }}
+                                @endif
+                            </div>
+                            <div class="notif-time"><i class="fa-regular fa-clock"></i> {{ $notif->created_at->diffForHumans() }}</div>
+                        </div>
+                        @if(!$notif->is_read)
+                            <div class="unread-dot"></div>
+                        @endif
                     </div>
-                    <div class="unread-dot"></div>
-                </div>
-                <div class="notif-item">
-                    <div class="notif-avatar sky"><i class="fa-solid fa-file-lines"></i></div>
-                    <div class="notif-body">
-                        <div class="notif-msg">Post #EP-0042 has been approved by Department Head</div>
-                        <div class="notif-time"><i class="fa-regular fa-clock"></i> 22 mins ago</div>
+                    @endforeach
+                @else
+                    <div class="notif-item" style="justify-content:center; padding: 20px;">
+                        <span class="text-muted">No notifications</span>
                     </div>
-                    <div class="unread-dot"></div>
-                </div>
-                <div class="notif-item">
-                    <div class="notif-avatar green"><i class="fa-solid fa-circle-check"></i></div>
-                    <div class="notif-body">
-                        <div class="notif-msg">Project Alpha milestone completed successfully</div>
-                        <div class="notif-time"><i class="fa-regular fa-clock"></i> 1 hour ago</div>
-                    </div>
-                    <div class="unread-dot"></div>
-                </div>
-                <div class="notif-item">
-                    <div class="notif-avatar pink"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                    <div class="notif-body">
-                        <div class="notif-msg">System maintenance scheduled for tonight 11 PM</div>
-                        <div class="notif-time"><i class="fa-regular fa-clock"></i> 3 hours ago</div>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
 

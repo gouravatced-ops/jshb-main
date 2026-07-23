@@ -272,7 +272,9 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
+
+        @include('components.partials.notice-calendar')
 
     <style>
         /* CHART CARDS */

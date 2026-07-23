@@ -125,6 +125,10 @@ Route::middleware('auth')->group(function () {
     // My Activity
     Route::get('/my-activity', [App\Http\Controllers\AdminController::class, 'myActivity'])->name('my-activity');
 
+    // Notifications
+    Route::post('/notifications/mark-read', [App\Http\Controllers\Admin\NotificationController::class, 'markAllRead'])->name('notifications.mark-read');
+    Route::get('/my-notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('my-notifications.index');
+
     // common Routes for retrive condition response of data
     Route::get('/get-sub-divisions/{division}', [CommonController::class, 'getDivision']);
     Route::get('/get-property-types/{category}', [CommonController::class, 'getPropertyType']);
@@ -134,6 +138,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/get-scheme-details/{id}',[CommonController::class, 'getSchemeDetails']
 );
 });
+
+// Development Routes
+if (file_exists(base_path('routes/dev.php'))) {
+    require base_path('routes/dev.php');
+}
 
 // Photo Capture Routes
 Route::post('/api/photo-session/generate', [App\Http\Controllers\PhotoCaptureController::class, 'generateToken'])->name('photo-session.generate');

@@ -37,10 +37,18 @@ class MemberController extends Controller
 
         $search = trim((string) $request->get('search', ''));
 
+        $type = $request->get('type', 'all');
+
         $members = User::query()
             ->with(['roleRelation', 'detail', 'division'])
             ->whereDoesntHave('roleRelation', function ($query) {
                 $query->where('slug', 'allottee');
+            })
+            ->when($type === 'divisional', function ($query) {
+                $query->whereNotNull('division_id');
+            })
+            ->when($type === 'non_divisional', function ($query) {
+                $query->whereNull('division_id');
             })
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
@@ -52,7 +60,7 @@ class MemberController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.members.index', compact('members', 'search'));
+        return view('admin.members.index', compact('members', 'search', 'type'));
     }
 
     public function create()
@@ -110,17 +118,37 @@ class MemberController extends Controller
             return back()->withInput()->withErrors(['division_id' => 'The division field is required for the selected role.']);
         }
 
+        $isDefault = $request->boolean('is_default');
+        $divisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id;
+
+        if (!$isDefault) {
+            $existingCount = User::where('role_id', $request->role_id)
+                ->where('division_id', $divisionId)
+                ->count();
+            if ($existingCount === 0) {
+                $isDefault = true;
+            }
+        }
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'username' => $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername(),
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
-            'division_id' => in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id,
+            'division_id' => $divisionId,
             'login_with_otp' => $request->boolean('login_with_otp'),
             'password_created_at' => now(),
             'status' => true,
+            'is_default' => $isDefault,
         ]);
+
+        if ($isDefault) {
+            User::where('role_id', $request->role_id)
+                ->where('division_id', $divisionId)
+                ->where('id', '!=', $user->id)
+                ->update(['is_default' => false]);
+        }
 
         UserDetail::create([
             'user_id' => $user->id,
@@ -193,12 +221,16 @@ class MemberController extends Controller
             $member->username = $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername();
         }
 
+        $isDefault = $request->boolean('is_default');
+        $divisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id;
+
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $request->role_id,
-            'division_id' => in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id,
+            'division_id' => $divisionId,
             'login_with_otp' => $request->boolean('login_with_otp'),
+            'is_default' => $isDefault,
         ];
 
         if ($request->filled('password')) {
@@ -206,6 +238,13 @@ class MemberController extends Controller
         }
 
         $member->update($userData);
+
+        if ($isDefault) {
+            User::where('role_id', $request->role_id)
+                ->where('division_id', $divisionId)
+                ->where('id', '!=', $member->id)
+                ->update(['is_default' => false]);
+        }
 
         UserDetail::updateOrCreate(
             ['user_id' => $member->id],

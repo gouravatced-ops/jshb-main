@@ -18,4 +18,12 @@ class DocumentMaster extends Model
         'sort_order',
         'status'
     ];
+
+    public function workflows()
+    {
+        $database = config('database.connections.adms_jshb.database', '30062026_adms_jshb');
+        return $this->belongsToMany(Workflow::class, "{$database}.workflow_document_master", 'document_master_id', 'workflow_id')
+                    ->withPivot('is_required')
+                    ->withTimestamps();
+    }
 }

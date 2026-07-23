@@ -1433,18 +1433,6 @@ class AllotteeController extends Controller
                 $applicant->password = Hash::make($plainPassword);
                 $applicant->create_ip_address = $request->ip();
                 $applicant->created_by = Auth::id();
-
-                $role = Role::where('slug', 'allottee')->first();
-                $user = User::on('adms_allottees')->create([
-                    'name' => 'Draft Allottee',
-                    'username' => $usersname,
-                    'password' => Hash::make($plainPassword),
-                    'role_id' => $role ? $role->id : null,
-                    'user_type' => 'allottee',
-                    'status' => 1,
-                    'division_id' => $divisionId,
-                ]);
-                $applicant->user_id = $user->id;
             }
 
             if (empty($applicant->property_number)) {
@@ -1963,9 +1951,6 @@ class AllotteeController extends Controller
             $allottee->allotment_day = date('d');
             $allottee->allotment_month = date('m');
             $allottee->allotment_year = date('Y');
-            // if (empty($allottee->property_number)) {
-            //     $allottee->property_number = Allottee::generateUniquePropertyNumber();
-            // }
             $allottee->save();
 
             $applicationService = app(\App\Services\ApplicationService::class);
@@ -1976,21 +1961,7 @@ class AllotteeController extends Controller
                 $request->userAgent()
             );
 
-            // $documentExists = $allottee->generatedDocument()
-            //     ->where('document_type', 'allotment-letter')
-            //     ->exists();
-            // if (!$documentExists) {
-            //     $pdf = Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
-            //         ->setPaper('a4', 'portrait')
-            //         ->setOptions([
-            //             'defaultFont' => 'KrutiDev',
-            //             'isHtml5ParserEnabled' => true,
-            //             'isRemoteEnabled' => true,
-            //             'chroot' => public_path(),
-            //         ]);
-
-            //     $this->saveGeneratedPdf($allottee, 'Allotment Letter', 'allotment-letter', $pdf->output());
-            // }
+            DB::commit();
 
             return response()->json([
                 'success' => true,

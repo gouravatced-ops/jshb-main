@@ -663,3 +663,22 @@ document.addEventListener('otpVerified:update_password', function() {
         btn.style.cursor = 'pointer';
     }
 });
+
+function markAllNotificationsRead() {
+    fetch('/notifications/mark-read', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+        }
+    }).then(res => res.json()).then(data => {
+        if (data.status === 'success') {
+            document.querySelectorAll('.unread-dot').forEach(el => el.style.display = 'none');
+            const notifDot = document.querySelector('.notif-dot');
+            if (notifDot) notifDot.style.display = 'none';
+            const badge = document.querySelector('.notif-head-title span');
+            if (badge) badge.style.display = 'none';
+        }
+    });
+}
+
