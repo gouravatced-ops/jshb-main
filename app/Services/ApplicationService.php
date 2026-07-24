@@ -92,7 +92,7 @@ class ApplicationService
                         'notification_type' => 'success',
                         'subject' => 'Application Created',
                         'message' => "Your application ({$applicationNo}) for {$applicationType} has been successfully created.",
-                        'send_email' => true,
+                        'send_email' => false,
                         'send_sms' => true,
                         'send_whatsapp' => true,
                         'link' => null

@@ -4,7 +4,13 @@
         display: grid;
         grid-template-columns: repeat(12, 1fr);
         gap: 20px;
+        gap: 20px;
         margin-top: 15px;
+    }
+
+    @font-face {
+        font-family: 'KrutiDev011';
+        src: url("{{ asset('font/KrutiDev011.ttf') }}") format('truetype');
     }
 
     .compact-card {

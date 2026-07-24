@@ -216,7 +216,10 @@
                             </span>
                             <span class="note-date"><i class="fa-regular fa-clock"></i> {{ $note->created_at ? $note->created_at->format('d-M-Y h:i A') : '' }}</span>
                         </div>
-                        <div class="note-content">{!! $note->remarks !!}</div>
+                        @php
+                            $noteFontFamily = (isset($note->font_family) && $note->font_family === 'krutidev') ? "font-family: 'KrutiDev011', sans-serif;" : "";
+                        @endphp
+                        <div class="note-content" style="{{ $noteFontFamily }}">{!! $note->remarks !!}</div>
                     </li>
                     @endforeach
                 </ul>

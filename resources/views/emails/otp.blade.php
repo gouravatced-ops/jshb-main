@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,28 +13,36 @@
             padding: 0;
             line-height: 1.6;
         }
+
         .email-wrapper {
             max-width: 600px;
             margin: 30px auto;
-            background: #e9ecef; /* Gray background for the body content */
+            background: #e9ecef;
+            /* Gray background for the body content */
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+
         /* ─── Header with JSHB Theme ─── */
         .header {
-            background: #1B2A4A; /* Navy blue */
+            background: #1B2A4A;
+            /* Navy blue */
             padding: 15px 20px;
             display: flex;
             align-items: center;
-            border-bottom: 4px solid #17A673; /* Teal green accent */
+            border-bottom: 4px solid #17A673;
+            /* Teal green accent */
         }
+
         .header table {
             width: 100%;
         }
+
         .header td {
             vertical-align: middle;
         }
+
         .header-logo {
             width: 50px;
             height: 50px;
@@ -41,6 +50,7 @@
             border-radius: 50%;
             padding: 4px;
         }
+
         .header h1 {
             color: #ffffff;
             margin: 0 0 0 15px;
@@ -49,6 +59,7 @@
             display: block;
             line-height: 1.2;
         }
+
         .header-subtitle {
             color: #8CB4E0;
             font-size: 12px;
@@ -57,6 +68,7 @@
             text-transform: uppercase;
             font-weight: 600;
         }
+
         /* ─── Teal accent bar ─── */
         .accent-bar {
             background: #17A673;
@@ -68,22 +80,27 @@
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
+
         /* ─── Body ─── */
         .body-content {
             padding: 25px 30px;
-            background: #e9ecef; /* Match the gray background */
+            background: #e9ecef;
+            /* Match the gray background */
         }
+
         .greeting {
             font-size: 15px;
             color: #1B2A4A;
             font-weight: 700;
             margin-bottom: 15px;
         }
+
         .message-text {
             color: #555;
             font-size: 13px;
             margin-bottom: 20px;
         }
+
         /* ─── OTP Code Box ─── */
         .otp-container {
             background: #f8fafc;
@@ -93,6 +110,7 @@
             text-align: center;
             margin: 15px 0 25px 0;
         }
+
         .otp-code {
             font-size: 32px;
             font-weight: 800;
@@ -101,6 +119,7 @@
             font-family: 'Courier New', monospace;
             margin: 0;
         }
+
         /* ─── Warning Note ─── */
         .note {
             background: #FFF3CD;
@@ -111,9 +130,11 @@
             font-size: 12px;
             color: #664d03;
         }
+
         .note strong {
             color: #E8960C;
         }
+
         /* ─── Security Info ─── */
         .security-info {
             background: #F0F7FF;
@@ -124,24 +145,29 @@
             font-size: 11px;
             color: #1B2A4A;
         }
+
         .security-info ul {
             margin: 6px 0 0 0;
             padding-left: 18px;
         }
+
         .security-info li {
             margin-bottom: 4px;
         }
+
         /* ─── Footer ─── */
         .footer {
             background: #1B2A4A;
             padding: 15px 20px;
             text-align: center;
         }
+
         .footer-text {
             color: #8CB4E0;
             font-size: 10px;
             margin: 3px 0 0 0;
         }
+
         .footer-brand {
             color: #F5A623;
             font-size: 12px;
@@ -151,6 +177,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="email-wrapper">
         <!-- Header -->
@@ -162,7 +189,7 @@
                         <img src="https://adms.jshb.computered.co.in/public/img/jshb_logo.png" alt="JSHB Logo" class="header-logo">
                     </td>
                     <td>
-                        <h1>ADMS JSHB</h1>
+                        <h1>JSHB Portal</h1>
                         <div class="header-subtitle">JHARKHAND STATE HOUSING BOARD</div>
                     </td>
                 </tr>
@@ -208,4 +235,5 @@
         </div>
     </div>
 </body>
+
 </html>

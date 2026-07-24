@@ -69,6 +69,10 @@
             border-top: 1px solid #eee;
             padding-top: 5px;
         }
+        @font-face {
+            font-family: 'KrutiDev011';
+            src: url("{{ public_path('font/KrutiDev011.ttf') }}") format('truetype');
+        }
     </style>
 </head>
 <body>
@@ -86,7 +90,10 @@
                 
                 <span class="date">{{ $note->created_at ? $note->created_at->format('d-M-Y h:i A') : '' }}</span>
             </div>
-            <div class="note-body">
+            @php
+                $noteFontFamily = (isset($note->font_family) && $note->font_family === 'krutidev') ? "font-family: 'KrutiDev011', sans-serif;" : "";
+            @endphp
+            <div class="note-body" style="{{ $noteFontFamily }}">
                 {!! $note->remarks !!}
             </div>
         </div>

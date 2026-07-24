@@ -193,7 +193,7 @@
                         <img src="https://adms.jshb.computered.co.in/public/img/jshb_logo.png" alt="JSHB Logo" class="header-logo">
                     </td>
                     <td>
-                        <h1>ADMS JSHB</h1>
+                        <h1>JSHB Portal</h1>
                         <div class="header-subtitle">JHARKHAND STATE HOUSING BOARD</div>
                     </td>
                 </tr>

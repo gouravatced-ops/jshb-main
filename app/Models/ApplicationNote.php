@@ -23,6 +23,7 @@ class ApplicationNote extends Model
         'role_id',
         'note_type',
         'remarks',
+        'font_family',
         'signature',
         'signature_type',
         'signature_date',
