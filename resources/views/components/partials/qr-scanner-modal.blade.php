@@ -104,28 +104,43 @@
                     correctLevel : QRCode.CorrectLevel.H
                 });
                 
-                // Setup Polling every 5 seconds to check if image is uploaded
-                qrPollInterval = setInterval(function() {
-                    $.get('/api/photo-session/check/' + data.token, function(response) {
-                        if (response.status === 'completed' && response.url) {
-                            // Stop Polling
-                            clearInterval(qrPollInterval);
-                            
-                            // Hide QR code and show the captured image preview
-                            $('#qrcode').hide();
-                            $('#qrActions').hide();
-                            $('#qrResultImage').attr('src', response.url);
-                            $('#qrResultPreview').css('display', 'flex');
-                            
-                            // Optional Toast
-                            var toast = $('<div style="position:fixed; bottom:20px; right:20px; background:#4CAF50; color:white; padding:15px 25px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:99999; font-weight:bold; animation: slideUpToast 0.4s ease-out;"><i class="fa-solid fa-check-circle me-2"></i> Live image captured!</div>');
-                            $('body').append(toast);
-                            setTimeout(function() {
-                                toast.fadeOut(400, function() { $(this).remove(); });
-                            }, 4000);
-                        }
-                    });
-                }, 5000);
+                // Function to handle the received image
+                const handleCapturedImage = (url) => {
+                    if (qrPollInterval) clearInterval(qrPollInterval);
+                    
+                    // Hide QR code and show the captured image preview
+                    $('#qrcode').hide();
+                    $('#qrActions').hide();
+                    $('#qrResultImage').attr('src', url);
+                    $('#qrResultPreview').css('display', 'flex');
+                    
+                    // Optional Toast
+                    var toast = $('<div style="position:fixed; bottom:20px; right:20px; background:#4CAF50; color:white; padding:15px 25px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:99999; font-weight:bold; animation: slideUpToast 0.4s ease-out;"><i class="fa-solid fa-check-circle me-2"></i> Live image captured!</div>');
+                    $('body').append(toast);
+                    setTimeout(function() {
+                        toast.fadeOut(400, function() { $(this).remove(); });
+                    }, 4000);
+                };
+
+                // Check if Pusher/Echo is available
+                if (typeof window.Echo !== 'undefined') {
+                    // Use Real-time WebSockets
+                    window.Echo.channel('photo-session.' + data.token)
+                        .listen('.photo.captured', function(response) {
+                            handleCapturedImage(response.imageUrl);
+                            // Cleanup channel
+                            window.Echo.leave('photo-session.' + data.token);
+                        });
+                } else {
+                    // Fallback to Polling every 5 seconds if WebSockets aren't available
+                    qrPollInterval = setInterval(function() {
+                        $.get('/api/photo-session/check/' + data.token, function(response) {
+                            if (response.status === 'completed' && response.url) {
+                                handleCapturedImage(response.url);
+                            }
+                        });
+                    }, 5000);
+                }
             },
             error: function(xhr) {
                 $('#qrLoader').hide();
