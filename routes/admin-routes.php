@@ -23,6 +23,12 @@ Route::middleware('auth')
         Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
         Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
         Route::post('/profile/update', [AdminController::class, 'updateProfile'])->name('profile.update');
+        
+        // Frontend Webhook/Log Receiver
+        Route::post('/log-notification-event', function (\Illuminate\Http\Request $request) {
+            \Illuminate\Support\Facades\Log::channel('notification_log')->info("Frontend Webhook: " . $request->input('message') . " | User ID: " . \Illuminate\Support\Facades\Auth::id());
+            return response()->json(['success' => true]);
+        })->name('log.notification');
 
         // Division
         Route::get('/divisions', [DivisionController::class, 'index'])->name('divisions.index');
