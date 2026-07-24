@@ -377,6 +377,11 @@
                     }).catch(e => console.error(e));
                 };
 
+                // Request Browser Notification Permission on Load
+                if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+
                 // Log Connection States
                 if (window.Echo.connector.pusher) {
                     window.Echo.connector.pusher.connection.bind('state_change', function(states) {
@@ -389,29 +394,33 @@
                         console.log('Realtime Notification Received:', e);
                         logToBackend(`Realtime Notification Delivered to Browser | Subject: ${e.notification.subject || 'N/A'}`);
                         
-                        // Show Toaster
-                        const toasterWrap = document.getElementById('toasterWrap');
-                        if (toasterWrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'custom-toast slide-in bg-white shadow-lg rounded-lg border-l-4 p-4 mb-3';
-                            toast.style.borderLeftColor = '#3b82f6';
-                            toast.style.width = '300px';
-                            toast.style.position = 'relative';
-                            toast.innerHTML = `
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="fw-bold mb-1" style="color: #1e293b;"><i class="fa-solid fa-bell text-primary me-2"></i>New Notification</h6>
-                                        <p class="mb-0 small" style="color: #475569;">${e.notification.subject || 'You have a new update.'}</p>
-                                    </div>
-                                    <button type="button" class="btn-close btn-sm" onclick="this.parentElement.parentElement.remove()" style="font-size: 0.65rem;"></button>
-                                </div>
-                                ${e.notification.link ? `<div class="mt-2 text-end"><a href="${e.notification.link}" class="btn btn-sm btn-primary py-1 px-2" style="font-size: 0.75rem;">View</a></div>` : ''}
-                            `;
-                            toasterWrap.appendChild(toast);
-                            
-                            setTimeout(() => {
-                                if(toast.parentElement) toast.remove();
-                            }, 8000);
+                        // Show Native Browser Notification instead of Toaster
+                        if ("Notification" in window) {
+                            if (Notification.permission === "granted") {
+                                const notification = new Notification(e.notification.subject || 'New Notification', {
+                                    body: e.notification.message || 'You have a new update.',
+                                    // icon: '/images/logo.png' // add icon if needed
+                                });
+                                
+                                if (e.notification.link) {
+                                    notification.onclick = function() {
+                                        window.open(e.notification.link, '_blank');
+                                    };
+                                }
+                            } else if (Notification.permission !== "denied") {
+                                Notification.requestPermission().then(function (permission) {
+                                    if (permission === "granted") {
+                                        const notification = new Notification(e.notification.subject || 'New Notification', {
+                                            body: e.notification.message || 'You have a new update.'
+                                        });
+                                        if (e.notification.link) {
+                                            notification.onclick = function() {
+                                                window.open(e.notification.link, '_blank');
+                                            };
+                                        }
+                                    }
+                                });
+                            }
                         }
 
                         // Play a sound (optional)
