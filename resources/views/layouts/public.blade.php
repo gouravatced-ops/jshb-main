@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ asset('css/icons/all.css') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset(config('panel.faviconIcon', 'favicon.ico')) }}">
     <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/public.css') }}">
     @stack('styles')
 </head>
 
@@ -18,18 +19,19 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container nav-inner">
-            <div class="nav-brand">
+            <a href="{{ route('landing') }}" class="nav-brand" style="text-decoration: none; color: inherit;">
                 <img src="{{ asset(config('panel.logo')) }}" alt="JSHB Logo" class="nav-logo" onerror="this.src='https://placehold.co/80x80/ffffff/1f7b4d?text=JH'">
                 <div class="nav-title">
                     <small>{{ config('panel.organization_hindi', 'झारखण्ड राज्य आवास बोर्ड') }}</small>
                     <strong>{{ config('panel.organization', 'Jharkhand State Housing Board') }}</strong>
                 </div>
-            </div>
+            </a>
 
             <div class="nav-links">
-                <a href="{{ route('landing') }}#about" class="nav-link">About Us</a>
+                <a href="{{ route('about') }}" class="nav-link">About Us</a>
                 <a href="{{ route('schemes') }}" class="nav-link">Schemes</a>
-                <a href="#contact" class="nav-link">Contact</a>
+                <a href="{{ route('tenders') }}" class="nav-link">Tenders & Notices</a>
+                <a href="{{ route('contact') }}" class="nav-link">Contact</a>
                 
                 <a href="https://portal.adms.jshb.computered.co.in/" target="_blank" class="btn-maroon">
                     <i class="fa-solid fa-house-user"></i> Allottee Portal
@@ -61,10 +63,10 @@
 
                 <!-- Brand Info -->
                 <div class="footer-brand">
-                    <div class="footer-logo">
+                    <a href="{{ route('landing') }}" class="footer-logo" style="text-decoration: none; color: inherit;">
                         <img src="{{ asset(config('panel.logo')) }}" alt="Logo" onerror="this.src='https://placehold.co/80x80/ffffff/1f7b4d?text=JH'">
                         <span>{{ config('panel.organization', 'Jharkhand State Housing Board') }}</span>
-                    </div>
+                    </a>
                     <p>Empowering the citizens of Jharkhand with transparent, digital, and efficient housing solutions and public infrastructure management.</p>
                     <div class="social-links">
                         <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
@@ -77,10 +79,11 @@
                 <div>
                     <h4 class="footer-heading">Quick Links</h4>
                     <ul class="footer-menu">
-                        <li><a href="{{ route('landing') }}#about"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> About Us</a></li>
+                        <li><a href="{{ route('about') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> About Us</a></li>
                         <li><a href="{{ route('schemes') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Latest Schemes</a></li>
                         <li><a href="{{ route('grievance') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Register Grievance</a></li>
-                        <li><a href="#"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Tenders & Notices</a></li>
+                        <li><a href="{{ route('tenders') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Tenders & Notices</a></li>
+                        <li><a href="{{ route('contact') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Contact Us</a></li>
                         <li><a href="{{ route('login') }}"><i class="fa-solid fa-angle-right" style="margin-right:8px; font-size:0.8em;"></i> Member Login</a></li>
                     </ul>
                 </div>
