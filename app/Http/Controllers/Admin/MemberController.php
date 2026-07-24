@@ -307,8 +307,9 @@ class MemberController extends Controller
             'subject' => 'Test Realtime Notification',
             'message' => 'This is a real-time notification test sent by the Super Admin.',
             'link' => '#',
-            'type' => 'test'
-        ], false);
+            'type' => 'test',
+            'send_email' => false
+        ]);
 
         return response()->json(['success' => 'Test notification sent successfully to ' . $member->name]);
     }

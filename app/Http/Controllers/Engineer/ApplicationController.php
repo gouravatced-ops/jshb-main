@@ -304,7 +304,9 @@ class ApplicationController extends Controller
                 'application_id' => $application->id,
                 'user_id' => $user->id,
                 'role_id' => $user->role_id,
+                'note_type' => 'user_note',
                 'remarks' => $request->remarks,
+                'font_family' => $request->font_family ?? 'english',
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
@@ -461,6 +463,7 @@ class ApplicationController extends Controller
             'user_id' => $user->id,
             'role_id' => $user->role_id,
             'remarks' => $request->remarks,
+            'font_family' => $request->font_family ?? 'english',
             'created_at' => now(),
             'updated_at' => now()
         ]);

@@ -246,6 +246,18 @@
         });
     });
 
+    // Listen for font family changes from radio buttons outside summernote
+    $(document).on('change', '.font-family-selector', function() {
+        var selectedFont = $(this).val();
+        if (selectedFont === 'krutidev') {
+            $('.note-editable').css('font-family', 'KrutiDev011, sans-serif');
+            $('#summernote').summernote('fontName', 'KrutiDev011');
+        } else {
+            $('.note-editable').css('font-family', 'Arial, sans-serif');
+            $('#summernote').summernote('fontName', 'Arial');
+        }
+    });
+
     @if($isEngineer)
     function insertLocalImage() {
         var input = document.getElementById('customSummernoteImageInput');
