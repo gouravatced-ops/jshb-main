@@ -365,9 +365,29 @@
             if (userIdMeta && window.Echo) {
                 const userId = userIdMeta.getAttribute('content');
                 
+                // Helper to send log to backend
+                const logToBackend = (message) => {
+                    fetch('{{ route("admin.log.notification") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ message: message })
+                    }).catch(e => console.error(e));
+                };
+
+                // Log Connection States
+                if (window.Echo.connector.pusher) {
+                    window.Echo.connector.pusher.connection.bind('state_change', function(states) {
+                        logToBackend(`Pusher Connection State: ${states.current} (was ${states.previous})`);
+                    });
+                }
+                
                 window.Echo.private('App.Models.User.' + userId)
                     .listen('.EngineerNotification', (e) => {
                         console.log('Realtime Notification Received:', e);
+                        logToBackend(`Realtime Notification Delivered to Browser | Subject: ${e.notification.subject || 'N/A'}`);
                         
                         // Show Toaster
                         const toasterWrap = document.getElementById('toasterWrap');
@@ -411,6 +431,7 @@
             }
         });
     </script>
+    @yield('scripts')
 </body>
 
 </html>
