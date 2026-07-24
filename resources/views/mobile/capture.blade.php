@@ -205,10 +205,10 @@
             </div>
             <div class="edit-controls" id="edit-controls" style="margin-top: 0;">
                 <button type="button" class="filter-btn active" data-filter="none">Normal</button>
-                <button type="button" class="filter-btn" data-filter="grayscale">B&W</button>
-                <button type="button" class="filter-btn" data-filter="white_bg">White BG</button>
                 <button type="button" class="filter-btn" data-filter="remove_bg">Remove BG</button>
+                <button type="button" class="filter-btn" data-filter="grayscale">B&W</button>
                 <button type="button" class="filter-btn" data-filter="contrast">Contrast</button>
+                <button type="button" class="filter-btn" data-filter="white_bg">White BG</button>
             </div>
             <div style="display: flex; gap: 15px; justify-content: center; width: 100%;">
                 <button type="button" id="retake-btn" style="flex: 1; padding: 12px; border-radius: 25px; border: 2px solid #fff; background: transparent; color: #fff; font-weight: bold; font-size: 16px;">Retake</button>
