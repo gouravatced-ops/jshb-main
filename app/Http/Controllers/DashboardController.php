@@ -300,21 +300,23 @@ class DashboardController extends Controller
         $dashboardNotices = $this->getNoticesForUser($user);
         $dashboardNotifications = $this->getNotificationsForUser($user);
 
-        // Fetch all pending applications for the calendar
+        // Fetch all pending applications for the calendar and use their latest movement date to the user
         $dashboardForwardedApps = Application::with('allottee')
             ->where('current_role_id', $user->role_id)
             ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
             ->whereIn('allottee_id', $validAllotteeIds)
-            ->select(
-                'applications.id',
-                'applications.application_no',
-                'applications.application_type',
-                'applications.allottee_id',
-                'applications.created_date'
-            )
+            ->whereHas('movements', function($q) use ($user) {
+                $q->where('to_user_id', $user->id);
+            })
+            ->with(['movements' => function($q) use ($user) {
+                $q->where('to_user_id', $user->id)->orderBy('id', 'desc');
+            }])
             ->get();
 
         $dashboardForwardedApps->transform(function ($app) {
+            $latestMovement = $app->movements->first();
+            $app->created_date = $latestMovement ? $latestMovement->movement_date : $app->created_date;
+            
             if ($app->allottee) {
                 $app->allottee_name = trim("{$app->allottee->prefix} {$app->allottee->allottee_name} {$app->allottee->allottee_surname}");
             }

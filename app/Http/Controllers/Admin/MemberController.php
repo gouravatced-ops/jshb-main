@@ -292,4 +292,24 @@ class MemberController extends Controller
 
         return redirect()->route('admin.members.index')->with('success', 'Member status updated successfully.');
     }
+
+    public function testNotify($id)
+    {
+        if ($redirect = $this->superAdminGuard()) {
+            return response()->json(['error' => 'Super Admin access required.'], 403);
+        }
+
+        $member = User::findOrFail($id);
+        
+        $notificationService = app(\App\Services\NotificationService::class);
+        $notificationService->send([
+            'user_id' => $member->id,
+            'subject' => 'Test Realtime Notification',
+            'message' => 'This is a real-time notification test sent by the Super Admin.',
+            'link' => '#',
+            'type' => 'test'
+        ], false);
+
+        return response()->json(['success' => 'Test notification sent successfully to ' . $member->name]);
+    }
 }

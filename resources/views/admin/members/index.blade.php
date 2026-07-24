@@ -156,6 +156,12 @@
                                         </button>
                                     </form>
 
+                                    <!-- Notify Button -->
+                                    <button class="action-btn notify-btn" data-url="{{ route('admin.members.test-notify', $member->id) }}" title="Send Test Realtime Notification">
+                                        <i class="fa-solid fa-bell text-warning"></i>
+                                    </button>
+
+
                                     <!-- Delete Button (Only if not self, and not protected role) -->
                                     {{-- @if($member->id !== Auth::id() && !$isProtected)
                                         <form action="{{ route('admin.members.destroy', $member->id) }}" method="POST"
@@ -187,4 +193,43 @@
             </div>
         @endif
     </div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.notify-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                let url = this.getAttribute('data-url');
+                
+                // Show small visual feedback
+                let originalIcon = this.innerHTML;
+                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-warning"></i>';
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.innerHTML = originalIcon;
+                    if(data.success) {
+                        alert(data.success);
+                    } else {
+                        alert(data.error || 'Something went wrong');
+                    }
+                })
+                .catch(error => {
+                    this.innerHTML = originalIcon;
+                    alert('Error sending notification.');
+                });
+            });
+        });
+    });
+</script>
 @endsection
