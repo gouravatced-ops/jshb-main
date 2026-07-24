@@ -32,8 +32,7 @@ class Workflow extends Model
 
     public function requiredDocuments()
     {
-        $database = config('database.connections.adms_jshb.database', '30062026_adms_jshb');
-        return $this->belongsToMany(DocumentMaster::class, "{$database}.workflow_document_master", 'workflow_id', 'document_master_id')
+        return $this->belongsToMany(DocumentMaster::class, 'workflow_document_master', 'workflow_id', 'document_master_id')
                     ->withPivot('is_required')
                     ->withTimestamps();
     }

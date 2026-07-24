@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class DocumentMaster extends Model
 {
     use HasFactory;
-    protected $connection = 'adms_allottees';
+    protected $connection = 'adms_jshb';
     protected $table = 'document_master';
 
     protected $fillable = [
@@ -21,9 +21,8 @@ class DocumentMaster extends Model
 
     public function workflows()
     {
-        $database = config('database.connections.adms_jshb.database', '30062026_adms_jshb');
-        return $this->belongsToMany(Workflow::class, "{$database}.workflow_document_master", 'document_master_id', 'workflow_id')
-                    ->withPivot('is_required')
-                    ->withTimestamps();
+        return $this->belongsToMany(Workflow::class, 'workflow_document_master', 'document_master_id', 'workflow_id')
+            ->withPivot('is_required')
+            ->withTimestamps();
     }
 }
