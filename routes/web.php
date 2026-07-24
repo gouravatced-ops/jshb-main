@@ -18,6 +18,18 @@ Route::get('/schemes', function () {
     return view('schemes');
 })->name('schemes');
 
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+Route::get('/contact', function () {
+    return view('contact');
+})->name('contact');
+
+Route::get('/tenders', function () {
+    return view('tenders');
+})->name('tenders');
+
 Route::get('/run-storage-link', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('storage:link');
