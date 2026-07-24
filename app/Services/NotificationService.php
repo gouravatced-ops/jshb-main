@@ -142,6 +142,15 @@ class NotificationService
 
         Log::channel('notification_log')->info("Notification saved to DB ({$targetDb}) | Notification ID: {$notification->id}");
 
+        // Broadcast Real-time Notification if it's for Engineers (jshb)
+        if (!$isAllottee && $userId) {
+            try {
+                \App\Events\EngineerNotificationEvent::dispatch($userId, $notification->toArray());
+            } catch (\Exception $e) {
+                Log::channel('notification_log')->error("Failed to broadcast EngineerNotificationEvent | Error: " . $e->getMessage());
+            }
+        }
+
         return $notification;
     }
 }

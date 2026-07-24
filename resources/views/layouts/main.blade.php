@@ -8,11 +8,18 @@
     <title>@yield('title', 'JSHB Dashboard')</title>
     <meta name="description" content="Jharkhand State Housing Board | Admin Portal" />
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset(config('panel.faviconIcon')) }}">
+    
+    @if(Auth::check())
+    <meta name="user-id" content="{{ Auth::id() }}">
+    @endif
+
     <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/font/font.css') }}">
     <link rel="stylesheet" href="{{ asset('css/icons/all.css') }}">
     <link rel="stylesheet" href="{{ asset('css/font.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body>
@@ -351,6 +358,58 @@
         setTimeout(() => {
             document.querySelectorAll('.alert').forEach(el => el.remove());
         }, 3000);
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userIdMeta = document.querySelector('meta[name="user-id"]');
+            if (userIdMeta && window.Echo) {
+                const userId = userIdMeta.getAttribute('content');
+                
+                window.Echo.private('App.Models.User.' + userId)
+                    .listen('.EngineerNotification', (e) => {
+                        console.log('Realtime Notification Received:', e);
+                        
+                        // Show Toaster
+                        const toasterWrap = document.getElementById('toasterWrap');
+                        if (toasterWrap) {
+                            const toast = document.createElement('div');
+                            toast.className = 'custom-toast slide-in bg-white shadow-lg rounded-lg border-l-4 p-4 mb-3';
+                            toast.style.borderLeftColor = '#3b82f6';
+                            toast.style.width = '300px';
+                            toast.style.position = 'relative';
+                            toast.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="fw-bold mb-1" style="color: #1e293b;"><i class="fa-solid fa-bell text-primary me-2"></i>New Notification</h6>
+                                        <p class="mb-0 small" style="color: #475569;">${e.notification.subject || 'You have a new update.'}</p>
+                                    </div>
+                                    <button type="button" class="btn-close btn-sm" onclick="this.parentElement.parentElement.remove()" style="font-size: 0.65rem;"></button>
+                                </div>
+                                ${e.notification.link ? `<div class="mt-2 text-end"><a href="${e.notification.link}" class="btn btn-sm btn-primary py-1 px-2" style="font-size: 0.75rem;">View</a></div>` : ''}
+                            `;
+                            toasterWrap.appendChild(toast);
+                            
+                            setTimeout(() => {
+                                if(toast.parentElement) toast.remove();
+                            }, 8000);
+                        }
+
+                        // Play a sound (optional)
+                        try {
+                            const audio = new Audio('/sounds/notification.mp3');
+                            audio.play().catch(e => {});
+                        } catch(err) {}
+                        
+                        // Increment badge if present
+                        const badge = document.querySelector('.notification-badge');
+                        if (badge) {
+                            let count = parseInt(badge.innerText) || 0;
+                            badge.innerText = count + 1;
+                            badge.style.display = 'inline-block';
+                        }
+                    });
+            }
+        });
     </script>
 </body>
 

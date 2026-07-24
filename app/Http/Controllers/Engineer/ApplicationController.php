@@ -512,6 +512,38 @@ class ApplicationController extends Controller
             'target_user_name' => $targetUser ? $targetUser->name : 'N/A'
         ]);
 
+        // Trigger Notification to target engineer if applicable
+        if ($targetUser && in_array($request->action_type, ['forward', 'send_back'])) {
+            $actionWord = $request->action_type == 'forward' ? 'forwarded' : 'sent back';
+            $subject = "Application {$actionWord} to you: {$application->application_no}";
+            $message = "An application ({$application->application_no}) has been {$actionWord} to you by {$user->name}.";
+
+            $dashboardUrl = url('/engineer/applications/' . $application->id);
+
+            $customMailable = new \App\Mail\ApplicationForwardedMail(
+                $targetUser->name,
+                $application->application_no,
+                $user->name,
+                $request->action_type,
+                $dashboardUrl,
+                $request->remarks
+            );
+
+            app(\App\Services\NotificationService::class)->send([
+                'user_id' => $targetUser->id,
+                'is_allottee' => false,
+                'application_id' => $application->id,
+                'notification_type' => 'application_movement',
+                'subject' => $subject,
+                'message' => $message,
+                'send_email' => true,
+                'send_sms' => false,
+                'send_whatsapp' => false,
+                'link' => '/engineer/applications/' . $application->id,
+                'mailable' => $customMailable
+            ]);
+        }
+
         return redirect()->route('engineer.applications.show', $application)
             ->with('success', 'Office noting and action recorded successfully.');
     }
