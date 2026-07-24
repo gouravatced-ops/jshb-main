@@ -222,12 +222,12 @@
                         if (data.success) {
                             console.log(data.success);
                         } else {
-                            console.error(data.error || 'Something went wrong');
+                            alert(data.error || 'Something went wrong');
                         }
                     })
                     .catch(error => {
                         this.innerHTML = originalIcon;
-                        console.error('Error sending notification.');
+                        alert('Error sending notification.');
                     });
             });
         });
