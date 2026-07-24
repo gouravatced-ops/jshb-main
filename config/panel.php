@@ -10,7 +10,7 @@ return [
     'organization' => 'Jharkhand State Housing Board',
     'organization_hindi' => 'झारखंड राज्य आवास बोर्ड',
     'organization_label' => 'Government housing opportunities in Ranchi and across Jharkhand',
-    'portal_name' => 'ADMS PORTAL',
+    'portal_name' => 'JSHB PORTAL',
     'app_name' => 'Allottee Data Management System-ADMS',
     'app_sub_title' => 'JSHB Administration',
     'logo' => 'img/jshb_logo.png',

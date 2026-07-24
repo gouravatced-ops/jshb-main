@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Login | JSHB PORTAL</title>
+    <title>Login | {{ config('panel.portal_name') }}</title>
     <meta name="description" content="Jharkhand Housing Board - Official management login portal" />
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset(config('panel.faviconIcon')) }}">
     <!-- Google Fonts + Font Awesome -->
