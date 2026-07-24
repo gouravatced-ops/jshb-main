@@ -192,7 +192,7 @@ class ApplicationController extends Controller
             'notes.user',
             'notes.user',
             'documents',
-            'workflow.requiredDocuments'
+            // 'workflow.requiredDocuments'
         ]);
 
         $documentMasters = \App\Models\DocumentMaster::where('status', 1)->orderBy('sort_order')->get();
