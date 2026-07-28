@@ -46,12 +46,24 @@ class NotificationService
         $emailId = $params['email_id'] ?? null;
         $phoneNumber = $params['phone_number'] ?? null;
 
-        if ($userId && (!$emailId || !$phoneNumber)) {
+        $user = null;
+        if ($userId) {
             $userQuery = $isAllottee ? User::on('adms_allottees') : User::query();
             $user = $userQuery->find($userId);
             if ($user) {
                 if (!$emailId) $emailId = $user->email;
                 if (!$phoneNumber) $phoneNumber = $user->phone ?? $user->mobile ?? '';
+            }
+        }
+
+        // Apply Communication Settings based on user's role
+        if ($user && $user->role_id) {
+            $commSetting = \App\Models\CommunicationSetting::where('role_id', $user->role_id)->first();
+            if ($commSetting) {
+                // Only send if BOTH the original request AND the global setting allow it
+                $sendEmail = $sendEmail && $commSetting->is_email_enabled;
+                $sendSms = $sendSms && $commSetting->is_sms_enabled;
+                $sendWhatsapp = $sendWhatsapp && $commSetting->is_whatsapp_enabled;
             }
         }
 

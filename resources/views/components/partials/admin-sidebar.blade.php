@@ -31,6 +31,12 @@
             href="{{ route('admin.apply.index') }}">
             <i class="fa-solid fa-user-plus"></i> Add Allottee
         </a>
+
+        <!-- Overdue Cancellations -->
+        <a class="submenu-item {{ request()->routeIs('admin.allottees.cancellations') ? 'active' : '' }}"
+            href="{{ route('admin.allottees.cancellations') }}">
+            <i class="fa-solid fa-ban"></i> Cancellations
+        </a>
     </div>
 </div>
 
@@ -99,6 +105,17 @@
             <i class="fa-solid fa-bullhorn"></i>
         </div>
         <span class="nav-text">Notices</span>
+    </a>
+</div>
+
+
+<!-- Communication -->
+<div class="nav-item-wrap">
+    <a class="nav-link-custom {{ request()->routeIs('admin.communication-settings.*') ? 'active' : '' }}" href="{{ route('admin.communication-settings.index') }}">
+        <div class="nav-icon">
+            <i class="fa-solid fa-envelope-open-text"></i>
+        </div>
+        <span class="nav-text">Communication</span>
     </a>
 </div>
 

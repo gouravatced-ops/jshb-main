@@ -13,6 +13,11 @@
         src: url("{{ asset('font/KrutiDev011.ttf') }}") format('truetype');
     }
 
+    @font-face {
+        font-family: 'notosansdevanagari';
+        src: url("{{ asset('font/NotoSansDevanagari.ttf') }}") format('truetype');
+    }
+
     .compact-card {
         background: #fff;
         border-radius: 8px;
@@ -142,6 +147,9 @@
     .note-author { font-weight: 600; color: #4a148c; font-size: 13px; }
     .note-date { color: #888; font-size: 12px; display: flex; align-items: center; gap: 4px; }
     .note-content { color: #333; line-height: 1.5; font-size: 13px; background: #fdfdfd; padding: 10px; border-radius: 6px; border: 1px solid #f5f5f5; }
+    .note-content ul { list-style-type: disc !important; padding-left: 25px !important; margin-bottom: 10px; list-style-image: none !important; }
+    .note-content ol { list-style-type: decimal !important; padding-left: 25px !important; margin-bottom: 10px; list-style-image: none !important; }
+    .note-content li { display: list-item !important; margin-bottom: 4px; list-style-type: disc !important; list-style-image: none !important; margin-left: 25px; }
 
     /* Layout Grids */
     .col-span-4 { grid-column: span 4; }

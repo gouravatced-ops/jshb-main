@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Traits\DocumentUploadTrait;
+use Illuminate\Support\Facades\Hash;
 
 class ApplicationController extends Controller
 {
@@ -190,9 +191,10 @@ class ApplicationController extends Controller
                 $q->orderBy('created_at', 'desc');
             },
             'notes.user',
-            'notes.user',
+            'notes.user.division',
             'documents',
-            'workflow.requiredDocuments'
+            'workflow.requiredDocuments',
+            'workflow.steps.role'
         ]);
 
         $documentMasters = \App\Models\DocumentMaster::where('status', 1)->orderBy('sort_order')->get();
@@ -252,29 +254,38 @@ class ApplicationController extends Controller
                 }
             }
         } elseif ($action_type == 'send_back' && $application->currentStep) {
-            $eligibleSteps = WorkflowStep::with('role')
-                ->where('workflow_id', $application->workflow_id)
-                ->where('step_order', '<', $application->currentStep->step_order)
-                ->orderBy('step_order', 'desc')
+            $previousMovements = ApplicationMovement::with(['fromUser', 'fromStep', 'fromRole'])
+                ->where('application_id', $application->id)
+                ->where('action_type', 'forwarded')
+                ->where('from_step_id', '!=', $application->currentStep->id)
+                ->orderBy('movement_date', 'desc')
                 ->get();
 
-            $divisionId = $application->allottee->division_id ?? null;
+            $processedSteps = [];
 
-            foreach ($eligibleSteps as $step) {
-                // Get engineers with this role_id and division_id
-                $engineersQuery = User::on('adms_jshb')->where('role_id', $step->role_id)->where('status', 1);
-                if ($divisionId) {
-                    $engineersQuery->where('division_id', $divisionId);
-                }
-                $engineers = $engineersQuery->get();
+            foreach ($previousMovements as $movement) {
+                if ($movement->fromStep && $movement->fromUser) {
+                    $stepId = $movement->from_step_id;
+                    $userId = $movement->from_user_id;
 
-                if ($engineers->count() > 0) {
-                    $sendBackOptions[] = [
-                        'step' => $step,
-                        'engineers' => $engineers
-                    ];
+                    if (!isset($processedSteps[$stepId])) {
+                        $processedSteps[$stepId] = [
+                            'step' => $movement->fromStep,
+                            'engineers' => collect()
+                        ];
+                    }
+
+                    if (!$processedSteps[$stepId]['engineers']->contains('id', $userId)) {
+                        $processedSteps[$stepId]['engineers']->push($movement->fromUser);
+                    }
                 }
             }
+
+            $sendBackOptions = array_values($processedSteps);
+
+            usort($sendBackOptions, function ($a, $b) {
+                return $b['step']->step_order <=> $a['step']->step_order;
+            });
         }
 
         $application->load([
@@ -294,10 +305,20 @@ class ApplicationController extends Controller
     {
         $request->validate([
             'action_type' => 'required|string',
-            'remarks' => 'required|string|max:50000'
+            'remarks' => 'required|string'
         ]);
 
         $user = Auth::user();
+
+        if ($request->action_type == 'approve') {
+            $request->validate([
+                'internal_password' => 'required'
+            ]);
+
+            if (!Hash::check($request->internal_password, $user->internal_password)) {
+                return back()->with('error', 'Incorrect internal password. Approval failed.');
+            }
+        }
 
         if ($request->action_type == 'add_note') {
             ApplicationNote::create([
@@ -395,7 +416,9 @@ class ApplicationController extends Controller
                     ->setPaper('a4', 'portrait');
 
                 $pdfContent = $pdf->output();
-                $fileName = 'allotment_letter_' . ($allottee->allotment_no ?? $application->application_no) . '_' . time() . '.pdf';
+                $allotmentNo = $allottee->allotment_no ?? $application->application_no;
+                $safeAllotmentNo = str_replace(['/', '\\'], '-', $allotmentNo);
+                $fileName = 'allotment_letter_' . $safeAllotmentNo . '_' . time() . '.pdf';
 
                 // 2. Upload to Document API
                 $scheme = $allottee->scheme ?? null;
@@ -416,7 +439,7 @@ class ApplicationController extends Controller
                 $uploadResult = $this->uploadContentToDocumentApi(
                     $pdfContent,
                     $fileName,
-                    'ALLOTMENT_LETTER',
+                    'FINAL',
                     $scheme->scheme_code ?? 'SCH',
                     $allottee->property_number ?? 'PROP',
                     $yyyy,
@@ -452,6 +475,61 @@ class ApplicationController extends Controller
                     'issue_date'     => now()->format('Y-m-d'),
                     'document_number' => $allottee->allotment_no ?? $application->application_no
                 ]);
+
+                // 5. Mark Allottee Process Step as completed
+                \App\Models\AllotteeProcessStep::completeStep(
+                    $allottee->id,
+                    'allotment',
+                    'generate-allotment',
+                    $user->id
+                );
+
+                // 6. Generate 15% Allotment Payment Order
+                $finance = $allottee->scheme->schemeFinance ?? null;
+                $propertyAmount = $finance ? (float) ($finance->property_total_cost ?? 0) : 0;
+                $allotmentPercentage = $finance ? (float) ($finance->allotment_percentage ?? 15) : 15;
+                $baseAmount = $finance ? (float) ($finance->allotment_amount ?? 0) : 0;
+                
+                if ($baseAmount == 0 && $propertyAmount > 0) {
+                    $baseAmount = ($propertyAmount * $allotmentPercentage) / 100;
+                }
+
+                \App\Models\AllotteePaymentOrder::updateOrCreate(
+                    [
+                        'allottee_id' => $allottee->id,
+                        'order_type'  => 'allotment',
+                    ],
+                    [
+                        'order_no'         => \App\Models\AllotteePaymentOrder::generateOrderNo('ODR-ALT'),
+                        'title'            => "{$allotmentPercentage}% Allotment Payment Order",
+                        'property_amount'  => $propertyAmount,
+                        'percentage'       => $allotmentPercentage,
+                        'base_amount'      => $baseAmount,
+                        'penalty_amount'   => 0,
+                        'admin_charge'     => 0,
+                        'total_payable'    => $baseAmount,
+                        'paid_amount'      => 0,
+                        'remaining_amount' => $baseAmount,
+                        'due_date'         => now()->addDays(30)->format('Y-m-d'),
+                        'issued_at'        => now(),
+                        'order_status'     => 'issued',
+                        'remarks'          => 'Auto generated ' . $allotmentPercentage . '% allotment payment order',
+                        'created_by'       => $user->id,
+                    ]
+                );
+
+
+                // Unlock the next step (15% Demand Note) assuming it's the next logical step
+                // Find the step number for 'generate-allotment' to unlock the next one
+                $currentStep = \App\Models\AllotteeProcessStep::where([
+                    'allottee_id' => $allottee->id,
+                    'menu_key' => 'allotment',
+                    'sub_menu_key' => 'generate-allotment'
+                ])->first();
+
+                if ($currentStep) {
+                    \App\Models\AllotteeProcessStep::unlockNextStep($allottee->id, $currentStep->step_no);
+                }
             } catch (\Exception $e) {
                 Log::error("Failed to auto-generate allotment PDF: " . $e->getMessage());
             }
@@ -521,7 +599,7 @@ class ApplicationController extends Controller
             $subject = "Application {$actionWord} to you: {$application->application_no}";
             $message = "An application ({$application->application_no}) has been {$actionWord} to you by {$user->name}.";
 
-            $dashboardUrl = url('/engineer/applications/' . $application->id);
+            $dashboardUrl = url('/login');
 
             $customMailable = new \App\Mail\ApplicationForwardedMail(
                 $targetUser->name,
@@ -542,9 +620,86 @@ class ApplicationController extends Controller
                 'send_email' => true,
                 'send_sms' => false,
                 'send_whatsapp' => false,
-                'link' => '/engineer/applications/' . $application->id,
+                'link' => '/login',
                 'mailable' => $customMailable
             ]);
+        }
+
+        // Trigger Notification to Allottee and Estate Officer on Approve / Reject
+        if (in_array($request->action_type, ['approve', 'reject'])) {
+            $actionWord = $request->action_type == 'approve' ? 'approved' : 'rejected';
+            $subject = "Application {$actionWord}: {$application->application_no}";
+
+            if ($request->action_type == 'approve') {
+                $message = "Your application ({$application->application_no}) has been approved and your Allotment Letter has been generated. Please log in to download your allotment letter.";
+            } else {
+                $message = "Your application ({$application->application_no}) has been rejected.";
+            }
+
+            $dashboardUrl = url('/login');
+
+            // Mail to Allottee
+            $allotteeUser = \App\Models\User::on('adms_allottees')->find($application->allottee->user_id);
+            if ($allotteeUser) {
+                $customMailableAllottee = new \App\Mail\ApplicationForwardedMail(
+                    $allotteeUser->name ?? 'Allottee',
+                    $application->application_no,
+                    $user->name,
+                    $request->action_type,
+                    $dashboardUrl,
+                    ''
+                );
+
+                app(\App\Services\NotificationService::class)->send([
+                    'user_id' => $allotteeUser->id,
+                    'is_allottee' => true,
+                    'application_id' => $application->id,
+                    'notification_type' => 'application_movement',
+                    'subject' => $subject,
+                    'message' => $message,
+                    'send_email' => true,
+                    'send_sms' => true,
+                    'send_whatsapp' => true,
+                    'link' => '/login',
+                    'mailable' => $customMailableAllottee
+                ]);
+            }
+
+            // Mail to Estate Officer
+            $divisionId = $application->allottee->division_id ?? null;
+            $estateOfficerRole = \App\Models\Role::where('slug', 'estate-officer')->first();
+            if ($estateOfficerRole && $divisionId) {
+                $estateOfficer = User::on('adms_jshb')
+                    ->where('role_id', $estateOfficerRole->id)
+                    ->where('division_id', $divisionId)
+                    ->where('status', 1)
+                    ->first();
+
+                if ($estateOfficer) {
+                    $customMailableEstate = new \App\Mail\ApplicationForwardedMail(
+                        $estateOfficer->name,
+                        $application->application_no,
+                        $user->name,
+                        $request->action_type,
+                        $dashboardUrl,
+                        ''
+                    );
+
+                    app(\App\Services\NotificationService::class)->send([
+                        'user_id' => $estateOfficer->id,
+                        'is_allottee' => false,
+                        'application_id' => $application->id,
+                        'notification_type' => 'application_movement',
+                        'subject' => $subject,
+                        'message' => $message,
+                        'send_email' => true,
+                        'send_sms' => false,
+                        'send_whatsapp' => false,
+                        'link' => '/login',
+                        'mailable' => $customMailableEstate
+                    ]);
+                }
+            }
         }
 
         return redirect()->route('engineer.applications.show', $application)
@@ -654,13 +809,20 @@ class ApplicationController extends Controller
             }
         }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('engineer.applications.notes-pdf', compact('application'))
-            ->setOptions([
-                'isRemoteEnabled' => false,
-                'isHtml5ParserEnabled' => true,
-                'chroot' => [public_path(), storage_path(), base_path()]
-            ])
-            ->setPaper('a4', 'portrait');
+        $pdf = \Mccarlosen\LaravelMpdf\Facades\LaravelMpdf::loadView('engineer.applications.notes-pdf', compact('application'), [], [
+            'auto_language_detection' => true,
+            'temp_dir'         => storage_path('app/temp'),
+            'custom_font_dir'  => public_path('font/'),
+            'custom_font_data' => [
+                'krutidev011' => [
+                    'R'  => 'KrutiDev011.ttf',
+                ],
+                'notosansdevanagari' => [
+                    'R' => 'NotoSansDevanagari.ttf',
+                    'B' => 'NotoSansDevanagari-Bold.ttf',
+                ]
+            ]
+        ]);
 
         return $pdf->stream('application_' . $application->application_no . '_notes.pdf');
     }
@@ -669,42 +831,53 @@ class ApplicationController extends Controller
         $request->validate([
             'application_id' => 'required|exists:applications,id',
             'allottee_id' => 'required',
-            'document_master_id' => 'required',
+            'document_master_ids' => 'required|array|min:1',
         ]);
 
-        $existingRequest = \App\Models\DocumentRequest::where('application_id', $request->application_id)
-            ->where('document_master_id', $request->document_master_id)
-            ->where('status', 'pending')
-            ->first();
+        $requestedDocNames = [];
 
-        if ($existingRequest) {
-            return back()->with('error', 'This document is already requested and pending.');
+        foreach ($request->document_master_ids as $docId) {
+            $existingRequest = \App\Models\DocumentRequest::where('application_id', $request->application_id)
+                ->where('document_master_id', $docId)
+                ->where('status', 'pending')
+                ->first();
+
+            if ($existingRequest) {
+                continue; // Skip already requested ones
+            }
+
+            \App\Models\DocumentRequest::create([
+                'application_id' => $request->application_id,
+                'allottee_id' => $request->allottee_id,
+                'document_master_id' => $docId,
+                'requested_by' => \Illuminate\Support\Facades\Auth::id(),
+                'remarks' => $request->remarks,
+                'expires_at' => now()->addDays(2),
+                'status' => 'pending'
+            ]);
+
+            $documentMaster = \App\Models\DocumentMaster::find($docId);
+            if ($documentMaster) {
+                $requestedDocNames[] = $documentMaster->document_name;
+            }
         }
 
-        $docRequest = \App\Models\DocumentRequest::create([
-            'application_id' => $request->application_id,
-            'allottee_id' => $request->allottee_id,
-            'document_master_id' => $request->document_master_id,
-            'requested_by' => \Illuminate\Support\Facades\Auth::id(),
-            'remarks' => $request->remarks,
-            'expires_at' => now()->addDays(2),
-            'status' => 'pending'
-        ]);
+        if (empty($requestedDocNames)) {
+            return back()->with('error', 'All selected documents are already requested and pending.');
+        }
 
         $allottee = \App\Models\Allottee::find($request->allottee_id);
         if ($allottee && $allottee->user_id) {
-            $defaultMsg = 'Engineer has requested an additional document for your application. Please upload within 2 days.';
+            $defaultMsg = 'Engineer has requested additional documents for your application. Please upload within 2 days.';
             $message = !empty(trim($request->remarks)) ? trim($request->remarks) : $defaultMsg;
 
-            // Get the document name
-            $documentMaster = \App\Models\DocumentMaster::find($request->document_master_id);
-            $docName = $documentMaster ? $documentMaster->document_name : 'Requested Document';
+            $docNamesStr = implode(', ', $requestedDocNames);
             $dueDate = now()->addDays(2)->format('d M Y, h:i A');
             $dashboardUrl = url('/'); // Link to allottee dashboard
 
             $customMailable = new \App\Mail\DocumentRequestMail(
                 $allottee->user->name ?? 'Allottee',
-                $docName,
+                $docNamesStr,
                 $dueDate,
                 $dashboardUrl,
                 $message
@@ -716,7 +889,7 @@ class ApplicationController extends Controller
                 'application_id' => $request->application_id,
                 'notification_type' => 'document_request',
                 'subject' => 'Document Request - Action Required',
-                'message' => $message,
+                'message' => $message . ' (Documents: ' . $docNamesStr . ')',
                 'send_email' => true,
                 'send_sms' => true,
                 'send_whatsapp' => true,
@@ -725,6 +898,6 @@ class ApplicationController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Document request sent to the allottee.');
+        return back()->with('success', 'Document requests sent successfully to the allottee.');
     }
 }

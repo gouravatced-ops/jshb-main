@@ -37,6 +37,22 @@ class ApplicationNote extends Model
         'is_public' => 'boolean',
     ];
 
+    public function getRemarksAttribute($value)
+    {
+        if (empty($value)) {
+            return $value;
+        }
+
+        // Fix orphaned <li> tags (e.g., from copy-pasting into Summernote)
+        // If there are <li> tags but NO <ul> or <ol> tags, wrap contiguous <li> blocks in a <ul>.
+        // This prevents mPDF "Undefined array key list_style_type" crash and fixes UI rendering.
+        if (stripos($value, '<li') !== false && stripos($value, '<ul') === false && stripos($value, '<ol') === false) {
+            $value = preg_replace('/(<li[^>]*>.*?<\/li>\s*)+/is', '<ul style="list-style-type: disc; margin: 0; padding-left: 20px;">$0</ul>', $value);
+        }
+
+        return $value;
+    }
+
     public function application()
     {
         return $this->belongsTo(Application::class, 'application_id');

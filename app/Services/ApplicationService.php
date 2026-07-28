@@ -186,29 +186,35 @@ class ApplicationService
                     ]);
 
                     // Send Notification to Allottee
-                    if ($allottee->user_id && function_exists('sendNotification')) {
-                        sendNotification(
-                            $application->id,
-                            $allottee->user_id,
-                            'application_created',
-                            'New ' . ucfirst($applicationType) . ' Application Created',
-                            "Your " . strtolower($applicationType) . " application {$applicationNo} has been created and forwarded to {$nextStep->step_name} for verification.",
-                            "/dashboard/section/application",
-                            true
-                        );
+                    if ($allottee->user_id) {
+                        app(\App\Services\NotificationService::class)->send([
+                            'user_id' => $allottee->user_id,
+                            'is_allottee' => true,
+                            'application_id' => $application->id,
+                            'notification_type' => 'application_created',
+                            'subject' => 'New ' . ucfirst($applicationType) . ' Application Created',
+                            'message' => "Your " . strtolower($applicationType) . " application {$applicationNo} has been created and forwarded to {$nextStep->step_name} for verification.",
+                            'link' => "/dashboard/section/application",
+                            'send_email' => true,
+                            'send_sms' => true,
+                            'send_whatsapp' => true,
+                        ]);
                     }
 
                     // Send Notification to Target User (e.g., Dealing Assistant)
-                    if ($targetUser && function_exists('sendNotification')) {
-                        sendNotification(
-                            $application->id,
-                            $targetUser->id,
-                            'application_forwarded',
-                            'New ' . ucfirst($applicationType) . ' Application for Verification',
-                            "A new " . strtolower($applicationType) . " application {$applicationNo} has been forwarded to you for document verification.",
-                            "/applications/view/{$application->id}",
-                            false
-                        );
+                    if ($targetUser) {
+                        app(\App\Services\NotificationService::class)->send([
+                            'user_id' => $targetUser->id,
+                            'is_allottee' => false,
+                            'application_id' => $application->id,
+                            'notification_type' => 'application_forwarded',
+                            'subject' => 'New ' . ucfirst($applicationType) . ' Application for Verification',
+                            'message' => "A new " . strtolower($applicationType) . " application {$applicationNo} has been forwarded to you for document verification.",
+                            'link' => "/applications/view/{$application->id}",
+                            'send_email' => true,
+                            'send_sms' => false,
+                            'send_whatsapp' => false,
+                        ]);
                     }
                 }
             }
