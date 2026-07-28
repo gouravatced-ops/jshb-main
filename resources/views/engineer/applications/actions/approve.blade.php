@@ -33,12 +33,31 @@
                             <input class="form-check-input font-family-selector" type="radio" name="font_family" id="font_hindi_note" value="krutidev">
                             <label class="form-check-label" for="font_hindi_note" style="margin:0px;">Hindi (Kruti Dev)</label>
                         </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input font-family-selector" type="radio" name="font_family" id="font_normal_hindi_note" value="normalhindi">
+                            <label class="form-check-label" for="font_normal_hindi_note" style="margin:0px;">Normal Hindi</label>
+                        </div>
                     </div>
 
                     <textarea id="summernote" name="remarks" required></textarea>
                 </div>
 
                 <hr style="margin: 20px 0; border-top: 1px solid #eaeaea;">
+                
+                @if(session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+                @endif
+
+                <div class="form-group mb-4">
+                    <label style="font-weight: 600; font-size: 16px; margin-bottom: 10px; display: block; color: #333;"><i class="fa-solid fa-lock" style="color: #155724;"></i> Internal Password <span class="text-danger">*</span></label>
+                    <input type="password" name="internal_password" class="form-control" placeholder="Enter your login password to confirm approval" required style="border-radius: 6px; padding: 10px 15px;">
+                    <small class="text-muted">For security, please verify your identity by entering your internal password before generating the official allotment document.</small>
+                    @error('internal_password')
+                        <div class="text-danger mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
 
                 <div style="text-align: right;">
                     <button type="submit" class="btn btn-success" style="font-size: 15px; padding: 8px 20px; font-weight: 600;"><i class="fa-solid fa-check-circle"></i> Submit Noting & Approve</button>

@@ -73,6 +73,20 @@
             font-family: 'KrutiDev011';
             src: url("{{ public_path('font/KrutiDev011.ttf') }}") format('truetype');
         }
+        @font-face {
+            font-family: 'notosansdevanagari';
+            src: url("{{ public_path('font/NotoSansDevanagari.ttf') }}") format('truetype');
+        }
+        
+        ul, ol, li {
+            list-style-type: disc;
+            list-style-image: none;
+            list-style-position: outside;
+        }
+        
+        li {
+            margin-left: 15px;
+        }
     </style>
 </head>
 <body>
@@ -91,7 +105,12 @@
                 <span class="date">{{ $note->created_at ? $note->created_at->format('d-M-Y h:i A') : '' }}</span>
             </div>
             @php
-                $noteFontFamily = (isset($note->font_family) && $note->font_family === 'krutidev') ? "font-family: 'KrutiDev011', sans-serif;" : "";
+                $noteFontFamily = "";
+                if (isset($note->font_family) && $note->font_family === 'krutidev') {
+                    $noteFontFamily = "font-family: 'KrutiDev011', sans-serif;";
+                } else if (isset($note->font_family) && $note->font_family === 'normalhindi') {
+                    $noteFontFamily = "font-family: 'notosansdevanagari', sans-serif;";
+                }
             @endphp
             <div class="note-body" style="{{ $noteFontFamily }}">
                 {!! $note->remarks !!}

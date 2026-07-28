@@ -7,6 +7,7 @@ use App\Http\Controllers\SubDivisionController;
 use App\Http\Controllers\Admin\CategoriesController;
 use App\Http\Controllers\Admin\SchemeController;
 use App\Http\Controllers\Admin\AllotteeController;
+use App\Http\Controllers\Admin\AllotteeCancellationController;
 use App\Http\Controllers\Admin\AllotteePaymentController;
 use App\Http\Controllers\Admin\AllotteeEmiController;
 use App\Http\Controllers\Admin\PropertyTypeController;
@@ -24,6 +25,7 @@ Route::middleware('auth')
         Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
         Route::post('/profile/update', [AdminController::class, 'updateProfile'])->name('profile.update');
         
+
         // Frontend Webhook/Log Receiver
         Route::post('/log-notification-event', function (\Illuminate\Http\Request $request) {
             \Illuminate\Support\Facades\Log::channel('notification_log')->info("Frontend Webhook: " . $request->input('message') . " | User ID: " . \Illuminate\Support\Facades\Auth::id());
@@ -123,6 +125,9 @@ Route::middleware('auth')
         Route::put('/schemes/{scheme}/quotas/bulk-update', [SchemeController::class, 'quotasBulkUpdate'])->name('schemes.quotas.bulk-update');
 
         // Allottee
+        Route::get('/allottees/cancellations', [AllotteeCancellationController::class, 'index'])->name('allottees.cancellations');
+        Route::post('/allottees/cancellations/bulk', [AllotteeCancellationController::class, 'bulkCancel'])->name('allottees.cancellations.bulk');
+
         Route::get('/allottees/list', [AllotteeController::class, 'index'])->name('allottees.index');
         //create
         Route::get('/allottees/process/start', [AllotteeController::class, 'indexStart'])->name('apply.index');
@@ -206,9 +211,14 @@ Route::middleware('auth')
                 ->name('emi.refresh-penalties');
         });
 
+        // Communication Settings
+        Route::get('/communication-settings', [\App\Http\Controllers\Admin\CommunicationSettingController::class, 'index'])->name('communication-settings.index');
+        Route::post('/communication-settings', [\App\Http\Controllers\Admin\CommunicationSettingController::class, 'update'])->name('communication-settings.update');
+
         // Notices and Announcements
         Route::resource('notices', \App\Http\Controllers\Admin\NoticeController::class)->except(['show']);
         
+
         // Members Management (Only accessible to super-admin)
         Route::middleware('can:super-admin')->group(function () {
             Route::get('/members', [\App\Http\Controllers\Admin\MemberController::class, 'index'])->name('members.index');

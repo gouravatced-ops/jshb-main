@@ -187,6 +187,10 @@
                             <input class="form-check-input font-family-selector" type="radio" name="font_family" id="font_hindi_note" value="krutidev">
                             <label class="form-check-label" for="font_hindi_note" style="margin:0px;">Hindi (Kruti Dev)</label>
                         </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input font-family-selector" type="radio" name="font_family" id="font_normal_hindi_note" value="normalhindi">
+                            <label class="form-check-label" for="font_normal_hindi_note" style="margin:0px;">Normal Hindi</label>
+                        </div>
                     </div>
 
                     <!-- Rich Text Editor via Summernote -->

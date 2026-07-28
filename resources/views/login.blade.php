@@ -78,11 +78,11 @@
                     </div>
                 </div>
 
-                <div style="text-align: right; margin-bottom: 1.5rem; display: flex; justify-content: flex-end;">
+                <!-- <div style="text-align: right; margin-bottom: 1.5rem; display: flex; justify-content: flex-end;">
                     <a href="{{ route('landing') }}" style="color: #1f7b4d; text-decoration: none; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(31, 123, 77, 0.1); border-radius: 20px; transition: all 0.3s ease;">
                         <i class="fa-solid fa-arrow-left"></i> Housing Board Portal
                     </a>
-                </div>
+                </div> -->
 
                 <div class="badge-login">
                     <span class="badge-dot"></span>
@@ -156,7 +156,7 @@
                 </form>
 
                 <div class="note-link">
-                    <a href="/"><i class="fa-solid fa-globe"></i> Housing Board Portal</a>
+                    <a href="{{ route('landing') }}"><i class="fa-solid fa-globe"></i> Housing Board Portal</a>
                 </div>
 
                 <!-- Government & Bank logos, partner section -->

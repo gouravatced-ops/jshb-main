@@ -265,7 +265,7 @@ class AllotteeController extends Controller
                 ],
             ],
 
-            
+
             // NOC
             [
                 'order_key'   => 9,
@@ -717,7 +717,7 @@ class AllotteeController extends Controller
             $flat = trim((string) $request->flat);
             $query->where('allotment_no', 'like', "%{$flat}%");
         }
-        $allottees = $query->latest('id')->paginate(10)->appends($request->query());
+        $allottees = $query->latest('id')->paginate(20)->appends($request->query());
         $divisions = Division::select('id', 'name')->where('status', 1)->orderBy('name')->get();
         $subDivisions = SubDivision::select('id', 'name')->where('status', 1)->orderBy('name')->get();
         $categories = PropertyCategory::select('id', 'name')->where('status', 1)->orderBy('name')->get();
@@ -1208,7 +1208,7 @@ class AllotteeController extends Controller
                         'created_by'            => Auth::id(),
                     ]
                 );
- 
+
                 // Generate first demand only if no demands exist
                 if (!$emiAccount->demands()->exists()) {
                     app(EmiCalculatorService::class)->generateFirstDemand($emiAccount);
@@ -2054,16 +2054,16 @@ class AllotteeController extends Controller
     public function deleteApplication($applicationId, ApplicationService $applicationService)
     {
         $application = Application::findOrFail($applicationId);
-        
+
         $deleted = $applicationService->deleteApplication($application);
-        
+
         if ($deleted) {
             return response()->json([
                 'success' => true,
                 'message' => 'Application and all related data deleted successfully.',
             ]);
         }
-        
+
         return response()->json([
             'success' => false,
             'message' => 'Failed to delete application. Please try again.',
@@ -2074,8 +2074,8 @@ class AllotteeController extends Controller
     {
         $allottee = Allottee::findOrFail($allotteeId);
         $applicationType = $request->input('application_type', 'allotment');
-        
-        if ($allottee->is_step_completed != 1 || $allottee->current_step != 3) {
+        // return $allottee->is_step_completed;
+        if ($allottee->is_step_completed != 1 && $allottee->current_step != 3) {
             return response()->json([
                 'success' => false,
                 'message' => 'Please complete full step first.',
@@ -2086,7 +2086,7 @@ class AllotteeController extends Controller
         $existing = Application::where('allottee_id', $allotteeId)
             ->where('application_type', $applicationType)
             ->exists();
-            
+
         if ($existing) {
             return response()->json([
                 'success' => false,
@@ -2109,12 +2109,11 @@ class AllotteeController extends Controller
                     'application' => $application
                 ]);
             }
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Workflow not found or creation failed.',
             ], 400);
-            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
