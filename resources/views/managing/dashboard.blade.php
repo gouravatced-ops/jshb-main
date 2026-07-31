@@ -10,7 +10,12 @@
                 Quick View
             </div>
 
-            <h2 class="dashboard-hero-title">Administration Dashboard</h2>
+            <h2 class="dashboard-hero-title">
+                Administration Dashboard
+                @if(Auth::user()->assistant_to_id)
+                    <br><span style="font-size: 16px; font-weight: normal; color: #f5c518; display: inline-block; margin-top: 5px;">(Co-Assistant to {{ Auth::user()->assistantTo->name ?? 'Managing Director' }})</span>
+                @endif
+            </h2>
 
             @if($latestLogin)
                 <div class="login-meta" style="margin-top:15px;">

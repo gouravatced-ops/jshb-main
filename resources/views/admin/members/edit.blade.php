@@ -89,6 +89,18 @@
                                 </select>
                             </div>
 
+                            <div class="form-group" id="assistantToGroup" style="display:none;">
+                                <label>Assist Managing Director <span class="required">*</span></label>
+                                <select name="assistant_to_id" id="assistantToSelect" class="form-select">
+                                    <option value="" disabled selected>Select MD to Assist</option>
+                                    @foreach($mdUsers as $mdUser)
+                                        <option value="{{ $mdUser->id }}" {{ old('assistant_to_id', $member->assistant_to_id) == $mdUser->id ? 'selected' : '' }}>
+                                            {{ $mdUser->name }} (MD)
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                             <div class="form-group">
                                 <label>OTP Login <span class="required">*</span></label>
                                 <select name="login_with_otp" class="form-select" required>
@@ -134,12 +146,23 @@
         const roleSelect = document.getElementById('roleSelect');
         const divisionGroup = document.getElementById('divisionGroup');
         const divisionSelect = document.getElementById('divisionSelect');
+        const assistantToGroup = document.getElementById('assistantToGroup');
+        const assistantToSelect = document.getElementById('assistantToSelect');
 
-        function toggleDivisionField() {
+        function toggleFields() {
             const selectedOption = roleSelect.options[roleSelect.selectedIndex];
             const slug = selectedOption ? selectedOption.getAttribute('data-slug') : '';
             
-            if (slug === 'operator' || slug === 'managing-director' || slug === 'revenue-officer' || slug === 'chief-accounts-officer' || slug === 'chief-financial-officer' || slug === 'secretary-chief-engineer') {
+            if (slug === 'co-assistant') {
+                assistantToGroup.style.display = 'block';
+                assistantToSelect.setAttribute('required', 'required');
+            } else {
+                assistantToGroup.style.display = 'none';
+                assistantToSelect.removeAttribute('required');
+                assistantToSelect.value = '';
+            }
+
+            if (slug === 'operator' || slug === 'managing-director' || slug === 'co-assistant' || slug === 'revenue-officer' || slug === 'chief-accounts-officer' || slug === 'chief-financial-officer' || slug === 'secretary-chief-engineer') {
                 divisionGroup.style.display = 'none';
                 divisionSelect.removeAttribute('required');
                 divisionSelect.value = '';
@@ -149,8 +172,8 @@
             }
         }
 
-        roleSelect.addEventListener('change', toggleDivisionField);
-        toggleDivisionField(); // Run on initial load in case of editing existing record
+        roleSelect.addEventListener('change', toggleFields);
+        toggleFields(); // Run on initial load in case of editing existing record
     });
 </script>
 @endsection

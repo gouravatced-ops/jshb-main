@@ -344,6 +344,8 @@ class AuthController extends Controller
             'managing-director',
             'secretary-chief-engineer' => 'managing.dashboard',
 
+            'co-assistant' => 'coassistant.dashboard',
+
             'operator' => 'operator.dashboard',
 
             'allottee' => 'dashboard',

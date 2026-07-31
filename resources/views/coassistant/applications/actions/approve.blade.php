@@ -9,7 +9,7 @@
             <span><i class="fa-solid fa-check" style="margin-right: 8px;"></i> Approve Application <span style="opacity: 0.7; font-size: 14px; font-weight: 500; margin-left: 5px;">| No: {{ $application->application_no }}</span></span>
             <div>
                 <button type="button" onclick="openQrModal()" style="font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 6px; border: none; color: #0d47a1; background: #e3f2fd; cursor: pointer; margin-right: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fa-solid fa-mobile-screen-button" style="margin-right: 5px;"></i> Live Image Upload</button>
-                <a href="{{ route('engineer.applications.show', $application) }}" class="btn btn-outline-primary btn-sm" style="background: rgba(255,255,255,0.7); font-weight: 600; color: #0d47a1; border-color: #0d47a1;"><i class="fa-solid fa-arrow-left"></i> Back to Review</a>
+                <a href="{{ route('coassistant.applications.show', $application) }}" class="btn btn-outline-primary btn-sm" style="background: rgba(255,255,255,0.7); font-weight: 600; color: #0d47a1; border-color: #0d47a1;"><i class="fa-solid fa-arrow-left"></i> Back to Review</a>
             </div>
         </div>
         <div class="compact-card-body">
@@ -18,7 +18,7 @@
                 <i class="fa-solid fa-info-circle"></i> <strong>Note:</strong> You are granting final approval. Please provide your official approval noting below.
             </div>
 
-            <form action="{{ route('engineer.applications.action', $application) }}" method="POST">
+            <form action="{{ route('coassistant.applications.action', $application) }}" method="POST">
                 @csrf
                 <input type="hidden" name="action_type" value="approve">
 

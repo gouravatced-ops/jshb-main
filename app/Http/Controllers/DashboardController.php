@@ -203,6 +203,7 @@ class DashboardController extends Controller
 
         $pendingApplications = collect();
         $workflowId = Workflow::where('application_type', 'allotment')->value('id') ?? 1;
+        
         // 1. Get all pending application allottee IDs for this role
         $pendingAllotteeIds = Application::where('current_role_id', $user->role_id)
             ->whereIn('status', ['pending', 'in_progress', 'forwarded'])

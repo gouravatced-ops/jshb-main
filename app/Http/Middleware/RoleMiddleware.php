@@ -37,6 +37,7 @@ class RoleMiddleware
             'engineer'    => 'engineer.dashboard',
             'accountant'  => 'accountant.dashboard',
             'managing'    => 'managing.dashboard',
+            'coassistant' => 'coassistant.dashboard',
             'operator'    => 'operator.dashboard',
             default       => 'dashboard',
         };

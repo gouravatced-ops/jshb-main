@@ -180,7 +180,7 @@
                     <div class="mb-3 p-2" style="background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
                         <label class="me-3" style="font-weight: 600; font-size: 14px; color: #495057;">Typing Language:</label>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input font-family-selector" type="radio" name="font_family" id="font_english_note" value="english" checked>
+                            <input class="form-check-input font-family-selector" type="radio" name="font_family" id="font_english_note" value="english">
                             <label class="form-check-label" for="font_english_note" style="margin:0px;">English (Arial)</label>
                         </div>
                         <div class="form-check form-check-inline">
@@ -188,7 +188,7 @@
                             <label class="form-check-label" for="font_hindi_note" style="margin:0px;">Hindi (Kruti Dev)</label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input font-family-selector" type="radio" name="font_family" id="font_normal_hindi_note" value="normalhindi">
+                            <input class="form-check-input font-family-selector" type="radio" name="font_family" id="font_normal_hindi_note" value="normalhindi" checked>
                             <label class="form-check-label" for="font_normal_hindi_note" style="margin:0px;">Normal Hindi</label>
                         </div>
                     </div>

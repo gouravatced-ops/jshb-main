@@ -234,4 +234,8 @@ Route::middleware('auth')
             Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
             Route::post('/notifications/send', [\App\Http\Controllers\Admin\NotificationController::class, 'sendBulk'])->name('notifications.send');
         });
+
+        // System Reset (accessible to admin and superadmin per controller logic)
+        Route::get('/system-reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'index'])->name('system-reset.index');
+        Route::post('/system-reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'reset'])->name('system-reset.process');
     });

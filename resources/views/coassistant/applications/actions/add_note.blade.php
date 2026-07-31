@@ -8,7 +8,7 @@
     <div class="compact-card col-span-12">
         <div class="compact-card-header header-blue">
             <span><i class="fa-solid fa-comment-dots" style="margin-right: 8px;"></i> Add Note to Application <span style="opacity: 0.7; font-size: 14px; font-weight: 500; margin-left: 5px;">| No: {{ $application->application_no }}</span></span>
-            <a href="{{ route('engineer.applications.show', $application) }}" class="btn btn-outline-primary btn-sm" style="background: rgba(255,255,255,0.7); font-weight: 600; color: #0d47a1; border-color: #0d47a1;"><i class="fa-solid fa-arrow-left"></i> Back to Review</a>
+            <a href="{{ route('coassistant.applications.show', $application) }}" class="btn btn-outline-primary btn-sm" style="background: rgba(255,255,255,0.7); font-weight: 600; color: #0d47a1; border-color: #0d47a1;"><i class="fa-solid fa-arrow-left"></i> Back to Review</a>
         </div>
         <div class="compact-card-body">
 
@@ -26,7 +26,7 @@
             </div>
             @endif
 
-            <form action="{{ route('engineer.applications.action', $application) }}" method="POST">
+            <form action="{{ route('coassistant.applications.action', $application) }}" method="POST">
                 @csrf
                 <input type="hidden" name="action_type" value="add_note">
 

@@ -158,17 +158,17 @@ class AllotteeController extends Controller
                     ],
                     [
                         'order_key'    => 3,
-                        'sub_menu_key' => 'allotment-possession-letter',
-                        'title'        => 'Possession Letter',
-                        'icon'         => 'fa-solid fa-key',
-                        'blade'        => 'allotment-possession-letter',
-                    ],
-                    [
-                        'order_key'    => 4,
                         'sub_menu_key' => 'agreement-document-letter',
                         'title'        => 'Agreement',
                         'icon'         => 'fa-solid fa-key',
                         'blade'        => 'allotment-agreement-letter',
+                    ],
+                    [
+                        'order_key'    => 4,
+                        'sub_menu_key' => 'allotment-possession-letter',
+                        'title'        => 'Possession Letter',
+                        'icon'         => 'fa-solid fa-key',
+                        'blade'        => 'allotment-possession-letter',
                     ],
                 ],
             ],
@@ -1511,6 +1511,41 @@ class AllotteeController extends Controller
                 }
 
                 $applicant->user_id = $user->id;
+
+                try {
+                    $notificationService = app(\App\Services\NotificationService::class);
+
+                    // 1. Send Email to Admin/Dev
+                    $devEmail = env('DEV_MAIL', 'admin@jshb.in');
+                    $adminSubject = "New Allottee Created";
+                    $adminMessage = "Dear Admin,\n\nA new allottee has been successfully created in the system.\n\nAllottee Name: {$user->name}\nUsername/Email: {$user->username}\n\nPlease check the JSHB portal for more details.";
+
+                    $notificationService->send([
+                        'email_id' => $devEmail,
+                        'subject' => $adminSubject,
+                        'message' => $adminMessage,
+                        'send_email' => true,
+                        'send_sms' => false
+                    ]);
+
+                    // 2. Send Email to Allottee
+                    if (filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+                        $allotteeSubject = "Welcome to JSHB - Complete Your Process";
+                        $allotteeMessage = "Dear {$user->name},\n\nYour account has been successfully created in the JSHB Portal.\n\nPlease log in to complete the future process and track your application.\n\nUsername: {$user->username}\n\nRegards,\nJSHB Administration";
+
+                        $notificationService->send([
+                            'user_id' => $user->id,
+                            'is_allottee' => true,
+                            'email_id' => $user->email,
+                            'subject' => $allotteeSubject,
+                            'message' => $allotteeMessage,
+                            'send_email' => true,
+                            'send_sms' => false
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to send allottee creation emails: " . $e->getMessage());
+                }
             }
 
             $applicant->save();

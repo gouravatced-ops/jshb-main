@@ -179,3 +179,4 @@ require __DIR__ . '/engineer-routes.php';
 require __DIR__ . '/accountant-routes.php';
 require __DIR__ . '/managing-routes.php';
 require __DIR__ . '/operator-routes.php';
+require __DIR__ . '/coassistant-routes.php';
