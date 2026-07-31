@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Engineer;
+namespace App\Http\Controllers\CoAssistant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Workflow;
@@ -119,7 +119,7 @@ class ApplicationController extends Controller
             ->where('division_id', $user->division_id)
             ->get();
 
-        return view('engineer.applications.index', compact('applications', 'subDivisions'));
+        return view('coassistant.applications.index', compact('applications', 'subDivisions'));
     }
 
     public function history(Request $request)
@@ -180,7 +180,7 @@ class ApplicationController extends Controller
             ->where('division_id', $user->division_id)
             ->get();
 
-        return view('engineer.applications.history', compact('applications', 'subDivisions'));
+        return view('coassistant.applications.history', compact('applications', 'subDivisions'));
     }
 
     public function show(Application $application)
@@ -218,7 +218,7 @@ class ApplicationController extends Controller
             ->unique()
             ->toArray();
 
-        return view('engineer.applications.show', compact('application', 'documentMasters', 'allotteeDocuments', 'documentRequests', 'requiredDocumentIds', 'excludedDocIds'));
+        return view('coassistant.applications.show', compact('application', 'documentMasters', 'allotteeDocuments', 'documentRequests', 'requiredDocumentIds', 'excludedDocIds'));
     }
 
     public function actionForm(Application $application, $action_type)
@@ -305,7 +305,7 @@ class ApplicationController extends Controller
 
         $roles = Role::where('id', '!=', Auth::user()->role_id)->get();
 
-        return view('engineer.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep', 'forwardOptions', 'sendBackOptions'));
+        return view('coassistant.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep', 'forwardOptions', 'sendBackOptions'));
     }
 
     public function processAction(Request $request, Application $application)

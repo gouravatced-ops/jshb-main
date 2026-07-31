@@ -82,8 +82,11 @@ class MemberController extends Controller
             ->values();
 
         $divisions = Division::where('status', true)->orderBy('name')->get();
+        
+        $mdRole = Role::where('slug', 'managing-director')->first();
+        $mdUsers = $mdRole ? User::where('role_id', $mdRole->id)->get() : collect();
 
-        return view('admin.members.create', compact('roles', 'divisions'));
+        return view('admin.members.create', compact('roles', 'divisions', 'mdUsers'));
     }
 
     public function store(Request $request)
@@ -98,7 +101,9 @@ class MemberController extends Controller
             'password' => 'required|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'division_id' => 'nullable|exists:divisions,id',
-            'login_with_otp' => 'boolean',
+            'assistant_to_id' => 'nullable|exists:users,id',
+            'login_with_otp' => 'required|boolean',
+            'is_default' => 'nullable|boolean',
             'phone' => 'nullable|string|max:20',
             'designation' => 'nullable|string|max:255',
         ]);
@@ -137,6 +142,7 @@ class MemberController extends Controller
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
             'division_id' => $divisionId,
+            'assistant_to_id' => $request->assistant_to_id,
             'login_with_otp' => $request->boolean('login_with_otp'),
             'password_created_at' => now(),
             'status' => true,
@@ -173,14 +179,20 @@ class MemberController extends Controller
             ->whereNotIn('slug', ['admin', 'super-admin', 'allottee'])
             ->orderBy('name')
             ->get()
-            ->filter(function ($role) use ($takenRoleIds, $restrictedSlugs) {
+            ->filter(function ($role) use ($takenRoleIds, $restrictedSlugs, $member) {
+                if ($member->role_id == $role->id) {
+                    return true;
+                }
                 return !(in_array($role->slug, $restrictedSlugs) && in_array($role->id, $takenRoleIds));
             })
             ->values();
 
         $divisions = Division::where('status', true)->orderBy('name')->get();
+        
+        $mdRole = Role::where('slug', 'managing-director')->first();
+        $mdUsers = $mdRole ? User::where('role_id', $mdRole->id)->get() : collect();
 
-        return view('admin.members.edit', compact('member', 'roles', 'divisions'));
+        return view('admin.members.edit', compact('member', 'roles', 'divisions', 'mdUsers'));
     }
 
     public function update(Request $request, $id)
@@ -197,7 +209,9 @@ class MemberController extends Controller
             'password' => 'nullable|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'division_id' => 'nullable|exists:divisions,id',
-            'login_with_otp' => 'boolean',
+            'assistant_to_id' => 'nullable|exists:users,id',
+            'login_with_otp' => 'required|boolean',
+            'is_default' => 'nullable|boolean',
             'phone' => 'nullable|string|max:20',
             'designation' => 'nullable|string|max:255',
         ]);
@@ -229,6 +243,7 @@ class MemberController extends Controller
             'email' => $request->email,
             'role_id' => $request->role_id,
             'division_id' => $divisionId,
+            'assistant_to_id' => $request->assistant_to_id,
             'login_with_otp' => $request->boolean('login_with_otp'),
             'is_default' => $isDefault,
         ];

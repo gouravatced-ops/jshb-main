@@ -166,6 +166,121 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* Timeline CSS */
+        .audit-timeline {
+            position: relative;
+            padding-left: 30px;
+            margin: 10px 0;
+        }
+        .audit-timeline::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+        .audit-timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .audit-timeline-marker {
+            position: absolute;
+            left: -30px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: 4px solid #fff;
+            box-shadow: 0 0 0 2px #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            z-index: 1;
+        }
+        .audit-timeline-content {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .audit-timeline-content:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transform: translateY(-1px);
+        }
+        .audit-timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .audit-timeline-action {
+            font-weight: 800;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .audit-timeline-date {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .audit-timeline-route {
+            font-size: 13px;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .audit-timeline-route i {
+            color: #94a3b8;
+            font-size: 10px;
+        }
+        .audit-timeline-notes {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #cbd5e1;
+            font-size: 13.5px;
+            color: #1e293b;
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .audit-timeline-item.active .audit-timeline-notes {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        .click-hint {
+            position: absolute;
+            right: 15px;
+            bottom: 12px;
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .audit-timeline-content:hover .click-hint {
+            opacity: 1;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 
     <div class="table-responsive">
@@ -317,6 +432,7 @@
                                                         <th style="padding: 6px 8px;">Current Stage</th>
                                                         <th style="padding: 6px 8px;">Pending With</th>
                                                         <th style="padding: 6px 8px;">Status</th>
+                                                        <th style="padding: 6px 8px; text-align: center;">Audit Trail</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -330,6 +446,14 @@
                                                         </td>
                                                         <td>
                                                             <span style="background: #e2e8f0; color: #0f172a; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; border: 1px solid #cbd5e1;">{{ $app->status }}</span>
+                                                        </td>
+                                                        <td style="text-align: center;">
+                                                            <button type="button" class="btn btn-sm" onclick="openAuditTrailModal({{ $app->id }})" style="padding: 4px 12px; font-size: 11px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 6px; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                                                                <i class="fa-solid fa-clock-rotate-left"></i> View ({{ $app->movements ? $app->movements->count() : 0 }})
+                                                            </button>
+                                                            <script id="audit-data-{{ $app->id }}" type="application/json">
+                                                                {!! $app->movements ? $app->movements->load(['fromUser', 'toUser', 'fromRole', 'toRole', 'fromStep', 'toStep'])->toJson() : '[]' !!}
+                                                            </script>
                                                         </td>
                                                     </tr>
                                                     @endforeach
@@ -607,6 +731,101 @@
                 console.error(err);
                 showModalAlert('An error occurred while creating the application.', 'error');
             });
+    }
+</script>
+
+<!-- Audit Trail Modal -->
+<div class="modal fade" id="auditTrailModal" tabindex="-1" aria-labelledby="auditTrailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="auditTrailModalLabel" style="font-weight: 700; color: #0f172a;"><i class="fa-solid fa-clock-rotate-left" style="color: #3b82f6; margin-right: 8px;"></i> Application Audit Trail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto; background: #ffffff;">
+                <div id="auditTrailContent">
+                    <!-- Timeline will be injected here -->
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; color: #64748b;"><i class="fa-solid fa-circle-info" style="color:#94a3b8; margin-right:4px;"></i> Click on any timeline item to view its notes & remarks.</span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-weight: 600; padding: 6px 16px; background: #64748b; border: none;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openAuditTrailModal(appId) {
+        var dataEl = document.getElementById('audit-data-' + appId);
+        var contentDiv = document.getElementById('auditTrailContent');
+        
+        if (!dataEl) {
+            contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">Audit data not found.</div>';
+            var myModal = new bootstrap.Modal(document.getElementById('auditTrailModal'));
+            myModal.show();
+            return;
+        }
+
+        try {
+            var movements = JSON.parse(dataEl.innerHTML);
+            if (movements.length === 0) {
+                contentDiv.innerHTML = '<div style="text-align: center; padding: 40px 0; color: #64748b;"><i class="fa-solid fa-folder-open fa-3x mb-3" style="opacity: 0.5;"></i><h4>No Movements Yet</h4><p>This application hasn\'t been processed or moved yet.</p></div>';
+            } else {
+                var html = '<div class="audit-timeline">';
+                movements.forEach(function(m) {
+                    var actionType = m.action_type || 'forwarded';
+                    var actionColor = '#3b82f6';
+                    var actionIcon = 'fa-arrow-right';
+                    
+                    if (actionType === 'send_back' || actionType === 'sent_back') {
+                        actionColor = '#f59e0b';
+                        actionIcon = 'fa-reply';
+                    } else if (actionType === 'reject' || actionType === 'rejected') {
+                        actionColor = '#ef4444';
+                        actionIcon = 'fa-xmark';
+                    } else if (actionType === 'approve' || actionType === 'approved') {
+                        actionColor = '#10b981';
+                        actionIcon = 'fa-check';
+                    } else if (actionType === 'completed') {
+                        actionColor = '#8b5cf6';
+                        actionIcon = 'fa-flag-checkered';
+                    }
+
+                    var fromName = m.from_user ? m.from_user.name : (m.from_role ? m.from_role.name : 'System/Initiator');
+                    var toName = m.to_user ? m.to_user.name : (m.to_role ? m.to_role.name : 'Unassigned/End');
+                    var dateStr = new Date(m.created_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
+
+                    var notes = (m.remarks && m.remarks.trim() !== '') ? m.remarks : '<em style="color:#94a3b8;">No remarks provided.</em>';
+
+                    html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
+                    html += '<div class="audit-timeline-marker" style="background: ' + actionColor + '"><i class="fa-solid ' + actionIcon + '"></i></div>';
+                    html += '<div class="audit-timeline-content">';
+                    html += '<div class="audit-timeline-header">';
+                    html += '<div class="audit-timeline-action" style="color: ' + actionColor + '">' + actionType.replace(/_/g, ' ') + '</div>';
+                    html += '<div class="audit-timeline-date">' + dateStr + '</div>';
+                    html += '</div>';
+                    html += '<div class="audit-timeline-route">';
+                    html += '<strong style="color:#1e293b;">' + fromName + '</strong> <i class="fa-solid fa-arrow-right-long"></i> <strong style="color:#1e293b;">' + toName + '</strong>';
+                    html += '</div>';
+                    html += '<div class="audit-timeline-notes" onclick="event.stopPropagation()">';
+                    html += '<strong style="display:block; margin-bottom:6px; color:#64748b; font-size:12px; text-transform:uppercase;"><i class="fa-solid fa-comment-dots" style="margin-right:4px;"></i> Movement Notes & Remarks</strong>';
+                    html += '<div style="line-height:1.6;">' + notes + '</div>';
+                    html += '</div>';
+                    html += '<div class="click-hint"><i class="fa-solid fa-hand-pointer"></i> Click to view notes</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                contentDiv.innerHTML = html;
+            }
+        } catch (e) {
+            contentDiv.innerHTML = '<div class="alert alert-danger">Error parsing audit data.</div>';
+            console.error(e);
+        }
+
+        var myModal = new bootstrap.Modal(document.getElementById('auditTrailModal'));
+        myModal.show();
     }
 </script>
 @endsection

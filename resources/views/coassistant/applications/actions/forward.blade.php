@@ -1,16 +1,16 @@
 @extends('layouts.main')
 
-@section('title', 'Send Back Application | JSHB')
+@section('title', 'Forward Application | JSHB')
 
 @section('content')
 @include('components.partials.compact-css')
 <div class="compact-wrapper">
     <div class="compact-card col-span-12">
-        <div class="compact-card-header header-yellow" style="display: flex; justify-content: space-between; align-items: center;">
-            <span><i class="fa-solid fa-reply" style="margin-right: 8px;"></i> Send Back Application <span style="opacity: 0.7; font-size: 14px; font-weight: 500; margin-left: 5px;">| No: {{ $application->application_no }}</span></span>
+        <div class="compact-card-header header-blue" style="display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fa-solid fa-arrow-right-long" style="margin-right: 8px;"></i> Forward Application <span style="opacity: 0.7; font-size: 14px; font-weight: 500; margin-left: 5px;">| No: {{ $application->application_no }}</span></span>
             <div>
-                <button type="button" onclick="openQrModal()" style="font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 6px; border: none; color: #856404; background: #fff3cd; cursor: pointer; margin-right: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fa-solid fa-mobile-screen-button" style="margin-right: 5px;"></i> Live Image Upload</button>
-                <a href="{{ route('engineer.applications.show', $application) }}" class="btn btn-outline-warning btn-sm" style="background: rgba(255,255,255,0.7); font-weight: 600; color: #856404; border-color: #856404;"><i class="fa-solid fa-arrow-left"></i> Back to Review</a>
+                <button type="button" onclick="openQrModal()" style="font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 6px; border: none; color: #0d47a1; background: #e3f2fd; cursor: pointer; margin-right: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fa-solid fa-mobile-screen-button" style="margin-right: 5px;"></i> Live Image Upload</button>
+                <a href="{{ route('coassistant.applications.show', $application) }}" class="btn btn-outline-primary btn-sm" style="background: rgba(255,255,255,0.7); font-weight: 600; color: #0d47a1; border-color: #0d47a1;"><i class="fa-solid fa-arrow-left"></i> Back to Review</a>
             </div>
         </div>
         <div class="compact-card-body">
@@ -40,16 +40,16 @@
                 }
 
                 .forward-card-radio:checked+.forward-card-label {
-                    border-color: #856404;
-                    background: #fff3cd;
-                    box-shadow: 0 4px 6px -1px rgba(133, 100, 4, 0.1);
+                    border-color: #0d47a1;
+                    background: #e3f2fd;
+                    box-shadow: 0 4px 6px -1px rgba(13, 71, 161, 0.1);
                 }
 
                 .forward-card-radio:checked+.forward-card-label::before {
                     content: '\f058';
                     font-family: 'Font Awesome 6 Free';
                     font-weight: 900;
-                    color: #856404;
+                    color: #0d47a1;
                     position: absolute;
                     right: 15px;
                     top: 50%;
@@ -73,7 +73,7 @@
                 }
 
                 .forward-card-radio:checked+.forward-card-label .forward-avatar {
-                    background: #856404;
+                    background: #0d47a1;
                     color: #fff;
                 }
 
@@ -121,26 +121,36 @@
             </style>
 
             <div style="background: #fff3cd; padding: 15px; border-radius: 6px; border-left: 5px solid #ffeeba; margin-bottom: 20px; color: #856404;">
-                <i class="fa-solid fa-info-circle"></i> <strong>Note:</strong> Provide detailed objections or reasons for sending back this application. Your noting is digitally recorded as part of the official file.
+                <i class="fa-solid fa-info-circle"></i> <strong>Note:</strong> The official noting you provide below will be permanently recorded in the file history. This is equivalent to signing and stamping a physical green noting sheet.
             </div>
 
-            <form action="{{ route('engineer.applications.action', $application) }}" method="POST">
+            @if($errors->any())
+            <div class="alert alert-danger" style="margin-bottom: 20px;">
+                <ul style="margin: 0; padding-left: 20px;">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            <form action="{{ route('coassistant.applications.action', $application) }}" method="POST">
                 @csrf
-                <input type="hidden" name="action_type" value="send_back">
+                <input type="hidden" name="action_type" value="forward">
 
                 <div class="row">
                     <div class="col-md-12 mb-4">
-                        <label style="font-weight: 600; font-size: 15px; margin-bottom: 8px; display: block; color: #333;">Send Back To <span class="text-danger">*</span></label>
-                        @if(!empty($sendBackOptions))
+                        <label style="font-weight: 600; font-size: 15px; margin-bottom: 8px; display: block; color: #333;">Forward To <span class="text-danger">*</span></label>
+                        @if(!empty($forwardOptions))
                         <div class="forward-cards-container" style="max-height: 280px; overflow-y: auto; padding-right: 5px;">
-                            @foreach($sendBackOptions as $index => $option)
+                            @foreach($forwardOptions as $index => $option)
                             <div class="forward-group-title" @if($index==0) style="margin-top: 0;" @endif>
                                 <i class="fa-solid fa-sitemap" style="margin-right: 5px;"></i> {{ $option['step']->step_name }} ({{ $option['step']->role->name ?? 'Role' }})
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
                                 @foreach($option['engineers'] as $engineer)
                                 <div class="forward-card-wrapper" style="flex: 0 1 320px; max-width: 100%;">
-                                    <input type="radio" name="send_back_to_user" id="fwd_{{ $engineer->id }}_{{ $option['step']->id }}" value="{{ $engineer->id }}|{{ $option['step']->id }}" class="forward-card-radio" required>
+                                    <input type="radio" name="forward_to_user" id="fwd_{{ $engineer->id }}_{{ $option['step']->id }}" value="{{ $engineer->id }}|{{ $option['step']->id }}" class="forward-card-radio" required>
                                     <label for="fwd_{{ $engineer->id }}_{{ $option['step']->id }}" class="forward-card-label" style="height: 100%; margin-bottom: 0;">
                                         <div class="forward-avatar">
                                             {{ substr($engineer->name, 0, 1) }}
@@ -156,15 +166,15 @@
                             @endforeach
                         </div>
                         @else
-                        <div class="alert alert-danger" style="margin-bottom: 0; padding: 10px 15px;">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Cannot send back. No eligible engineers found in previous steps.
+                        <div class="alert alert-warning" style="margin-bottom: 0; padding: 10px 15px;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> No eligible engineers found in your division to forward this application to.
                         </div>
                         @endif
                     </div>
                 </div>
 
                 <div class="form-group mb-4 summernote-wrapper">
-                    <label style="font-weight: 600; font-size: 16px; margin-bottom: 10px; display: block; color: #333;"><i class="fa-solid fa-pen-fancy" style="color: #856404;"></i> Objection Noting / Remarks <span class="text-danger">*</span></label>
+                    <label style="font-weight: 600; font-size: 16px; margin-bottom: 10px; display: block; color: #333;"><i class="fa-solid fa-pen-fancy" style="color: #0d47a1;"></i> Official Noting / Remarks <span class="text-danger">*</span></label>
 
                     <!-- Font Family Selection -->
                     <div class="mb-3 p-2" style="background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
@@ -183,13 +193,14 @@
                         </div>
                     </div>
 
+                    <!-- Rich Text Editor via Summernote -->
                     <textarea id="summernote" name="remarks" required></textarea>
                 </div>
 
                 <hr style="margin: 20px 0; border-top: 1px solid #eaeaea;">
 
                 <div style="text-align: right;">
-                    <button type="submit" class="btn btn-warning text-dark" style="font-size: 15px; padding: 8px 20px; font-weight: 600;"><i class="fa-solid fa-reply"></i> Submit Noting & Send Back</button>
+                    <button type="submit" class="btn btn-success" style="font-size: 15px; padding: 8px 20px;"><i class="fa-solid fa-paper-plane"></i> Submit Noting & Forward</button>
                 </div>
             </form>
         </div>

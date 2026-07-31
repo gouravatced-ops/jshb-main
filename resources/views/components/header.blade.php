@@ -1,7 +1,7 @@
 <!-- HEADER -->
 @php
 $authUser = auth()->user();
-$profileRoute = $authUser?->user_type === 'administration' ? route('admin.profile') : route('profile');
+$profileRoute = $authUser?->role === 'user' ? route('profile') : route($authUser?->role . '.profile');
 $profileInitials = 'U';
 if ($authUser && ! empty($authUser->name)) {
 $nameParts = preg_split('/\s+/', trim($authUser->name));

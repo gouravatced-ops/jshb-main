@@ -48,6 +48,8 @@
         @include('components.partials.managing-sidebar')
     @elseif($sidebarUser?->role === 'operator')
         @include('components.partials.operator-sidebar')
+    @elseif($sidebarUser?->role === 'coassistant')
+        @include('components.partials.coassistant-sidebar')
     @endif
 
     <!-- Common Settings and Footer -->

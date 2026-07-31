@@ -131,7 +131,7 @@
 <script src="{{ asset('plugins/summernote/summernote-lite.min.js') }}"></script>
 
 @php
-$isEngineer = auth()->check() && (auth()->user()->role === 'engineer' || auth()->user()->user_type === 'engineer');
+$isEngineer = auth()->check(); // Enabled for all roles including Approver
 @endphp
 
 @if($isEngineer)
@@ -220,12 +220,9 @@ $isEngineer = auth()->check() && (auth()->user()->role === 'engineer' || auth()-
                 ['color', ['color']],
                 ['para', ['ul', 'ol', 'paragraph']],
                 ['table', ['table']],
-                @if($isEngineer)
-                ['insert', ['customImageInsert', 'link']],
-                @else
-                ['insert', ['picture', 'link']],
-                @endif
-                ['view', ['fullscreen', 'codeview', 'help']]
+                @if($isEngineer)['insert', ['customImageInsert', 'link']],
+                @else['insert', ['picture', 'link']],
+                @endif['view', ['fullscreen', 'codeview', 'help']]
             ],
             @if($isEngineer)
             buttons: {
@@ -246,11 +243,16 @@ $isEngineer = auth()->check() && (auth()->user()->role === 'engineer' || auth()-
                 onInit: function() {
                     $('.note-editable').css({
                         'background-color': '#f1f8e9',
-                        'font-family': 'Arial, sans-serif',
-                        'font-size': '15px',
+                        'font-family': 'notosansdevanagari, sans-serif',
+                        'font-size': '18px',
                         'line-height': '1.6',
                         'color': '#000080'
                     });
+
+                    setTimeout(function() {
+                        $('.note-current-fontsize').text('18');
+                        $('.note-current-fontname').text('notosansdevanagari');
+                    }, 100);
 
                     // Forcefully fix the KrutiDev and notosansdevanagari name in the dropdown using JS
                     setTimeout(function() {
@@ -298,31 +300,84 @@ $isEngineer = auth()->check() && (auth()->user()->role === 'engineer' || auth()-
         });
     });
 
-    // Listen for font family changes from radio buttons outside summernote
     $(document).on('change', '.font-family-selector', function() {
         var selectedFont = $(this).val();
         if (selectedFont === 'krutidev') {
-            $('.note-editable').css('font-family', 'KrutiDev011, sans-serif');
-            $('#summernote').summernote('fontName', 'KrutiDev011');
+            $('.note-editable').css({
+                'font-family': 'KrutiDev011, sans-serif',
+                'font-size': '18px'
+            });
+            $('.note-current-fontname').text('KrutiDev011');
+            $('.note-current-fontsize').text('18');
             $('.note-btn.btn-bold').hide(); // Hide Bold Tool
             document.execCommand('bold', false, null); // Unbold if already bold
         } else if (selectedFont === 'normalhindi') {
-            $('.note-editable').css('font-family', 'notosansdevanagari, sans-serif');
-            $('#summernote').summernote('fontName', 'notosansdevanagari');
+            $('.note-editable').css({
+                'font-family': 'notosansdevanagari, sans-serif',
+                'font-size': '18px'
+            });
+            $('.note-current-fontname').text('notosansdevanagari');
+            $('.note-current-fontsize').text('18');
             $('.note-btn.btn-bold').show(); // Show Bold Tool (allow bold)
         } else {
-            $('.note-editable').css('font-family', 'Arial, sans-serif');
-            $('#summernote').summernote('fontName', 'Arial');
+            $('.note-editable').css({
+                'font-family': 'Arial, sans-serif',
+                'font-size': '16px'
+            });
+            $('.note-current-fontname').text('Arial');
+            $('.note-current-fontsize').text('16');
             $('.note-btn.btn-bold').show(); // Show Bold Tool
         }
     });
 
-    // Prevent Ctrl+B when Hindi is selected
+    // Prevent Ctrl+B when Hindi is selected and Block English Alphabet in Normal Hindi
     $(document).on('keydown', '.note-editable', function(e) {
         var selectedFont = $('.font-family-selector:checked').val();
+
         if (selectedFont === 'krutidev' && (e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
             e.preventDefault();
             return false;
+        }
+
+        if (selectedFont === 'normalhindi') {
+            // Block English letters (A-Z, a-z) if not part of a shortcut command
+            if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key && e.key.length === 1 && /^[a-zA-Z]$/.test(e.key)) {
+                e.preventDefault();
+
+                // Show a quick tooltip/toast to notify user
+                var toast = $('<div style="position:fixed; top:20px; right:20px; background:#ef4444; color:white; padding:10px 20px; border-radius:6px; box-shadow:0 4px 6px rgba(0,0,0,0.1); z-index:99999; font-size: 14px;"><i class="fa-solid fa-ban me-2"></i> English alphabet is not allowed in Normal Hindi mode.</div>');
+                $('body').append(toast);
+                setTimeout(function() {
+                    toast.fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }, 2000);
+
+                return false;
+            }
+        }
+    });
+
+    // Block pasting English alphabets in Normal Hindi mode
+    $(document).on('paste', '.note-editable', function(e) {
+        var selectedFont = $('.font-family-selector:checked').val();
+        if (selectedFont === 'normalhindi') {
+            var pastedData = (e.originalEvent || e).clipboardData.getData('text');
+            if (/[a-zA-Z]/.test(pastedData)) {
+                e.preventDefault();
+                var stripped = pastedData.replace(/[a-zA-Z]/g, '');
+                if (stripped.length > 0) {
+                    document.execCommand('insertText', false, stripped);
+                }
+
+                var toast = $('<div style="position:fixed; top:20px; right:20px; background:#ef4444; color:white; padding:10px 20px; border-radius:6px; box-shadow:0 4px 6px rgba(0,0,0,0.1); z-index:99999; font-size: 14px;"><i class="fa-solid fa-ban me-2"></i> English characters were removed from pasted text.</div>');
+                $('body').append(toast);
+                setTimeout(function() {
+                    toast.fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }, 2000);
+            }
         }
     });
 

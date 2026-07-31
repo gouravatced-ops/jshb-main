@@ -7,7 +7,7 @@
     <div class="compact-card col-span-12">
         <div class="compact-card-header header-red">
             <span><i class="fa-solid fa-times" style="margin-right: 8px;"></i> Reject Application <span style="opacity: 0.7; font-size: 14px; font-weight: 500; margin-left: 5px;">| No: {{ $application->application_no }}</span></span>
-            <a href="{{ route('engineer.applications.show', $application) }}" class="btn btn-outline-danger btn-sm" style="background: rgba(255,255,255,0.7); font-weight: 600; color: #721c24; border-color: #721c24;"><i class="fa-solid fa-arrow-left"></i> Back to Review</a>
+            <a href="{{ route('coassistant.applications.show', $application) }}" class="btn btn-outline-danger btn-sm" style="background: rgba(255,255,255,0.7); font-weight: 600; color: #721c24; border-color: #721c24;"><i class="fa-solid fa-arrow-left"></i> Back to Review</a>
         </div>
         <div class="compact-card-body">
 
@@ -15,7 +15,7 @@
                 <i class="fa-solid fa-info-circle"></i> <strong>Note:</strong> Rejection is a permanent action. Provide clear justification noting for rejecting this application.
             </div>
 
-            <form action="{{ route('engineer.applications.action', $application) }}" method="POST">
+            <form action="{{ route('coassistant.applications.action', $application) }}" method="POST">
                 @csrf
                 <input type="hidden" name="action_type" value="reject">
 

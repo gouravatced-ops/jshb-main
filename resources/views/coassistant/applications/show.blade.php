@@ -13,15 +13,18 @@
         </h4>
     </div>
     <div style="display: flex; gap: 10px;">
-        <!-- <form action="{{ route('engineer.applications.reset', $application->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to completely RESET this application? All notes and movements will be deleted and it will go back to the first step. This cannot be undone.');">
+        <!-- <form action="{{ route('coassistant.applications.reset', $application->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to completely RESET this application? All notes and movements will be deleted and it will go back to the first step. This cannot be undone.');">
             @csrf
             <button type="submit" class="btn-compact" style="background: #dc3545; border: none; box-shadow: none; color: white;"><i class="fa-solid fa-rotate-left"></i> Reset Workflow</button>
         </form> -->
-        <a href="{{ route('engineer.applications.index') }}" class="btn-compact" style="background: #6c757d; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
+        <a href="{{ route('coassistant.applications.index') }}" class="btn-compact" style="background: #6c757d; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
     </div>
 </div>
 
-@if(Auth::check() && $application->current_role_id == Auth::user()->role_id && $application->currentStep)
+@php
+    $targetRoleId = Auth::user()->assistant_to_id ? \App\Models\User::find(Auth::user()->assistant_to_id)?->role_id : Auth::user()->role_id;
+@endphp
+@if(Auth::check() && $application->current_role_id == $targetRoleId && $application->currentStep)
 <div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #3498db;">
     <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;">
         <div>
@@ -32,21 +35,21 @@
         </div>
         <div style="display: flex; gap: 8px;">
             @if($application->currentStep->can_forward && $application->currentStep->action_type != 'approve')
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'forward']) }}" class="btn-compact" style="background: #28a745; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-arrow-right"></i> Forward</a>
+            <a href="{{ route('coassistant.applications.action.form', ['application' => $application, 'action_type' => 'forward']) }}" class="btn-compact" style="background: #28a745; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-arrow-right"></i> Forward</a>
             @endif
             @if($application->currentStep->can_send_back)
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'send_back']) }}" class="btn-compact" style="background: #ffc107; color: #333; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-reply"></i> Send Back</a>
+            <a href="{{ route('coassistant.applications.action.form', ['application' => $application, 'action_type' => 'send_back']) }}" class="btn-compact" style="background: #ffc107; color: #333; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-reply"></i> Send Back</a>
             @endif
             @if($application->currentStep->can_reject)
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'reject']) }}" class="btn-compact" style="background: #dc3545; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-times"></i> Reject</a>
+            <a href="{{ route('coassistant.applications.action.form', ['application' => $application, 'action_type' => 'reject']) }}" class="btn-compact" style="background: #dc3545; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-times"></i> Reject</a>
             @endif
             @if($application->currentStep->action_type == 'approve' && strtolower($application->status) !== 'completed')
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'approve']) }}" class="btn-compact" style="background: #17a2b8; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-check"></i> Approve</a>
+            <a href="{{ route('coassistant.applications.action.form', ['application' => $application, 'action_type' => 'approve']) }}" class="btn-compact" style="background: #17a2b8; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-check"></i> Approve</a>
             @endif
             @if($application->currentStep->can_upload_document)
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#uploadDocModal" style="background: #34495e;"><i class="fa-solid fa-upload"></i> Upload Doc</button>
             @endif
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'add_note']) }}" class="btn-compact" style="background: #6c757d; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-comment-dots"></i> Add Note</a>
+            <a href="{{ route('coassistant.applications.action.form', ['application' => $application, 'action_type' => 'add_note']) }}" class="btn-compact" style="background: #6c757d; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-comment-dots"></i> Add Note</a>
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#workflowModal" style="background: #6f42c1; color: white; border: none; cursor: pointer;"><i class="fa-solid fa-code-branch"></i> View Workflow</button>
         </div>
     </div>
@@ -194,7 +197,7 @@
                 <span class="badge-compact" style="background: rgba(255,255,255,0.6); color: #4a148c; margin-left: 5px;">{{ $application->notes ? $application->notes->count() : 0 }} Notes</span>
             </div>
             @if($application->notes && $application->notes->count() > 0)
-            <a href="{{ route('engineer.applications.notes.pdf', $application) }}" target="_blank" class="btn-compact" style="background: rgb(200 14 14);color: #fff;border: 1px solid rgba(255,255,255,0.3);text-decoration: none;padding: 4px 10px;font-size: 11px;">
+            <a href="{{ route('coassistant.applications.notes.pdf', $application) }}" target="_blank" class="btn-compact" style="background: rgb(200 14 14);color: #fff;border: 1px solid rgba(255,255,255,0.3);text-decoration: none;padding: 4px 10px;font-size: 11px;">
                 <i class="fa-solid fa-file-pdf"></i> Preview PDF
             </a>
             @endif
@@ -565,7 +568,7 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('engineer.applications.upload-document', $application) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('coassistant.applications.upload-document', $application) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body upload-modal-body">
                     <div class="upload-input-group">

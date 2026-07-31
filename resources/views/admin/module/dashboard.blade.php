@@ -31,7 +31,9 @@
                     Admin Quick View
                 </div>
 
-                <h2 class="dashboard-hero-title">Dashboard</h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="dashboard-hero-title">Dashboard</h2>
+                </div>
 
                 @if ($latestLogin)
                     <div class="login-meta">

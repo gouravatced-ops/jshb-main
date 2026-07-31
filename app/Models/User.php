@@ -28,7 +28,7 @@ class User extends Authenticatable
                 if ($role) {
                     $slug = $role->slug;
                     $user->user_type = match ($slug) {
-                        'admin', 'super-admin', 'secretary-chief-engineer', 'managing-director' => 'administration',
+                        'admin', 'super-admin', 'secretary-chief-engineer', 'managing-director', 'co-assistant' => 'administration',
                         'dealing-assistant',
                         'division-officer',
                         'estate-officer',
@@ -75,6 +75,7 @@ class User extends Authenticatable
         'account_blocked_until',
         'has_been_blocked_once',
         'is_default',
+        'assistant_to_id',
     ];
 
     /**
@@ -157,6 +158,11 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class, 'role_id');
     }
 
+    public function assistantTo()
+    {
+        return $this->belongsTo(User::class, 'assistant_to_id');
+    }
+
     public function getRoleAttribute()
     {
         $slug = $this->roleRelation?->slug;
@@ -178,6 +184,7 @@ class User extends Authenticatable
             'chief-accounts-officer',
             'chief-financial-officer' => 'accountant',
             'managing-director', 'secretary-chief-engineer'    => 'managing',
+            'co-assistant'         => 'coassistant',
             'operator'             => 'operator',
             'allottee'             => 'user',
             default                => 'staff',
