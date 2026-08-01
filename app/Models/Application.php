@@ -103,4 +103,9 @@ class Application extends Model
     {
         return $this->hasMany(ApplicationAuditTrail::class, 'application_id');
     }
+
+    public function communicationTracks()
+    {
+        return $this->hasMany(CommunicationTrack::class, 'application_id');
+    }
 }

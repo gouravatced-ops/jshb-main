@@ -126,8 +126,13 @@ class ApplicationController extends Controller
     {
         $user = Auth::user();
 
+        $userIds = [$user->id];
+        if ($user->assistant_to_id) {
+            $userIds[] = $user->assistant_to_id;
+        }
+
         // Fetch application IDs that the user has interacted with (took action on)
-        $historyApplicationIds = ApplicationMovement::where('from_user_id', $user->id)
+        $historyApplicationIds = ApplicationMovement::whereIn('from_user_id', $userIds)
             ->pluck('application_id')
             ->unique()
             ->toArray();
@@ -464,10 +469,12 @@ class ApplicationController extends Controller
                     'username' => $allottee->username ?? ''
                 ];
 
+                $apiCategory = $isAgreement ? 'APPLICATION' : 'FINAL';
+
                 $uploadResult = $this->uploadContentToDocumentApi(
                     $pdfContent,
                     $fileName,
-                    'FINAL',
+                    $apiCategory,
                     $scheme->scheme_code ?? 'SCH',
                     $allottee->property_number ?? 'PROP',
                     $yyyy,
@@ -491,19 +498,20 @@ class ApplicationController extends Controller
                     'uploaded_at'    => now(),
                 ]);
 
-                // 4. Save to allottee_generated_documents
-                \App\Models\AllotteeGeneratedDocument::create([
-                    'allottee_id'    => $allottee->id,
-                    'document_name'  => $documentName,
-                    'document_type'  => $documentType,
-                    'file_name'      => $uploadResult['file_name'],
-                    'file_path'      => $uploadResult['file_path'],
-                    'generated_by'   => $user->id,
-                    'generated_at'   => now(),
-                    'issue_date'     => now()->format('Y-m-d'),
-                    'document_number' => $allottee->allotment_no ?? $application->application_no
-                ]);
-                
+                // 4. Save to allottee_generated_documents (ONLY IF NOT AGREEMENT)
+                if (!$isAgreement) {
+                    \App\Models\AllotteeGeneratedDocument::create([
+                        'allottee_id'    => $allottee->id,
+                        'document_name'  => $documentName,
+                        'document_type'  => $documentType,
+                        'file_name'      => $uploadResult['file_name'],
+                        'file_path'      => $uploadResult['file_path'],
+                        'generated_by'   => $user->id,
+                        'generated_at'   => now(),
+                        'issue_date'     => now()->format('Y-m-d'),
+                        'document_number' => $allottee->allotment_no ?? $application->application_no
+                    ]);
+                }
                 if (!$isAgreement) {
                     \Illuminate\Support\Facades\Log::info("Document generation complete. Next step unlocked for allotment (Payment Order).");
 
@@ -693,12 +701,16 @@ class ApplicationController extends Controller
             $subject = "Application {$actionWord}: {$application->application_no}";
 
             if ($request->action_type == 'approve') {
-                $message = "Your application ({$application->application_no}) has been approved and your Allotment Letter has been generated. Please log in to download your allotment letter.";
+                if ($application->application_type === 'agreement') {
+                    $message = "Your agreement application ({$application->application_no}) has been approved. Please log in to your dashboard to download the generated agreement, sign it, and upload the scanned copy within 5 days.";
+                } else {
+                    $message = "Your application ({$application->application_no}) has been approved and your Allotment Letter has been generated. Please log in to download your allotment letter.";
+                }
             } else {
                 $message = "Your application ({$application->application_no}) has been rejected.";
             }
 
-            $dashboardUrl = url('/login');
+            $dashboardUrl = env('ALLOTTEE_APP_URL', url('/login'));
 
             // Mail to Allottee
             $allotteeUser = \App\Models\User::on('adms_allottees')->find($application->allottee->user_id);
@@ -709,7 +721,8 @@ class ApplicationController extends Controller
                     $user->name,
                     $request->action_type,
                     $dashboardUrl,
-                    ''
+                    '', // Remarks are hidden for approve/reject
+                    $message // Pass custom message
                 );
 
                 app(\App\Services\NotificationService::class)->send([
@@ -744,7 +757,8 @@ class ApplicationController extends Controller
                         $user->name,
                         $request->action_type,
                         $dashboardUrl,
-                        ''
+                        '', // Remarks are hidden for approve/reject
+                        $message // Pass custom message
                     );
 
                     app(\App\Services\NotificationService::class)->send([

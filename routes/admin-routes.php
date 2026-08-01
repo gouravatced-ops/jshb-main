@@ -140,6 +140,7 @@ Route::middleware('auth')
         Route::post('/apply/step1/save', [AllotteeController::class, 'saveStep1'])->name('apply.step1.save');
         Route::post('/apply/step2/save', [AllotteeController::class, 'saveStep2'])->name('apply.step2.save');
         Route::post('/apply/step3/save', [AllotteeController::class, 'saveStep3'])->name('apply.step3.save');
+        Route::post('/allottees/{allottee}/send-credentials', [AllotteeController::class, 'sendCredentialMail'])->name('allottees.send-credentials');
         Route::get('/allottees/{allottee}/section/{section}', [AllotteeController::class, 'section'])->name('allottees.section');
         Route::get('/allottees/{allottee}/process/{stepNo}', [AllotteeController::class, 'processStep'])->name('allottees.process.step');
         Route::post('/allottees/{allottee}/process/{stepNo}/complete', [AllotteeController::class, 'completeProcessStep'])->name('allottees.process.complete');

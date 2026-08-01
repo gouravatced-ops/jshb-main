@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Engineer;
+namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Workflow;
@@ -119,15 +119,20 @@ class ApplicationController extends Controller
             ->where('division_id', $user->division_id)
             ->get();
 
-        return view('engineer.applications.index', compact('applications', 'subDivisions'));
+        return view('operator.applications.index', compact('applications', 'subDivisions'));
     }
 
     public function history(Request $request)
     {
         $user = Auth::user();
 
+        $userIds = [$user->id];
+        if ($user->assistant_to_id) {
+            $userIds[] = $user->assistant_to_id;
+        }
+
         // Fetch application IDs that the user has interacted with (took action on)
-        $historyApplicationIds = ApplicationMovement::where('from_user_id', $user->id)
+        $historyApplicationIds = ApplicationMovement::whereIn('from_user_id', $userIds)
             ->pluck('application_id')
             ->unique()
             ->toArray();
@@ -180,7 +185,7 @@ class ApplicationController extends Controller
             ->where('division_id', $user->division_id)
             ->get();
 
-        return view('engineer.applications.history', compact('applications', 'subDivisions'));
+        return view('operator.applications.history', compact('applications', 'subDivisions'));
     }
 
     public function show(Application $application)
@@ -218,7 +223,7 @@ class ApplicationController extends Controller
             ->unique()
             ->toArray();
 
-        return view('engineer.applications.show', compact('application', 'documentMasters', 'allotteeDocuments', 'documentRequests', 'requiredDocumentIds', 'excludedDocIds'));
+        return view('operator.applications.show', compact('application', 'documentMasters', 'allotteeDocuments', 'documentRequests', 'requiredDocumentIds', 'excludedDocIds'));
     }
 
     public function actionForm(Application $application, $action_type)
@@ -246,9 +251,9 @@ class ApplicationController extends Controller
                 // Get engineers with this role_id and division_id
                 $engineersQuery = User::on('adms_jshb')->where('role_id', $step->role_id)->where('status', 1);
                 if ($divisionId) {
-                    $engineersQuery->where(function ($q) use ($divisionId) {
+                    $engineersQuery->where(function($q) use ($divisionId) {
                         $q->where('user_type', 'administration')
-                            ->orWhere('division_id', $divisionId);
+                          ->orWhere('division_id', $divisionId);
                     });
                 }
                 $engineers = $engineersQuery->get();
@@ -305,7 +310,7 @@ class ApplicationController extends Controller
 
         $roles = Role::where('id', '!=', Auth::user()->role_id)->get();
 
-        return view('engineer.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep', 'forwardOptions', 'sendBackOptions'));
+        return view('operator.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep', 'forwardOptions', 'sendBackOptions'));
     }
 
     public function processAction(Request $request, Application $application)
@@ -339,8 +344,7 @@ class ApplicationController extends Controller
                 'updated_at' => now()
             ]);
 
-            return redirect()->route('engineer.applications.show', $application)
-                ->with('success', 'Note added successfully.');
+            return redirect()->route('operator.applications.show', $application->id)->with('success', 'Note added successfully.');
         }
 
         $nextStep = null;
@@ -411,7 +415,7 @@ class ApplicationController extends Controller
 
         // Determine if we should generate the document
         $shouldGenerateDocument = ($newStatus === 'completed');
-
+        
         // If it's an agreement application and was just approved by the MD (Role 4), generate the document even if not fully completed yet
         $isMDApproval = ($previousRoleId == 4 && $request->action_type == 'approve');
         if ($application->application_type === 'agreement' && $isMDApproval) {
@@ -423,15 +427,15 @@ class ApplicationController extends Controller
             try {
                 \Illuminate\Support\Facades\Log::info("Starting document generation for Application ID: {$application->id}, Type: {$application->application_type}");
                 $allottee = $application->allottee;
-
+                
                 // Determine template and document info based on application type
                 $isAgreement = ($application->application_type === 'agreement');
-
+                
                 $pdfTemplate = $isAgreement ? 'admin.allottee.letters.templates.agreement-pdf' : 'admin.allottee.letters.templates.allotment-pdf';
                 $documentType = $isAgreement ? 'agreement-letter' : 'allotment-letter';
                 $documentName = $isAgreement ? 'Agreement Letter' : 'Allotment Letter';
                 $dbDocType = $isAgreement ? 'AGREEMENT_LETTER' : 'ALLOTMENT_LETTER';
-
+                
                 $docPrefix = $isAgreement ? 'agreement_letter_' : 'allotment_letter_';
 
                 // 1. Generate PDF
@@ -503,7 +507,7 @@ class ApplicationController extends Controller
                     'issue_date'     => now()->format('Y-m-d'),
                     'document_number' => $allottee->allotment_no ?? $application->application_no
                 ]);
-
+                
                 if (!$isAgreement) {
                     \Illuminate\Support\Facades\Log::info("Document generation complete. Next step unlocked for allotment (Payment Order).");
 
@@ -511,56 +515,56 @@ class ApplicationController extends Controller
                     \App\Models\AllotteeProcessStep::completeStep(
                         $allottee->id,
                         'allotment',
-                        'generate-allotment',
-                        $user->id
-                    );
+                    'generate-allotment',
+                    $user->id
+                );
 
-                    // 6. Generate 15% Allotment Payment Order
-                    $finance = $allottee->scheme->schemeFinance ?? null;
-                    $propertyAmount = $finance ? (float) ($finance->property_total_cost ?? 0) : 0;
-                    $allotmentPercentage = $finance ? (float) ($finance->allotment_percentage ?? 15) : 15;
-                    $baseAmount = $finance ? (float) ($finance->allotment_amount ?? 0) : 0;
+                // 6. Generate 15% Allotment Payment Order
+                $finance = $allottee->scheme->schemeFinance ?? null;
+                $propertyAmount = $finance ? (float) ($finance->property_total_cost ?? 0) : 0;
+                $allotmentPercentage = $finance ? (float) ($finance->allotment_percentage ?? 15) : 15;
+                $baseAmount = $finance ? (float) ($finance->allotment_amount ?? 0) : 0;
 
-                    if ($baseAmount == 0 && $propertyAmount > 0) {
-                        $baseAmount = ($propertyAmount * $allotmentPercentage) / 100;
-                    }
+                if ($baseAmount == 0 && $propertyAmount > 0) {
+                    $baseAmount = ($propertyAmount * $allotmentPercentage) / 100;
+                }
 
-                    \App\Models\AllotteePaymentOrder::updateOrCreate(
-                        [
-                            'allottee_id' => $allottee->id,
-                            'order_type'  => 'allotment',
-                        ],
-                        [
-                            'order_no'         => \App\Models\AllotteePaymentOrder::generateOrderNo('ODR-ALT'),
-                            'title'            => "{$allotmentPercentage}% Allotment Payment Order",
-                            'property_amount'  => $propertyAmount,
-                            'percentage'       => $allotmentPercentage,
-                            'base_amount'      => $baseAmount,
-                            'penalty_amount'   => 0,
-                            'admin_charge'     => 0,
-                            'total_payable'    => $baseAmount,
-                            'paid_amount'      => 0,
-                            'remaining_amount' => $baseAmount,
-                            'due_date'         => now()->addDays(30)->format('Y-m-d'),
-                            'issued_at'        => now(),
-                            'order_status'     => 'issued',
-                            'remarks'          => 'Auto generated ' . $allotmentPercentage . '% allotment payment order',
-                            'created_by'       => $user->id,
-                        ]
-                    );
-
-
-                    // Unlock the next step (15% Demand Note) assuming it's the next logical step
-                    // Find the step number for 'generate-allotment' to unlock the next one
-                    $currentStep = \App\Models\AllotteeProcessStep::where([
+                \App\Models\AllotteePaymentOrder::updateOrCreate(
+                    [
                         'allottee_id' => $allottee->id,
-                        'menu_key' => 'allotment',
-                        'sub_menu_key' => 'generate-allotment'
-                    ])->first();
+                        'order_type'  => 'allotment',
+                    ],
+                    [
+                        'order_no'         => \App\Models\AllotteePaymentOrder::generateOrderNo('ODR-ALT'),
+                        'title'            => "{$allotmentPercentage}% Allotment Payment Order",
+                        'property_amount'  => $propertyAmount,
+                        'percentage'       => $allotmentPercentage,
+                        'base_amount'      => $baseAmount,
+                        'penalty_amount'   => 0,
+                        'admin_charge'     => 0,
+                        'total_payable'    => $baseAmount,
+                        'paid_amount'      => 0,
+                        'remaining_amount' => $baseAmount,
+                        'due_date'         => now()->addDays(30)->format('Y-m-d'),
+                        'issued_at'        => now(),
+                        'order_status'     => 'issued',
+                        'remarks'          => 'Auto generated ' . $allotmentPercentage . '% allotment payment order',
+                        'created_by'       => $user->id,
+                    ]
+                );
 
-                    if ($currentStep) {
-                        \App\Models\AllotteeProcessStep::unlockNextStep($allottee->id, $currentStep->step_no);
-                    }
+
+                // Unlock the next step (15% Demand Note) assuming it's the next logical step
+                // Find the step number for 'generate-allotment' to unlock the next one
+                $currentStep = \App\Models\AllotteeProcessStep::where([
+                    'allottee_id' => $allottee->id,
+                    'menu_key' => 'allotment',
+                    'sub_menu_key' => 'generate-allotment'
+                ])->first();
+
+                if ($currentStep) {
+                    \App\Models\AllotteeProcessStep::unlockNextStep($allottee->id, $currentStep->step_no);
+                }
                 } else {
                     \Illuminate\Support\Facades\Log::info("Document generation complete for Agreement.");
                 }
@@ -766,7 +770,7 @@ class ApplicationController extends Controller
             }
         }
 
-        return redirect()->route('engineer.applications.show', $application)
+        return redirect()->route('operator.applications.show', $application)
             ->with('success', 'Office noting and action recorded successfully.');
     }
 
@@ -793,7 +797,7 @@ class ApplicationController extends Controller
         $application->current_role_id = $firstStep->role_id;
         $application->save();
 
-        return redirect()->route('engineer.applications.index')->with('success', 'Application workflow has been completely reset and started over.');
+        return redirect()->route('operator.applications.index')->with('success', 'Application workflow has been completely reset and started over.');
     }
 
     public function uploadDocument(Request $request, Application $application)
@@ -873,7 +877,7 @@ class ApplicationController extends Controller
             }
         }
 
-        $pdf = \Mccarlosen\LaravelMpdf\Facades\LaravelMpdf::loadView('engineer.applications.notes-pdf', compact('application'), [], [
+        $pdf = \Mccarlosen\LaravelMpdf\Facades\LaravelMpdf::loadView('operator.applications.notes-pdf', compact('application'), [], [
             'auto_language_detection' => true,
             'temp_dir'         => storage_path('app/temp'),
             'custom_font_dir'  => public_path('font/'),
@@ -963,139 +967,5 @@ class ApplicationController extends Controller
         }
 
         return back()->with('success', 'Document requests sent successfully to the allottee.');
-    }
-
-    public function verifyAndUploadDocument(Request $request, Application $application)
-    {
-        $request->validate([
-            'document_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
-            'remarks' => 'required|string'
-        ]);
-
-        $file = $request->file('document_file');
-        $allottee = $application->allottee;
-        $schemeCode = $allottee->scheme->scheme_code ?? 'SCH';
-        $propertyNumber = $allottee->property_number ?? 'PROP';
-        $yyyy = date('Y');
-        $mm = date('m');
-        $dd = date('d');
-
-        $extraData = [
-            'application_for' => $application->application_type ?? '',
-            'division_code' => $allottee->division->division_code ?? '',
-            'subdivision_code' => $allottee->subDivision->subdivision_code ?? '',
-            'property_category' => $allottee->propertyCategory->category_code ?? '',
-            'property_type' => $allottee->propertyType->type_code ?? '',
-            'property_income' => $allottee->quarterType->quarter_code ?? '',
-            'username' => $allottee->username ?? ''
-        ];
-
-        try {
-            $uploadResult = $this->uploadToDocumentApi(
-                $file,
-                'FINAL',
-                $schemeCode,
-                $propertyNumber,
-                $yyyy,
-                $mm,
-                $dd,
-                null,
-                $extraData
-            );
-
-            $path = $uploadResult['file_path'];
-            $originalName = $uploadResult['file_name'];
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to upload document to Document Store: ' . $e->getMessage());
-        }
-
-        $user = Auth::user();
-        $userType = $user->user_type ?? 'engineer';
-        $latestMovement = $application->movements()->latest()->first();
-
-        \App\Models\ApplicationDocument::create([
-            'application_id' => $application->id,
-            'movement_id' => $latestMovement ? $latestMovement->id : null,
-            'document_type' => 'engineer_verify_upload',
-            'document_name' => 'Engineer Verification Document',
-            'file_name' => $originalName,
-            'file_path' => $path,
-            'file_size' => $file->getSize(),
-            'file_mime_type' => $file->getMimeType(),
-            'uploaded_by' => $user->id,
-            'uploader_type' => $userType,
-            'uploaded_at' => now()
-        ]);
-
-        \App\Models\ApplicationNote::create([
-            'application_id' => $application->id,
-            'user_id' => $user->id,
-            'role_id' => $user->role_id,
-            'note_type' => 'user_note',
-            'remarks' => $request->remarks,
-            'font_family' => $request->font_family ?? 'english',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        if ($application->currentStep && $application->currentStep->step_code === 'agreement-da-verify-upload') {
-            \App\Models\AllotteeGeneratedDocument::create([
-                'allottee_id' => $application->allottee_id,
-                'document_name' => 'Final Stamped Agreement',
-                'document_type' => 'final-agreement-letter',
-                'file_name' => $originalName,
-                'file_path' => $path,
-                'generated_by' => $user->id,
-                'generated_at' => now(),
-            ]);
-
-            $application->status = 'completed';
-            $application->save();
-
-            \App\Models\ApplicationMovement::create([
-                'application_id' => $application->id,
-                'from_user_id' => $user->id,
-                'to_user_id' => null,
-                'from_role_id' => $application->current_role_id,
-                'to_role_id' => null,
-                'from_step_id' => $application->current_step_id,
-                'to_step_id' => null,
-                'action_type' => 'completed',
-                'status' => 'completed',
-                'remarks' => 'Final Stamped Agreement Verified and Uploaded',
-                'movement_date' => now(),
-            ]);
-
-            // Send Notification to Allottee
-            $allotteeUser = \App\Models\User::on('adms_allottees')->find($application->allottee->user_id);
-            if ($allotteeUser) {
-                $message = "Your agreement application ({$application->application_no}) has been successfully completed. The final stamped agreement has been uploaded. Please log in to your dashboard to download it.";
-
-                $customMailableAllottee = new \App\Mail\ApplicationForwardedMail(
-                    $allotteeUser->name ?? 'Allottee',
-                    $application->application_no,
-                    $user->name ?? 'Engineer',
-                    'completed',
-                    env('ALLOTTEE_APP_URL', url('/login')),
-                    $message
-                );
-
-                app(\App\Services\NotificationService::class)->send([
-                    'user_id' => $allotteeUser->id,
-                    'is_allottee' => true,
-                    'application_id' => $application->id,
-                    'notification_type' => 'application_movement',
-                    'subject' => "Application Completed: {$application->application_no}",
-                    'message' => $message,
-                    'send_email' => true,
-                    'send_sms' => true,
-                    'send_whatsapp' => true,
-                    'link' => '/login',
-                    'mailable' => $customMailableAllottee
-                ]);
-            }
-        }
-
-        return redirect()->back()->with('success', 'Document verified and uploaded successfully with notes.');
     }
 }

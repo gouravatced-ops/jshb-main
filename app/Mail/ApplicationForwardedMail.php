@@ -17,13 +17,14 @@ class ApplicationForwardedMail extends Mailable
     public $actionType;
     public $dashboardUrl;
     public $remarks;
+    public $customMessage;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($receiverName, $applicationNo, $senderName, $actionType, $dashboardUrl, $remarks)
+    public function __construct($receiverName, $applicationNo, $senderName, $actionType, $dashboardUrl, $remarks, $customMessage = null)
     {
         $this->receiverName = $receiverName;
         $this->applicationNo = $applicationNo;
@@ -31,6 +32,7 @@ class ApplicationForwardedMail extends Mailable
         $this->actionType = $actionType;
         $this->dashboardUrl = $dashboardUrl;
         $this->remarks = $remarks;
+        $this->customMessage = $customMessage;
     }
 
     /**
@@ -40,8 +42,23 @@ class ApplicationForwardedMail extends Mailable
      */
     public function build()
     {
-        $actionWord = $this->actionType == 'forward' ? 'forwarded' : 'sent back';
-        return $this->subject("Application {$actionWord} to you: {$this->applicationNo}")
-                    ->view('emails.application-forwarded');
+        $actionWord = $this->actionType;
+        if ($this->actionType == 'forward') {
+            $actionWord = 'forwarded';
+        } elseif ($this->actionType == 'send_back') {
+            $actionWord = 'sent back';
+        } elseif ($this->actionType == 'approve') {
+            $actionWord = 'approved';
+        } elseif ($this->actionType == 'reject') {
+            $actionWord = 'rejected';
+        }
+
+        $subject = "Application {$actionWord}: {$this->applicationNo}";
+        if (in_array($this->actionType, ['forward', 'send_back'])) {
+            $subject = "Application {$actionWord} to you: {$this->applicationNo}";
+        }
+
+        return $this->subject($subject)
+            ->view('emails.application-forwarded');
     }
 }

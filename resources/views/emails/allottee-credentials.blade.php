@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application {{ ucfirst(str_replace('_', ' ', $actionType)) }}</title>
+    <title>Portal Credentials - JSHB</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18,6 +18,7 @@
             max-width: 600px;
             margin: 30px auto;
             background: #e9ecef;
+            /* Gray background for the body content */
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -26,10 +27,12 @@
         /* ─── Header with JSHB Theme ─── */
         .header {
             background: #1B2A4A;
+            /* Navy blue */
             padding: 15px 20px;
             display: flex;
             align-items: center;
             border-bottom: 4px solid #17A673;
+            /* Teal green accent */
         }
 
         .header table {
@@ -82,6 +85,7 @@
         .body-content {
             padding: 25px 30px;
             background: #e9ecef;
+            /* Match the gray background */
         }
 
         .greeting {
@@ -91,65 +95,84 @@
             margin-bottom: 15px;
         }
 
-        .message-box {
-            background: #FFF3CD;
-            border-left: 4px solid #F5A623;
-            padding: 15px;
-            border-radius: 0 4px 4px 0;
-            margin: 15px 0 25px 0;
+        .message-text {
+            color: #555;
             font-size: 13px;
-            color: #664d03;
+            margin-bottom: 20px;
         }
 
-        .details-table {
-            width: 100%;
+        /* ─── Credentials Box ─── */
+        .credentials-container {
             background: #f8fafc;
             border: 1px solid #17A673;
             border-radius: 6px;
-            border-collapse: separate;
-            overflow: hidden;
-            margin-bottom: 25px;
+            padding: 20px;
+            margin: 15px 0 25px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .details-table th,
-        .details-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 13px;
-        }
-
-        .details-table tr:last-child th,
-        .details-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .details-table th {
+        .credential-item {
+            font-size: 16px;
             color: #1B2A4A;
-            font-weight: 600;
-            width: 40%;
-            background: #e2e8f0;
         }
 
-        .details-table td {
-            color: #333;
-        }
-
-        .btn-container {
-            text-align: center;
-            margin-top: 25px;
-        }
-
-        .btn {
+        .credential-item strong {
             display: inline-block;
-            padding: 10px 20px;
+            width: 90px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .login-btn {
+            display: inline-block;
             background-color: #17A673;
             color: #ffffff !important;
             text-decoration: none;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 14px;
-            border-bottom: 2px solid #107c55;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+
+
+        /* ─── Warning Note ─── */
+        .note {
+            background: #FFF3CD;
+            border-left: 4px solid #F5A623;
+            padding: 10px 15px;
+            border-radius: 0 4px 4px 0;
+            margin: 15px 0;
+            font-size: 12px;
+            color: #664d03;
+        }
+
+        .note strong {
+            color: #E8960C;
+        }
+
+        /* ─── Security Info ─── */
+        .security-info {
+            background: #F0F7FF;
+            border-left: 4px solid #1B2A4A;
+            padding: 10px 15px;
+            border-radius: 0 4px 4px 0;
+            margin: 15px 0;
+            font-size: 11px;
+            color: #1B2A4A;
+        }
+
+        .security-info ul {
+            margin: 6px 0 0 0;
+            padding-left: 18px;
+        }
+
+        .security-info li {
+            margin-bottom: 4px;
         }
 
         /* ─── Footer ─── */
@@ -179,6 +202,7 @@
     <div class="email-wrapper">
         <!-- Header -->
         <div class="header">
+            <!-- Using table for reliable email client inline rendering -->
             <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
                     <td width="60">
@@ -194,52 +218,50 @@
 
         <!-- Accent Bar -->
         <div class="accent-bar">
-            Application {{ ucfirst(str_replace('_', ' ', $actionType)) }}
+            Allottee Portal Login Credentials
         </div>
 
         <!-- Body -->
         <div class="body-content">
-            <div class="greeting">Dear {{ $receiverName }},</div>
+            <p class="greeting">Dear Allottee,</p>
+            <p class="message-text">Congratulations! Your application has been processed, and your JSHB Allottee Portal account is now active. Please use the credentials below to log in and track your application status.</p>
 
-            @if(!empty($customMessage))
-            <p style="font-size: 14px; color: #1B2A4A; margin-bottom: 20px; font-weight: 500;">
-                {{ $customMessage }}
+            <!-- Credentials Code -->
+            <div class="credentials-container">
+                <table width="100%" cellpadding="5" cellspacing="0" border="0">
+                    <tr>
+                        <td width="90" style="color: #555; font-size: 14px; font-weight: bold; vertical-align: top;">Username:</td>
+                        <td style="color: #1B2A4A; font-size: 16px; word-break: break-all;">{{ $username }}</td>
+                    </tr>
+                    <tr>
+                        <td width="90" style="color: #555; font-size: 14px; font-weight: bold; vertical-align: top;">Password:</td>
+                        <td style="color: #1B2A4A; font-size: 16px; word-break: break-all;">{{ $password }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p style="text-align: center;">
+                <a href="{{ $portalLink }}" class="login-btn">Click Here to Login</a>
             </p>
-            @elseif(!empty($remarks) && !in_array($actionType, ['forward', 'send_back', 'reject', 'approve', 'document_verify_upload']))
-            <div class="message-box">
-                {!! $remarks !!}
-            </div>
-            @else
-            <p style="font-size: 13px; color: #555; margin-bottom: 20px;">An application has been {{ str_replace('_', ' ', $actionType) }} for further review and action.</p>
-            @endif
 
-            <table class="details-table" cellspacing="0">
-                <tr>
-                    <th>Application No.</th>
-                    <td>{{ $applicationNo }}</td>
-                </tr>
-                <tr>
-                    <th>Action By</th>
-                    <td>{{ $senderName }}</td>
-                </tr>
-                <tr>
-                    <th>Date & Time</th>
-                    <td>{{ now()->format('d M Y, h:i A') }}</td>
-                </tr>
-            </table>
-
-            <div style="font-size: 12px; color: #664d03; background: #FFF3CD; border-left: 4px solid #F5A623; padding: 10px 15px; border-radius: 0 4px 4px 0; margin: 15px 0;">
-                Please log in to the dashboard to review the application details and take necessary action.
+            <!-- Warning Note -->
+            <div class="note">
+                <strong>⚠ Important:</strong> We highly recommend changing your password immediately after your first login for security purposes.
             </div>
 
-            <div class="btn-container">
-                <a href="{{ $dashboardUrl }}" class="btn">View Application / Login</a>
+            <!-- Security Info -->
+            <div class="security-info">
+                <strong>🛡 Security Tips:</strong>
+                <ul>
+                    <li>Do not share your login credentials with anyone</li>
+                    <li>JSHB officials will never ask for your password</li>
+                </ul>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p class="footer-brand">JSHB Portal</p>
+            <p class="footer-brand">Allottee Portal — JSHB</p>
             <p class="footer-text">This is an automated message. Please do not reply to this email.</p>
             <p class="footer-text">&copy; {{ date('Y') }} Jharkhand State Housing Board. All rights reserved.</p>
         </div>

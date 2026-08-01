@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>vuqca/k i= - झारखण्ड राज्य आवास बोर्ड</title>
+    <title>अनुबंध पत्र - झारखण्ड राज्य आवास बोर्ड</title>
     <style>
         @font-face {
             font-family: 'KrutiDev';

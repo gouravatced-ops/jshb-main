@@ -1998,6 +1998,40 @@ class AllotteeController extends Controller
 
             DB::commit();
 
+            // Send Credential Mail to Allottee on successful Step 3 completion
+            try {
+                $user = \App\Models\User::on('adms_allottees')->where('username', $allottee->username)->first();
+                if ($user && $user->email) {
+                    $plainPassword = $this->generatePassword();
+                    $user->password = \Illuminate\Support\Facades\Hash::make($plainPassword);
+                    $user->save();
+
+                    \Illuminate\Support\Facades\Log::channel('user_credentials')->info('Credentials updated via Step 3', [
+                        'username' => $user->username,
+                        'password' => $plainPassword
+                    ]);
+
+                    $portalUrl = env('ALLOTTEE_PORTAL_URL', 'http://localhost/jshb-allottees');
+                    
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->send([
+                        'user_id' => $user->id,
+                        'application_id' => $application ? $application->id : null,
+                        'allottee_id' => $allottee->id,
+                        'is_allottee' => true,
+                        'notification_type' => 'info',
+                        'subject' => 'Your JSHB Allottee Portal Login Credentials',
+                        'message' => 'Credentials sent automatically after Step 3.',
+                        'email_id' => $user->email,
+                        'send_email' => true,
+                        'mailable' => new \App\Mail\AllotteeCredentialMail($user->username, $plainPassword, $portalUrl)
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send credential mail in saveStep3: ' . $e->getMessage());
+            }
+
+
             return response()->json([
                 'success' => true,
                 'message' => 'Application Submit Successfully',
@@ -2077,7 +2111,15 @@ class AllotteeController extends Controller
 
     public function getAllotteeApplications($allotteeId)
     {
-        $applications = Application::with(['currentStep'])
+        $applications = Application::with([
+            'currentStep', 
+            'movements.fromUser', 
+            'movements.toUser', 
+            'movements.fromRole', 
+            'movements.toRole', 
+            'movements.fromStep', 
+            'movements.toStep'
+        ])
             ->where('allottee_id', $allotteeId)
             ->get();
         return response()->json([
@@ -2154,6 +2196,56 @@ class AllotteeController extends Controller
                 'success' => false,
                 'message' => 'An error occurred while creating the application.',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendCredentialMail($id)
+    {
+        try {
+            $allottee = Allottee::findOrFail($id);
+            $user = \App\Models\User::on('adms_allottees')->where('username', $allottee->username)->first();
+            
+            if (!$user || !$user->email) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No valid email address found for this allottee.',
+                ]);
+            }
+
+            $plainPassword = $this->generatePassword();
+            $user->password = \Illuminate\Support\Facades\Hash::make($plainPassword);
+            $user->save();
+
+            \Illuminate\Support\Facades\Log::channel('user_credentials')->info('Credentials updated manually via Admin', [
+                'username' => $user->username,
+                'password' => $plainPassword
+            ]);
+
+            $portalUrl = env('ALLOTTEE_PORTAL_URL', 'http://localhost/jshb-allottees');
+            
+            $notificationService = app(\App\Services\NotificationService::class);
+            $notificationService->send([
+                'user_id' => $user->id,
+                'allottee_id' => $allottee->id,
+                'is_allottee' => true,
+                'notification_type' => 'info',
+                'subject' => 'Your JSHB Allottee Portal Login Credentials',
+                'message' => 'Credentials sent manually by admin.',
+                'email_id' => $user->email,
+                'send_email' => true,
+                'mailable' => new \App\Mail\AllotteeCredentialMail($user->username, $plainPassword, $portalUrl)
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Credential mail sent successfully.',
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send credential mail manually: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send mail: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -13,15 +13,18 @@
         </h4>
     </div>
     <div style="display: flex; gap: 10px;">
-        <!-- <form action="{{ route('engineer.applications.reset', $application->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to completely RESET this application? All notes and movements will be deleted and it will go back to the first step. This cannot be undone.');">
+        <!-- <form action="{{ route('operator.applications.reset', $application->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to completely RESET this application? All notes and movements will be deleted and it will go back to the first step. This cannot be undone.');">
             @csrf
             <button type="submit" class="btn-compact" style="background: #dc3545; border: none; box-shadow: none; color: white;"><i class="fa-solid fa-rotate-left"></i> Reset Workflow</button>
         </form> -->
-        <a href="{{ route('engineer.applications.index') }}" class="btn-compact" style="background: #6c757d; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
+        <a href="{{ route('operator.applications.index') }}" class="btn-compact" style="background: #6c757d; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
     </div>
 </div>
 
-@if(Auth::check() && $application->current_role_id == Auth::user()->role_id && $application->currentStep)
+@php
+    $targetRoleId = Auth::user()->assistant_to_id ? \App\Models\User::find(Auth::user()->assistant_to_id)?->role_id : Auth::user()->role_id;
+@endphp
+@if(Auth::check() && $application->current_role_id == $targetRoleId && $application->currentStep)
 <div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #3498db;">
     <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;">
         <div>
@@ -32,22 +35,21 @@
         </div>
         <div style="display: flex; gap: 8px;">
             @if($application->currentStep->can_forward && $application->currentStep->action_type != 'approve')
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'forward']) }}" class="btn-compact" style="background: #28a745; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-arrow-right"></i> Forward</a>
+            <a href="{{ route('operator.applications.action.form', ['application' => $application, 'action_type' => 'forward']) }}" class="btn-compact" style="background: #28a745; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-arrow-right"></i> Forward</a>
             @endif
             @if($application->currentStep->can_send_back)
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'send_back']) }}" class="btn-compact" style="background: #ffc107; color: #333; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-reply"></i> Send Back</a>
+            <a href="{{ route('operator.applications.action.form', ['application' => $application, 'action_type' => 'send_back']) }}" class="btn-compact" style="background: #ffc107; color: #333; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-reply"></i> Send Back</a>
             @endif
             @if($application->currentStep->can_reject)
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'reject']) }}" class="btn-compact" style="background: #dc3545; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-times"></i> Reject</a>
+            <a href="{{ route('operator.applications.action.form', ['application' => $application, 'action_type' => 'reject']) }}" class="btn-compact" style="background: #dc3545; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-times"></i> Reject</a>
             @endif
             @if($application->currentStep->action_type == 'approve' && strtolower($application->status) !== 'completed')
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'approve']) }}" class="btn-compact" style="background: #17a2b8; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-check"></i> Approve</a>
+            <a href="{{ route('operator.applications.action.form', ['application' => $application, 'action_type' => 'approve']) }}" class="btn-compact" style="background: #17a2b8; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-check"></i> Approve</a>
             @endif
             @if($application->currentStep->can_upload_document)
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#uploadDocModal" style="background: #34495e;"><i class="fa-solid fa-upload"></i> Upload Doc</button>
-            <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#verifyUploadDocModal" style="background: #17a2b8;"><i class="fa-solid fa-file-signature"></i> Verify & Upload</button>
             @endif
-            <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'add_note']) }}" class="btn-compact" style="background: #6c757d; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-comment-dots"></i> Add Note</a>
+            <a href="{{ route('operator.applications.action.form', ['application' => $application, 'action_type' => 'add_note']) }}" class="btn-compact" style="background: #6c757d; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-comment-dots"></i> Add Note</a>
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#workflowModal" style="background: #6f42c1; color: white; border: none; cursor: pointer;"><i class="fa-solid fa-code-branch"></i> View Workflow</button>
         </div>
     </div>
@@ -195,7 +197,7 @@
                 <span class="badge-compact" style="background: rgba(255,255,255,0.6); color: #4a148c; margin-left: 5px;">{{ $application->notes ? $application->notes->count() : 0 }} Notes</span>
             </div>
             @if($application->notes && $application->notes->count() > 0)
-            <a href="{{ route('engineer.applications.notes.pdf', $application) }}" target="_blank" class="btn-compact" style="background: rgb(200 14 14);color: #fff;border: 1px solid rgba(255,255,255,0.3);text-decoration: none;padding: 4px 10px;font-size: 11px;">
+            <a href="{{ route('operator.applications.notes.pdf', $application) }}" target="_blank" class="btn-compact" style="background: rgb(200 14 14);color: #fff;border: 1px solid rgba(255,255,255,0.3);text-decoration: none;padding: 4px 10px;font-size: 11px;">
                 <i class="fa-solid fa-file-pdf"></i> Preview PDF
             </a>
             @endif
@@ -566,7 +568,7 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('engineer.applications.upload-document', $application) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('operator.applications.upload-document', $application) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body upload-modal-body">
                     <div class="upload-input-group">
@@ -585,59 +587,6 @@
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border: 1px solid #dce1e6; font-weight: 500;">Cancel</button>
                     <button type="submit" class="btn btn-primary" style="background: #2a5298; border: none; font-weight: 500; padding: 8px 20px;">
                         <i class="fa-solid fa-upload"></i> Upload Document
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Verify & Upload Document Modal -->
-<div class="modal fade" id="verifyUploadDocModal" tabindex="-1" aria-labelledby="verifyUploadDocModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content upload-modal-content">
-            <div class="modal-header upload-modal-header" style="background: #17a2b8;">
-                <h5 class="modal-title upload-modal-title" id="verifyUploadDocModalLabel" style="color: white;">
-                    <i class="fa-solid fa-file-signature"></i> Verify & Upload Document
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('engineer.applications.verify-upload', $application) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-body upload-modal-body">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="upload-input-group">
-                                <label>Select File <span class="text-danger">*</span></label>
-                                <div class="upload-file-wrapper">
-                                    <input type="file" name="document_file" class="upload-file-input" required accept=".pdf,.jpg,.jpeg,.png">
-                                    <div class="upload-file-icon">
-                                        <i class="fa-regular fa-file-pdf"></i>
-                                    </div>
-                                    <p class="upload-file-text">Click to browse or drag file</p>
-                                    <p class="upload-file-subtext">Supported formats: PDF, JPG, PNG (Max 5MB)</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-7">
-                            <div class="upload-input-group">
-                                <label>Verification Notes <span class="text-danger">*</span></label>
-                                <textarea id="summernote" name="remarks" required></textarea>
-                            </div>
-                            <div class="upload-input-group mt-3" style="display: none;">
-                                <label>Font Family</label>
-                                <select name="font_family" class="form-select">
-                                    <option value="english" selected>English</option>
-                                    <option value="hindi">Hindi</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer upload-modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border: 1px solid #dce1e6; font-weight: 500;">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="background: #17a2b8; border: none; font-weight: 500; padding: 8px 20px;">
-                        <i class="fa-solid fa-check"></i> Verify & Upload
                     </button>
                 </div>
             </form>
@@ -718,14 +667,12 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const fileInputs = document.querySelectorAll('.upload-file-input');
-        
-        fileInputs.forEach(fileInput => {
-            fileInput.addEventListener('change', function(e) {
-                const wrapper = this.closest('.upload-file-wrapper');
-                const fileText = wrapper.querySelector('.upload-file-text');
-                const fileIcon = wrapper.querySelector('.upload-file-icon');
+        const fileInput = document.querySelector('.upload-file-input');
+        const fileText = document.querySelector('.upload-file-text');
+        const fileIcon = document.querySelector('.upload-file-icon');
 
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
                 if (this.files && this.files.length > 0) {
                     const fileName = this.files[0].name;
                     fileText.innerHTML = `<span style="color: #28a745; font-weight: 600;">Selected: ${fileName}</span>`;
@@ -735,7 +682,7 @@
                     fileIcon.innerHTML = `<i class="fa-regular fa-file-pdf"></i>`;
                 }
             });
-        });
+        }
     });
 </script>
 
@@ -909,6 +856,4 @@
     </div>
 </div>
 
-@include('components.partials.summernote-editor')
-@include('components.partials.qr-scanner-modal')
 @endsection

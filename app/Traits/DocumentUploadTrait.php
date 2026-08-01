@@ -57,7 +57,7 @@ trait DocumentUploadTrait
         }
 
         Log::info('Document API Request', [
-            'url'     => env('DOC_API_URL'),
+            'url'     => env('DOC_UPLOAD_API_URL'),
             'payload' => $apiPayload,
             'file'    => $file->getClientOriginalName()
         ]);
@@ -65,7 +65,7 @@ trait DocumentUploadTrait
         $response = Http::withToken(env('DOC_API_TOKEN'))
             ->withHeaders(['X-API-KEY' => env('DOC_API_TOKEN')])
             ->attach('file', file_get_contents($file), $file->getClientOriginalName())
-            ->post(env('DOC_API_URL'), $apiPayload);
+            ->post(env('DOC_UPLOAD_API_URL'), $apiPayload);
 
         Log::info('Document API Response', [
             'status'   => $response->status(),
@@ -126,7 +126,7 @@ trait DocumentUploadTrait
         }
 
         Log::info('Document API Request (Content)', [
-            'url'     => env('DOC_API_URL'),
+            'url'     => env('DOC_UPLOAD_API_URL'),
             'payload' => $apiPayload,
             'file'    => $fileName
         ]);
@@ -134,7 +134,7 @@ trait DocumentUploadTrait
         $response = Http::withToken(env('DOC_API_TOKEN'))
             ->withHeaders(['X-API-KEY' => env('DOC_API_TOKEN')])
             ->attach('file', $fileContent, $fileName)
-            ->post(env('DOC_API_URL'), $apiPayload);
+            ->post(env('DOC_UPLOAD_API_URL'), $apiPayload);
 
         Log::info('Document API Response', [
             'status'   => $response->status(),

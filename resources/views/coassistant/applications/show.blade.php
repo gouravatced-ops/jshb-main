@@ -165,7 +165,7 @@
                             <td style="text-align: right;">
                                 @if($doc->file_path)
                                 @php
-                                $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
+                                $docBaseUrl = rtrim(env('DOC_API_URL', ''), '/');
                                 $previewSrc = $docBaseUrl . '/' . ltrim($doc->file_path, '/');
                                 @endphp
                                 <button type="button" onclick="viewDocument('{{ $previewSrc }}', '{{ addslashes($doc->document_name) }}')" class="btn-compact" style="border: none; cursor: pointer;">
@@ -316,7 +316,7 @@
                             <td style="text-align: center; vertical-align: middle;">
                                 @if($doc->uploaded_doc && $doc->uploaded_doc->file_path)
                                 @php
-                                $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
+                                $docBaseUrl = rtrim(env('DOC_API_URL', ''), '/');
                                 $previewSrc = $docBaseUrl . '/' . ltrim($doc->uploaded_doc->file_path, '/');
                                 $docName = addslashes($doc->master->document_name);
                                 @endphp
