@@ -19,7 +19,7 @@ use App\Models\ApplicationAuditTrail;
 
 class Application extends Model
 {
-    use HasFactory, SoftDeletes , EncryptedRouteKey;
+    use HasFactory, SoftDeletes, EncryptedRouteKey;
 
     protected $connection = 'adms_jshb';
     protected $table = 'applications';
@@ -106,6 +106,6 @@ class Application extends Model
 
     public function communicationTracks()
     {
-        return $this->hasMany(CommunicationTrack::class, 'application_id');
+        return $this->hasMany(CommunicationTrack::class, 'application_id')->where('communication_type', 'email');
     }
 }

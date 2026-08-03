@@ -45,7 +45,12 @@
             @endif
             @if($application->currentStep->can_upload_document)
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#uploadDocModal" style="background: #34495e;"><i class="fa-solid fa-upload"></i> Upload Doc</button>
+            @php
+            $hasVerifiedAndUploaded = $application->documents->where('document_type', 'engineer_verify_upload')->isNotEmpty();
+            @endphp
+            @if(!$hasVerifiedAndUploaded)
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#verifyUploadDocModal" style="background: #17a2b8;"><i class="fa-solid fa-file-signature"></i> Verify & Upload</button>
+            @endif
             @endif
             <a href="{{ route('engineer.applications.action.form', ['application' => $application, 'action_type' => 'add_note']) }}" class="btn-compact" style="background: #6c757d; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-comment-dots"></i> Add Note</a>
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#workflowModal" style="background: #6f42c1; color: white; border: none; cursor: pointer;"><i class="fa-solid fa-code-branch"></i> View Workflow</button>
@@ -719,7 +724,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const fileInputs = document.querySelectorAll('.upload-file-input');
-        
+
         fileInputs.forEach(fileInput => {
             fileInput.addEventListener('change', function(e) {
                 const wrapper = this.closest('.upload-file-wrapper');

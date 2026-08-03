@@ -1069,7 +1069,7 @@ class ApplicationController extends Controller
             // Send Notification to Allottee
             $allotteeUser = \App\Models\User::on('adms_allottees')->find($application->allottee->user_id);
             if ($allotteeUser) {
-                $message = "Your agreement application ({$application->application_no}) has been successfully completed. The final stamped agreement has been uploaded. Please log in to your dashboard to download it.";
+                $message = "Approved and completed! Your application agreement letter is ready. The final stamped agreement has been uploaded for application {$application->application_no}. Please log in to your dashboard to download and view it.";
 
                 $customMailableAllottee = new \App\Mail\ApplicationForwardedMail(
                     $allotteeUser->name ?? 'Allottee',

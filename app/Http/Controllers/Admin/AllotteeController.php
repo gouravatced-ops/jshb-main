@@ -1332,43 +1332,53 @@ class AllotteeController extends Controller
 
     public function allotmentLetterPdf(Request $request, Allottee $allottee)
     {
-        $allottee->update([
-            'property_number' =>  Allottee::generateUniquePropertyNumber(),
-        ]);
-
-        $allottee->load(['division:id,name', 'subDivision:id,name', 'propertyCategory:id,name']);
-        // Set PDF options for proper Unicode rendering
-        $pdf = Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
-            ->setPaper('a4', 'portrait')
-            ->setOptions([
-                'defaultFont' => 'KrutiDev',
-                'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled' => true,
-                'chroot' => public_path(),
+        try {
+            $allottee->update([
+                'property_number' =>  Allottee::generateUniquePropertyNumber(),
             ]);
-        $fileName = 'allotment-letter-' . $allottee->id . '.pdf';
-        if ($request->boolean('download')) {
-            $fileName = $this->saveGeneratedPdf($allottee, 'Allotment Letter', 'allotment-letter', $pdf->output());
-        }
-        if (!$request->boolean('download')) {
-            return $pdf->stream($fileName);
-        } else {
-            return back()->with('success', 'PDF generated successfully.');
+
+            $allottee->load(['division:id,name', 'subDivision:id,name', 'propertyCategory:id,name']);
+            // Set PDF options for proper Unicode rendering
+            $pdf = Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
+                ->setPaper('a4', 'portrait')
+                ->setOptions([
+                    'defaultFont' => 'KrutiDev',
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                    'chroot' => public_path(),
+                ]);
+            $fileName = 'allotment-letter-' . $allottee->id . '.pdf';
+            if ($request->boolean('download')) {
+                $fileName = $this->saveGeneratedPdf($allottee, 'Allotment Letter', 'allotment-letter', $pdf->output());
+            }
+            if (!$request->boolean('download')) {
+                return $pdf->stream($fileName);
+            } else {
+                return back()->with('success', 'PDF generated successfully.');
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error generating Allotment Letter PDF: ' . $e->getMessage());
+            return back()->with('error', 'Error generating PDF. Please check the logs.');
         }
     }
 
     public function possessionLetterPdf(Request $request, Allottee $allottee)
     {
-        $allottee->load(['division:id,name', 'subDivision:id,name', 'propertyCategory:id,name']);
-        $pdf = Pdf::loadView('admin.allottee.letters.templates.possession-pdf', compact('allottee'))->setPaper('a4');
-        $fileName = 'possession-letter-' . $allottee->id . '.pdf';
-        if ($request->boolean('download')) {
-            $fileName = $this->saveGeneratedPdf($allottee, 'Possession Letter', 'possession-letter', $pdf->output());
-        }
-        if (!$request->boolean('download')) {
-            return $pdf->stream($fileName);
-        } else {
-            return back()->with('success', 'PDF generated successfully.');
+        try {
+            $allottee->load(['division:id,name', 'subDivision:id,name', 'propertyCategory:id,name']);
+            $pdf = Pdf::loadView('admin.allottee.letters.templates.possession-pdf', compact('allottee'))->setPaper('a4');
+            $fileName = 'possession-letter-' . $allottee->id . '.pdf';
+            if ($request->boolean('download')) {
+                $fileName = $this->saveGeneratedPdf($allottee, 'Possession Letter', 'possession-letter', $pdf->output());
+            }
+            if (!$request->boolean('download')) {
+                return $pdf->stream($fileName);
+            } else {
+                return back()->with('success', 'PDF generated successfully.');
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error generating Possession Letter PDF: ' . $e->getMessage());
+            return back()->with('error', 'Error generating PDF. Please check the logs.');
         }
     }
 
@@ -1778,7 +1788,7 @@ class AllotteeController extends Controller
                 'max:255'
             ],
             'allottee_name_hindi' => [
-                'nullable',
+                'required',
                 'string',
                 'max:255'
             ],
@@ -1798,6 +1808,16 @@ class AllotteeController extends Controller
                 'max:100'
             ],
             'relation_name' => [
+                'required',
+                'string',
+                'max:100'
+            ],
+            'relation_prefix_hindi' => [
+                'required',
+                'string',
+                'max:100'
+            ],
+            'relation_name_hindi' => [
                 'required',
                 'string',
                 'max:100'
@@ -1903,6 +1923,8 @@ class AllotteeController extends Controller
         $applicant->allottee_name_hindi = $request->allottee_name_hindi;
         $applicant->allottee_middle_hindi = $request->allottee_middle_hindi;
         $applicant->allottee_surname_hindi = $request->allottee_surname_hindi;
+        $applicant->relation_prefix_hindi = $request->relation_prefix_hindi;
+        $applicant->relation_name_hindi = $request->relation_name_hindi;
         $applicant->relation_name = $request->relation_name;
         $applicant->marital_status = $request->marital_status;
         $applicant->allottee_gender = $request->allottee_gender;

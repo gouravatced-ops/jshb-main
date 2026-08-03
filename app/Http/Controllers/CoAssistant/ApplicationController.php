@@ -617,7 +617,7 @@ class ApplicationController extends Controller
         // Complete application movement tracking
         ApplicationMovement::create([
             'application_id' => $application->id,
-            'from_user_id' => $targetUserId,
+            'from_user_id' => $user->id, // Use actual Co-Assistant's ID instead of MD's
             'to_user_id' => $targetUser ? $targetUser->id : null,
             'from_role_id' => $previousRoleId,
             'from_step_id' => $previousStepId,
@@ -634,7 +634,7 @@ class ApplicationController extends Controller
         // Integrate ApplicationAuditTrail for movement
         ApplicationAuditTrail::create([
             'application_id' => $application->id,
-            'user_id' => $targetUserId,
+            'user_id' => $user->id, // Use actual Co-Assistant's ID
             'role_id' => $previousRoleId,
             'action' => 'movement_created',
             'module' => 'Application Workflow',

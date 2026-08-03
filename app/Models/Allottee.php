@@ -43,6 +43,8 @@ class Allottee extends Model
         'allottee_surname_hindi',
         'allottee_relation_type',
         'relation_name',
+        'relation_prefix_hindi',
+        'relation_name_hindi',
         'marital_status',
         'allottee_gender',
         'pan_card_number',

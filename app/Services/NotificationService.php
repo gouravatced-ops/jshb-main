@@ -77,7 +77,7 @@ class NotificationService
         $isEmailSent = false;
         $isSmsSent = false;
         $isWhatsappSent = false;
-        
+
         $emailSentAt = null;
         $smsSentAt = null;
         $whatsappSentAt = null;
@@ -96,19 +96,40 @@ class NotificationService
                 Log::channel('send_mail')->info("Email sent to {$emailId} | Subject: {$subject}");
 
                 $this->logCommunication(
-                    $isAllottee, $userId, 'email', $subject, $message, 'success', null, $params
+                    $isAllottee,
+                    $userId,
+                    'email',
+                    $subject,
+                    $message,
+                    'success',
+                    null,
+                    $params
                 );
             } catch (\Exception $e) {
                 Log::channel('send_mail')->error("Failed to send Email to {$emailId} | Error: " . $e->getMessage());
 
                 $this->logCommunication(
-                    $isAllottee, $userId, 'email', $subject, $message, 'failed', $e->getMessage(), $params
+                    $isAllottee,
+                    $userId,
+                    'email',
+                    $subject,
+                    $message,
+                    'failed',
+                    $e->getMessage(),
+                    $params
                 );
             }
         } elseif ($sendEmail) {
             Log::channel('send_mail')->warning("Skipped Email sending: Invalid or missing email address for User ID: {$userId}");
             $this->logCommunication(
-                $isAllottee, $userId, 'email', $subject, $message, 'failed', 'Invalid or missing email address', $params
+                $isAllottee,
+                $userId,
+                'email',
+                $subject,
+                $message,
+                'failed',
+                'Invalid or missing email address',
+                $params
             );
         }
 
@@ -120,19 +141,40 @@ class NotificationService
                 Log::channel('sms')->info("SMS sent to {$phoneNumber} | Message: {$message}");
 
                 $this->logCommunication(
-                    $isAllottee, $userId, 'sms', $subject, $message, 'success', null, $params
+                    $isAllottee,
+                    $userId,
+                    'sms',
+                    $subject,
+                    $message,
+                    'success',
+                    null,
+                    $params
                 );
             } catch (\Exception $e) {
                 Log::channel('sms')->error("Failed to send SMS to {$phoneNumber} | Error: " . $e->getMessage());
 
                 $this->logCommunication(
-                    $isAllottee, $userId, 'sms', $subject, $message, 'failed', $e->getMessage(), $params
+                    $isAllottee,
+                    $userId,
+                    'sms',
+                    $subject,
+                    $message,
+                    'failed',
+                    $e->getMessage(),
+                    $params
                 );
             }
         } elseif ($sendSms) {
             Log::channel('sms')->warning("Skipped SMS sending: Invalid or missing phone number for User ID: {$userId}");
             $this->logCommunication(
-                $isAllottee, $userId, 'sms', $subject, $message, 'failed', 'Invalid or missing phone number', $params
+                $isAllottee,
+                $userId,
+                'sms',
+                $subject,
+                $message,
+                'failed',
+                'Invalid or missing phone number',
+                $params
             );
         }
 
@@ -144,19 +186,40 @@ class NotificationService
                 Log::channel('whatsapp')->info("WhatsApp sent to {$phoneNumber} | Message: {$message}");
 
                 $this->logCommunication(
-                    $isAllottee, $userId, 'whatsapp', $subject, $message, 'success', null, $params
+                    $isAllottee,
+                    $userId,
+                    'whatsapp',
+                    $subject,
+                    $message,
+                    'success',
+                    null,
+                    $params
                 );
             } catch (\Exception $e) {
                 Log::channel('whatsapp')->error("Failed to send WhatsApp to {$phoneNumber} | Error: " . $e->getMessage());
 
                 $this->logCommunication(
-                    $isAllottee, $userId, 'whatsapp', $subject, $message, 'failed', $e->getMessage(), $params
+                    $isAllottee,
+                    $userId,
+                    'whatsapp',
+                    $subject,
+                    $message,
+                    'failed',
+                    $e->getMessage(),
+                    $params
                 );
             }
         } elseif ($sendWhatsapp) {
             Log::channel('whatsapp')->warning("Skipped WhatsApp sending: Invalid or missing phone number for User ID: {$userId}");
             $this->logCommunication(
-                $isAllottee, $userId, 'whatsapp', $subject, $message, 'failed', 'Invalid or missing phone number', $params
+                $isAllottee,
+                $userId,
+                'whatsapp',
+                $subject,
+                $message,
+                'failed',
+                'Invalid or missing phone number',
+                $params
             );
         }
 
@@ -205,7 +268,7 @@ class NotificationService
         $request = request();
         $senderId = \Illuminate\Support\Facades\Auth::id();
         $senderType = $senderId ? 'jshb_user' : 'system';
-        
+
         // If an allottee is doing an action in their portal, how do we know?
         // Usually, internal users have Auth::id(), but allottees might have Auth::guard('allottee')->id() or similar.
         // We must check if the guard is defined first to avoid "Auth guard not defined" errors.
