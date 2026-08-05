@@ -8,7 +8,7 @@
     <title>@yield('title', 'JSHB Dashboard')</title>
     <meta name="description" content="Jharkhand State Housing Board | Admin Portal" />
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset(config('panel.faviconIcon')) }}">
-    
+
     @if(Auth::check())
     <meta name="user-id" content="{{ Auth::id() }}">
     @endif
@@ -156,7 +156,9 @@
     <script>
         // Sparkline helper
         function sparkline(id, data, color) {
-            new Chart(document.getElementById(id), {
+            var el = document.getElementById(id);
+            if (!el) return;
+            new Chart(el, {
                 type: 'line',
                 data: {
                     labels: data.map((_, i) => i),
@@ -197,118 +199,124 @@
         sparkline('sparkline4', [30, 35, 32, 40, 38, 44, 42, 48, 45, 50, 48, 54], '#0f1b2d');
 
         // Transactions line chart
-        new Chart(document.getElementById('txnChart'), {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                datasets: [{
-                    label: 'Amount (in Cr)',
-                    data: [13, 19, 9, 25, 23, 31, 30, 43, 42, 38, 45, 55],
-                    borderColor: '#1a7a4a',
-                    backgroundColor: 'rgba(26,122,74,0.08)',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#1a7a4a',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            boxWidth: 10,
-                            font: {
-                                size: 11
-                            },
-                            color: '#6b7a8d'
-                        }
-                    }
+        const txnCtx = document.getElementById('txnChart');
+        if (txnCtx) {
+            new Chart(txnCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Amount (in Cr)',
+                        data: [13, 19, 9, 25, 23, 31, 30, 43, 42, 38, 45, 55],
+                        borderColor: '#1a7a4a',
+                        backgroundColor: 'rgba(26,122,74,0.08)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#1a7a4a',
+                        fill: true,
+                        tension: 0.3
+                    }]
                 },
-                scales: {
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                size: 10
-                            },
-                            color: '#6b7a8d'
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 10,
+                                font: {
+                                    size: 11
+                                },
+                                color: '#6b7a8d'
+                            }
                         }
                     },
-                    y: {
-                        grid: {
-                            color: '#f0f2f5'
-                        },
-                        ticks: {
-                            font: {
-                                size: 10
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
                             },
-                            color: '#6b7a8d'
+                            ticks: {
+                                font: {
+                                    size: 10
+                                },
+                                color: '#6b7a8d'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: '#f0f2f5'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                },
+                                color: '#6b7a8d'
+                            }
                         }
-                    }
-                },
-                responsive: true,
-                maintainAspectRatio: true
-            }
-        });
+                    },
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+        }
 
         // Allottees bar chart
-        new Chart(document.getElementById('allotChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                datasets: [{
-                    label: 'Allottees',
-                    data: [310, 290, 420, 300, 300, 340, 295, 300, 420, 300, 295, 550],
-                    backgroundColor: '#0f1b2d',
-                    borderRadius: 1,
-                    barThickness: 14
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            boxWidth: 10,
-                            font: {
-                                size: 11
-                            },
-                            color: '#6b7a8d'
-                        }
-                    }
+        const allotCtx = document.getElementById('allotChart');
+        if (allotCtx) {
+            new Chart(allotCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Allottees',
+                        data: [310, 290, 420, 300, 300, 340, 295, 300, 420, 300, 295, 550],
+                        backgroundColor: '#0f1b2d',
+                        borderRadius: 1,
+                        barThickness: 14
+                    }]
                 },
-                scales: {
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                size: 10
-                            },
-                            color: '#6b7a8d'
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 10,
+                                font: {
+                                    size: 11
+                                },
+                                color: '#6b7a8d'
+                            }
                         }
                     },
-                    y: {
-                        grid: {
-                            color: '#f0f2f5'
-                        },
-                        ticks: {
-                            font: {
-                                size: 10
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
                             },
-                            color: '#6b7a8d'
+                            ticks: {
+                                font: {
+                                    size: 10
+                                },
+                                color: '#6b7a8d'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: '#f0f2f5'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                },
+                                color: '#6b7a8d'
+                            }
                         }
-                    }
-                },
-                responsive: true,
-                maintainAspectRatio: true
-            }
-        });
+                    },
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+        }
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -364,7 +372,7 @@
             const userIdMeta = document.querySelector('meta[name="user-id"]');
             if (userIdMeta && window.Echo) {
                 const userId = userIdMeta.getAttribute('content');
-                
+
                 // Helper to send log to backend
                 const logToBackend = (message) => {
                     fetch('{{ route("admin.log.notification") }}', {
@@ -373,7 +381,9 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         },
-                        body: JSON.stringify({ message: message })
+                        body: JSON.stringify({
+                            message: message
+                        })
                     }).catch(e => console.error(e));
                 };
 
@@ -388,12 +398,12 @@
                         logToBackend(`Pusher Connection State: ${states.current} (was ${states.previous})`);
                     });
                 }
-                
+
                 window.Echo.private('App.Models.User.' + userId)
                     .listen('.EngineerNotification', (e) => {
                         console.log('Realtime Notification Received:', e);
                         logToBackend(`Realtime Notification Delivered to Browser | Subject: ${e.notification.subject || 'N/A'}`);
-                        
+
                         // Show Native Browser Notification instead of Toaster
                         if ("Notification" in window) {
                             if (Notification.permission === "granted") {
@@ -401,14 +411,14 @@
                                     body: e.notification.message || 'You have a new update.',
                                     // icon: '/images/logo.png' // add icon if needed
                                 });
-                                
+
                                 if (e.notification.link) {
                                     notification.onclick = function() {
                                         window.open(e.notification.link, '_blank');
                                     };
                                 }
                             } else if (Notification.permission !== "denied") {
-                                Notification.requestPermission().then(function (permission) {
+                                Notification.requestPermission().then(function(permission) {
                                     if (permission === "granted") {
                                         const notification = new Notification(e.notification.subject || 'New Notification', {
                                             body: e.notification.message || 'You have a new update.'
@@ -427,8 +437,8 @@
                         try {
                             const audio = new Audio('/sounds/notification.mp3');
                             audio.play().catch(e => {});
-                        } catch(err) {}
-                        
+                        } catch (err) {}
+
                         // Increment badge if present
                         const badge = document.querySelector('.notification-badge');
                         if (badge) {

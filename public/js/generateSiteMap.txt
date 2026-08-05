@@ -1,0 +1,170 @@
+    window.generateSiteMap = function () {
+        const canvas = document.getElementById('siteMapCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        // Get values
+        const plotNo = document.getElementById('mapPlotNo') ? document.getElementById('mapPlotNo').value : '';
+        const nDim = parseFloat(document.getElementById('mapNorth') ? document.getElementById('mapNorth').value : 0) || 0;
+        const nLbl = document.getElementById('mapNorthLabel') ? document.getElementById('mapNorthLabel').value : '';
+        const sDim = parseFloat(document.getElementById('mapSouth') ? document.getElementById('mapSouth').value : 0) || 0;
+        const sLbl = document.getElementById('mapSouthLabel') ? document.getElementById('mapSouthLabel').value : '';
+        const eDim = parseFloat(document.getElementById('mapEast') ? document.getElementById('mapEast').value : 0) || 0;
+        const eLbl = document.getElementById('mapEastLabel') ? document.getElementById('mapEastLabel').value : '';
+        const wDim = parseFloat(document.getElementById('mapWest') ? document.getElementById('mapWest').value : 0) || 0;
+        const wLbl = document.getElementById('mapWestLabel') ? document.getElementById('mapWestLabel').value : '';
+
+        // Clear Canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Compass (Top Left)
+        ctx.save();
+        ctx.translate(60, 70);
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        // Circle
+        ctx.arc(0, 0, 10, 0, 2 * Math.PI);
+        // Crosshair
+        ctx.moveTo(0, -30); ctx.lineTo(0, 30);
+        ctx.moveTo(-30, 0); ctx.lineTo(30, 0);
+        ctx.stroke();
+
+        // Arrow head pointing Left for N
+        ctx.beginPath();
+        ctx.moveTo(-30, 0);
+        ctx.lineTo(-20, -5);
+        ctx.lineTo(-20, 5);
+        ctx.closePath();
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
+        ctx.stroke();
+
+        // Text
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#1e293b';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('N', -45, 0);
+        ctx.fillText('S', 45, 0);
+        ctx.fillText('E', 0, -45);
+        ctx.fillText('W', 0, 45);
+        ctx.restore();
+
+        // Calculate dimensions to fit properly on canvas
+        const cx = canvas.width / 2 + 20; // Shift right slightly to accommodate compass
+        const cy = canvas.height / 2;
+
+        const maxDim = Math.max(nDim, sDim, eDim, wDim, 1);
+        const scaleFactor = 200 / maxDim; // Map fits within 200x200 max box
+
+        // Calculate dynamic dimensions
+        // With N on Left: Top is East, Bottom is West, Left is North, Right is South
+        const nScaled = nDim * scaleFactor; // Left edge height
+        const sScaled = sDim * scaleFactor; // Right edge height
+        const eScaled = eDim * scaleFactor; // Top edge width
+        const wScaled = wDim * scaleFactor; // Bottom edge width
+
+        // Draw grid lines (optional for aesthetic)
+        ctx.strokeStyle = '#f1f5f9';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < canvas.width; i += 20) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+        }
+        for (let j = 0; j < canvas.height; j += 20) {
+            ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(canvas.width, j); ctx.stroke();
+        }
+
+        // Points for the dynamic shape (centered)
+        const pTL = { x: cx - eScaled / 2, y: cy - nScaled / 2 }; // Top-Left
+        const pTR = { x: cx + eScaled / 2, y: cy - sScaled / 2 }; // Top-Right
+        const pBR = { x: cx + wScaled / 2, y: cy + sScaled / 2 }; // Bottom-Right
+        const pBL = { x: cx - wScaled / 2, y: cy + nScaled / 2 }; // Bottom-Left
+
+        // Shadow for plot
+        ctx.shadowColor = 'rgba(0,0,0,0.15)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 5;
+        ctx.shadowOffsetY = 5;
+
+        // Draw Plot Shape
+        ctx.beginPath();
+        ctx.moveTo(pTL.x, pTL.y);
+        ctx.lineTo(pTR.x, pTR.y);
+        ctx.lineTo(pBR.x, pBR.y);
+        ctx.lineTo(pBL.x, pBL.y);
+        ctx.closePath();
+        ctx.fillStyle = '#fef3c7'; // warm yellow
+        ctx.fill();
+
+        // Reset shadow for borders
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Border
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#1e293b';
+        ctx.stroke();
+
+        // Plot Inner Label
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 16px "Segoe UI", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(plotNo, cx, cy);
+
+        ctx.font = 'bold 14px "Segoe UI", Arial, sans-serif';
+
+        // East Data (Top)
+        const topY = (pTL.y + pTR.y) / 2;
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText(eDim + "'0''", cx, topY - 10);
+        ctx.font = '14px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(eLbl, cx, topY - 30);
+
+        // West Data (Bottom)
+        const bottomY = (pBL.y + pBR.y) / 2;
+        ctx.font = 'bold 14px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = '#0f172a';
+        ctx.textBaseline = 'top';
+        ctx.fillText(wDim + "'0''", cx, bottomY + 10);
+        ctx.font = '14px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(wLbl, cx, bottomY + 30);
+
+        // North Data (Left side)
+        const leftX = (pTL.x + pBL.x) / 2;
+        ctx.save();
+        ctx.translate(leftX - 30, cy);
+        ctx.rotate(-Math.PI / 2); // Rotate text so it's readable sideways
+        ctx.font = 'bold 14px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = '#0f172a';
+        ctx.textBaseline = 'bottom';
+        ctx.textAlign = 'center';
+        ctx.fillText(nDim + "'0''", 0, 0);
+        ctx.font = '14px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.textBaseline = 'top';
+        ctx.fillText(nLbl, 0, 5);
+        ctx.restore();
+
+        // South Data (Right side)
+        const rightX = (pTR.x + pBR.x) / 2;
+        ctx.save();
+        ctx.translate(rightX + 30, cy);
+        ctx.rotate(Math.PI / 2); // Rotate text for right side
+        ctx.font = 'bold 14px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = '#0f172a';
+        ctx.textBaseline = 'bottom';
+        ctx.textAlign = 'center';
+        ctx.fillText(sDim + "'0''", 0, 0);
+        ctx.font = '14px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.textBaseline = 'top';
+        ctx.fillText(sLbl, 0, 5);
+        ctx.restore();
+    };

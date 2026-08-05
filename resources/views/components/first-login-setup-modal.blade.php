@@ -8,7 +8,8 @@ $requiresInternalPassword = in_array($roleSlug, [
 'chief-accounts-officer',
 'chief-financial-officer',
 'secretary-chief-engineer',
-'co-assistant'
+'co-assistant',
+'executive-engineer'
 ]);
 @endphp
 

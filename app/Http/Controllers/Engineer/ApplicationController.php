@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Traits\DocumentUploadTrait;
 use Illuminate\Support\Facades\Hash;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\AllotteeSiteVerification;
+use App\Models\AllotteeGeneratedDocument;
+use App\Models\OtpLog;
+use Illuminate\Support\Facades\Validator;
 
 class ApplicationController extends Controller
 {
@@ -218,7 +223,11 @@ class ApplicationController extends Controller
             ->unique()
             ->toArray();
 
-        return view('engineer.applications.show', compact('application', 'documentMasters', 'allotteeDocuments', 'documentRequests', 'requiredDocumentIds', 'excludedDocIds'));
+        $isSiteVerificationCompleted = \App\Models\ApplicationDocument::where('application_id', $application->id)
+            ->where('document_type', 'Site Verification')
+            ->exists();
+
+        return view('engineer.applications.show', compact('application', 'documentMasters', 'allotteeDocuments', 'documentRequests', 'requiredDocumentIds', 'excludedDocIds', 'isSiteVerificationCompleted'));
     }
 
     public function actionForm(Application $application, $action_type)
@@ -305,7 +314,16 @@ class ApplicationController extends Controller
 
         $roles = Role::where('id', '!=', Auth::user()->role_id)->get();
 
-        return view('engineer.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep', 'forwardOptions', 'sendBackOptions'));
+        $isSiteVerificationStep = ($application->currentStep && $application->currentStep->action_type == 'site_verification');
+        $isSiteVerificationCompleted = false;
+
+        if ($isSiteVerificationStep) {
+            $isSiteVerificationCompleted = \App\Models\ApplicationDocument::where('application_id', $application->id)
+                ->where('document_type', 'Site Verification')
+                ->exists();
+        }
+
+        return view('engineer.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep', 'forwardOptions', 'sendBackOptions', 'isSiteVerificationStep', 'isSiteVerificationCompleted'));
     }
 
     public function processAction(Request $request, Application $application)
@@ -314,6 +332,15 @@ class ApplicationController extends Controller
             'action_type' => 'required|string',
             'remarks' => 'required|string'
         ]);
+
+        if ($request->action_type == 'forward' && $application->currentStep && $application->currentStep->action_type == 'site_verification') {
+            $isSiteVerificationCompleted = \App\Models\ApplicationDocument::where('application_id', $application->id)
+                ->where('document_type', 'Site Verification')
+                ->exists();
+            if (!$isSiteVerificationCompleted) {
+                return redirect()->back()->with('error', 'Site Verification is pending. Please complete it from the Site Verification tab before forwarding.');
+            }
+        }
 
         $user = Auth::user();
 
@@ -420,19 +447,65 @@ class ApplicationController extends Controller
         }
 
         if ($shouldGenerateDocument) {
+            if ($application->application_type === 'possession') {
+                \Illuminate\Support\Facades\Log::info("Processing Possession approval for Application ID: {$application->id}. Moving Site Verification docs.");
+                $allottee = $application->allottee;
+
+                // Find Site Verification documents
+                $docsToMove = \App\Models\ApplicationDocument::where('application_id', $application->id)
+                    ->whereIn('document_type', ['Site Verification Map', 'Site Verification'])
+                    ->get();
+
+                foreach ($docsToMove as $doc) {
+                    $isMap = (stripos($doc->document_type, 'map') !== false);
+                    $newDocType = $isMap ? 'approved-site-verification-map' : 'approved-site-verification-pdf';
+                    $newDocName = $isMap ? 'Approved Site Verification Map' : 'Approved Site Verification PDF';
+
+                    \App\Models\AllotteeGeneratedDocument::create([
+                        'allottee_id'    => $allottee->id,
+                        'document_name'  => $newDocName,
+                        'document_type'  => $newDocType,
+                        'file_name'      => $doc->file_name,
+                        'file_path'      => $doc->file_path,
+                        'generated_by'   => $user->id,
+                        'generated_at'   => now(),
+                        'issue_date'     => now()->format('Y-m-d'),
+                        'document_number' => $application->application_no
+                    ]);
+
+                    // Delete the original row
+                    // $doc->delete();
+                }
+            }
+
             try {
                 \Illuminate\Support\Facades\Log::info("Starting document generation for Application ID: {$application->id}, Type: {$application->application_type}");
                 $allottee = $application->allottee;
 
                 // Determine template and document info based on application type
                 $isAgreement = ($application->application_type === 'agreement');
+                $isPossession = ($application->application_type === 'possession');
 
-                $pdfTemplate = $isAgreement ? 'admin.allottee.letters.templates.agreement-pdf' : 'admin.allottee.letters.templates.allotment-pdf';
-                $documentType = $isAgreement ? 'agreement-letter' : 'allotment-letter';
-                $documentName = $isAgreement ? 'Agreement Letter' : 'Allotment Letter';
-                $dbDocType = $isAgreement ? 'AGREEMENT_LETTER' : 'ALLOTMENT_LETTER';
+                if ($isAgreement) {
+                    $pdfTemplate = 'admin.allottee.letters.templates.agreement-pdf';
+                    $documentType = 'agreement-letter';
+                    $documentName = 'Agreement Letter';
+                    $dbDocType = 'AGREEMENT_LETTER';
+                    $docPrefix = 'agreement_letter_';
+                } elseif ($isPossession) {
+                    $pdfTemplate = 'admin.allottee.letters.templates.possession-pdf';
+                    $documentType = 'possession-letter';
+                    $documentName = 'Possession Letter';
+                    $dbDocType = 'POSSESSION_LETTER';
+                    $docPrefix = 'possession_letter_';
+                } else {
+                    $pdfTemplate = 'admin.allottee.letters.templates.allotment-pdf';
+                    $documentType = 'allotment-letter';
+                    $documentName = 'Allotment Letter';
+                    $dbDocType = 'ALLOTMENT_LETTER';
+                    $docPrefix = 'allotment_letter_';
+                }
 
-                $docPrefix = $isAgreement ? 'agreement_letter_' : 'allotment_letter_';
 
                 // 1. Generate PDF
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($pdfTemplate, compact('allottee'))
@@ -504,7 +577,48 @@ class ApplicationController extends Controller
                     'document_number' => $allottee->allotment_no ?? $application->application_no
                 ]);
 
-                if (!$isAgreement) {
+                if ($isPossession) {
+                    \Illuminate\Support\Facades\Log::info("Document generation complete for Possession. Completing step and unlocking next.");
+
+                    // Complete the step in allottee process steps if required
+                    // For possession, usually menu_key is allotment-possession-letter, but wait, from the earlier code it seems to be allotment/site-verification or allotment/possession-letter
+                    $currentStep = \App\Models\AllotteeProcessStep::where([
+                        'allottee_id' => $allottee->id,
+                        'menu_key' => 'allotment',
+                        'sub_menu_key' => 'site-verification'
+                    ])->first();
+
+                    if ($currentStep) {
+                        \App\Models\AllotteeProcessStep::completeStep(
+                            $allottee->id,
+                            'allotment',
+                            $currentStep->sub_menu_key,
+                            $user->id
+                        );
+                        \App\Models\AllotteeProcessStep::unlockNextStep($allottee->id, $currentStep->step_no);
+                    }
+                } elseif ($isAgreement) {
+                    \Illuminate\Support\Facades\Log::info("Document generation complete for Agreement. Completing step and unlocking next.");
+
+                    // Mark Agreement step as completed
+                    \App\Models\AllotteeProcessStep::completeStep(
+                        $allottee->id,
+                        'allotment',
+                        'agreement-document-letter',
+                        $user->id
+                    );
+
+                    // Unlock the next step
+                    $currentStep = \App\Models\AllotteeProcessStep::where([
+                        'allottee_id' => $allottee->id,
+                        'menu_key' => 'allotment',
+                        'sub_menu_key' => 'agreement-document-letter'
+                    ])->first();
+
+                    if ($currentStep) {
+                        \App\Models\AllotteeProcessStep::unlockNextStep($allottee->id, $currentStep->step_no);
+                    }
+                } else {
                     \Illuminate\Support\Facades\Log::info("Document generation complete. Next step unlocked for allotment (Payment Order).");
 
                     // 5. Mark Allottee Process Step as completed
@@ -561,11 +675,9 @@ class ApplicationController extends Controller
                     if ($currentStep) {
                         \App\Models\AllotteeProcessStep::unlockNextStep($allottee->id, $currentStep->step_no);
                     }
-                } else {
-                    \Illuminate\Support\Facades\Log::info("Document generation complete for Agreement.");
                 }
             } catch (\Exception $e) {
-                Log::error("Failed to auto-generate allotment PDF: " . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error("Failed to auto-generate allotment PDF: " . $e->getMessage());
             }
         }
 
@@ -607,7 +719,7 @@ class ApplicationController extends Controller
         }
 
         // Complete application movement tracking
-        ApplicationMovement::create([
+        $movement = ApplicationMovement::create([
             'application_id' => $application->id,
             'from_user_id' => $targetUserId,
             'to_user_id' => $targetUser ? $targetUser->id : null,
@@ -622,6 +734,20 @@ class ApplicationController extends Controller
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent()
         ]);
+
+        // Link movement ID to Site Verification document if applicable
+        if ($request->action_type == 'forward' && $previousStepId) {
+            $prevStep = \App\Models\WorkflowStep::find($previousStepId);
+            if ($prevStep && $prevStep->action_type == 'site_verification') {
+                $siteVerfDocs = \App\Models\ApplicationDocument::where('application_id', $application->id)
+                    ->whereIn('document_type', ['Site Verification', 'Site Verification Map'])
+                    ->whereNull('movement_id')
+                    ->get();
+                foreach ($siteVerfDocs as $doc) {
+                    $doc->update(['movement_id' => $movement->id]);
+                }
+            }
+        }
 
         // Integrate ApplicationAuditTrail for movement
         ApplicationAuditTrail::create([
@@ -963,139 +1089,5 @@ class ApplicationController extends Controller
         }
 
         return back()->with('success', 'Document requests sent successfully to the allottee.');
-    }
-
-    public function verifyAndUploadDocument(Request $request, Application $application)
-    {
-        $request->validate([
-            'document_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
-            'remarks' => 'required|string'
-        ]);
-
-        $file = $request->file('document_file');
-        $allottee = $application->allottee;
-        $schemeCode = $allottee->scheme->scheme_code ?? 'SCH';
-        $propertyNumber = $allottee->property_number ?? 'PROP';
-        $yyyy = date('Y');
-        $mm = date('m');
-        $dd = date('d');
-
-        $extraData = [
-            'application_for' => $application->application_type ?? '',
-            'division_code' => $allottee->division->division_code ?? '',
-            'subdivision_code' => $allottee->subDivision->subdivision_code ?? '',
-            'property_category' => $allottee->propertyCategory->category_code ?? '',
-            'property_type' => $allottee->propertyType->type_code ?? '',
-            'property_income' => $allottee->quarterType->quarter_code ?? '',
-            'username' => $allottee->username ?? ''
-        ];
-
-        try {
-            $uploadResult = $this->uploadToDocumentApi(
-                $file,
-                'FINAL',
-                $schemeCode,
-                $propertyNumber,
-                $yyyy,
-                $mm,
-                $dd,
-                null,
-                $extraData
-            );
-
-            $path = $uploadResult['file_path'];
-            $originalName = $uploadResult['file_name'];
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to upload document to Document Store: ' . $e->getMessage());
-        }
-
-        $user = Auth::user();
-        $userType = $user->user_type ?? 'engineer';
-        $latestMovement = $application->movements()->latest()->first();
-
-        \App\Models\ApplicationDocument::create([
-            'application_id' => $application->id,
-            'movement_id' => $latestMovement ? $latestMovement->id : null,
-            'document_type' => 'engineer_verify_upload',
-            'document_name' => 'Engineer Verification Document',
-            'file_name' => $originalName,
-            'file_path' => $path,
-            'file_size' => $file->getSize(),
-            'file_mime_type' => $file->getMimeType(),
-            'uploaded_by' => $user->id,
-            'uploader_type' => $userType,
-            'uploaded_at' => now()
-        ]);
-
-        \App\Models\ApplicationNote::create([
-            'application_id' => $application->id,
-            'user_id' => $user->id,
-            'role_id' => $user->role_id,
-            'note_type' => 'user_note',
-            'remarks' => $request->remarks,
-            'font_family' => $request->font_family ?? 'english',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        if ($application->currentStep && $application->currentStep->step_code === 'agreement-da-verify-upload') {
-            \App\Models\AllotteeGeneratedDocument::create([
-                'allottee_id' => $application->allottee_id,
-                'document_name' => 'Final Stamped Agreement',
-                'document_type' => 'final-agreement-letter',
-                'file_name' => $originalName,
-                'file_path' => $path,
-                'generated_by' => $user->id,
-                'generated_at' => now(),
-            ]);
-
-            $application->status = 'completed';
-            $application->save();
-
-            \App\Models\ApplicationMovement::create([
-                'application_id' => $application->id,
-                'from_user_id' => $user->id,
-                'to_user_id' => null,
-                'from_role_id' => $application->current_role_id,
-                'to_role_id' => null,
-                'from_step_id' => $application->current_step_id,
-                'to_step_id' => null,
-                'action_type' => 'completed',
-                'status' => 'completed',
-                'remarks' => 'Final Stamped Agreement Verified and Uploaded',
-                'movement_date' => now(),
-            ]);
-
-            // Send Notification to Allottee
-            $allotteeUser = \App\Models\User::on('adms_allottees')->find($application->allottee->user_id);
-            if ($allotteeUser) {
-                $message = "Approved and completed! Your application agreement letter is ready. The final stamped agreement has been uploaded for application {$application->application_no}. Please log in to your dashboard to download and view it.";
-
-                $customMailableAllottee = new \App\Mail\ApplicationForwardedMail(
-                    $allotteeUser->name ?? 'Allottee',
-                    $application->application_no,
-                    $user->name ?? 'Engineer',
-                    'completed',
-                    env('ALLOTTEE_APP_URL', url('/login')),
-                    $message
-                );
-
-                app(\App\Services\NotificationService::class)->send([
-                    'user_id' => $allotteeUser->id,
-                    'is_allottee' => true,
-                    'application_id' => $application->id,
-                    'notification_type' => 'application_movement',
-                    'subject' => "Application Completed: {$application->application_no}",
-                    'message' => $message,
-                    'send_email' => true,
-                    'send_sms' => true,
-                    'send_whatsapp' => true,
-                    'link' => '/login',
-                    'mailable' => $customMailableAllottee
-                ]);
-            }
-        }
-
-        return redirect()->back()->with('success', 'Document verified and uploaded successfully with notes.');
     }
 }

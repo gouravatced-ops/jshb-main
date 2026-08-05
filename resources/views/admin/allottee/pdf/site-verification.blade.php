@@ -404,10 +404,12 @@ $mapParams = (isset($verification) && $verification) ? json_decode($verification
 
             <!-- Map Image placeholder -->
             <div class="map-placeholder">
-                @if($verification->map_image)
+                @if(isset($localMapImagePath) && $localMapImagePath)
+                    <img src="{{ $localMapImagePath }}" alt="Site Map Image" style="max-width:100%; max-height:300px;"/>
+                @elseif(isset($verification) && $verification->map_image)
                     @php
                         $src = $verification->map_image;
-                        if (!str_starts_with($src, 'data:image')) {
+                        if (!str_starts_with($src, 'http') && !str_starts_with($src, 'data:image')) {
                             $src = public_path($src);
                         }
                     @endphp

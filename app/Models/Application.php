@@ -94,10 +94,10 @@ class Application extends Model
         return $this->hasMany(ApplicationDocument::class, 'application_id');
     }
 
-    public function statusHistory()
-    {
-        return $this->hasMany(ApplicationStatusHistory::class, 'application_id');
-    }
+    // public function statusHistory()
+    // {
+    //     return $this->hasMany(ApplicationStatusHistory::class, 'application_id');
+    // }
 
     public function auditTrails()
     {

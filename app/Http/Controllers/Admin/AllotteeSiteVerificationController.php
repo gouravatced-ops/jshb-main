@@ -63,6 +63,14 @@ class AllotteeSiteVerificationController extends Controller
 
             $data['map_parameters'] = json_encode($mapParameters);
             
+            // Fix empty dates
+            if (empty($data['approved_map_date'])) {
+                $data['approved_map_date'] = null;
+            }
+            if (empty($data['alteration_map_date'])) {
+                $data['alteration_map_date'] = null;
+            }
+            
             $year  = date('Y');
             $month = date('m');
             $day   = date('d');

@@ -138,6 +138,19 @@
                 @csrf
                 <input type="hidden" name="action_type" value="forward">
 
+                @if(isset($isSiteVerificationStep) && $isSiteVerificationStep)
+                @if($isSiteVerificationCompleted)
+                <div class="alert1 alert-success" style="border-left: 5px solid #28a745; background-color: #d4edda; color: #155724; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-check me-2"></i> <strong>Site Verification Completed:</strong> The site verification report has been generated successfully. You can proceed to forward this application.
+                </div>
+                @else
+                <div class="alert alert-danger" style="border-left: 5px solid #dc3545; background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i> <strong>Site Verification Pending:</strong> Please complete the site verification process from the "Site Verification" tab before you can forward this application.
+                </div>
+                @endif
+                @endif
+
+
                 <div class="row">
                     <div class="col-md-12 mb-4">
                         <label style="font-weight: 600; font-size: 15px; margin-bottom: 8px; display: block; color: #333;">Forward To <span class="text-danger">*</span></label>
@@ -200,7 +213,9 @@
                 <hr style="margin: 20px 0; border-top: 1px solid #eaeaea;">
 
                 <div style="text-align: right;">
-                    <button type="submit" class="btn btn-success" style="font-size: 15px; padding: 8px 20px;"><i class="fa-solid fa-paper-plane"></i> Submit Noting & Forward</button>
+                    <button type="submit" class="btn btn-success" style="font-size: 15px; padding: 8px 20px;" {{ (isset($isSiteVerificationStep) && $isSiteVerificationStep && !$isSiteVerificationCompleted) ? 'disabled' : '' }}>
+                        <i class="fa-solid fa-paper-plane me-1"></i> Submit Noting & Forward
+                    </button>
                 </div>
             </form>
         </div>
