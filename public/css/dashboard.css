@@ -839,6 +839,14 @@ a {
     text-align: center;
 }
 
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes spin-rev {
+    to { transform: rotate(-360deg); }
+}
+
 /* ======= SIDEBAR ======= */
 /* ======= GOVERNMENT DASHBOARD SIDEBAR - NAVY BLUE & YELLOW ======= */
 #sidebar {

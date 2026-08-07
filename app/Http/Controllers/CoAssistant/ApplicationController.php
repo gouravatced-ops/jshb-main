@@ -344,7 +344,7 @@ class ApplicationController extends Controller
                 'updated_at' => now()
             ]);
 
-            return redirect()->route('engineer.applications.show', $application)
+            return redirect()->route('coassistant.applications.show', $application)
                 ->with('success', 'Note added successfully.');
         }
 
@@ -695,7 +695,7 @@ class ApplicationController extends Controller
             ]);
         }
 
-        // Trigger Notification to Allottee and Estate Officer on Approve / Reject
+        // Trigger Notification to Allottee on Approve / Reject
         if (in_array($request->action_type, ['approve', 'reject'])) {
             $actionWord = $request->action_type == 'approve' ? 'approved' : 'rejected';
             $subject = "Application {$actionWord}: {$application->application_no}";
@@ -704,7 +704,12 @@ class ApplicationController extends Controller
                 if ($application->application_type === 'agreement') {
                     $message = "Your agreement application ({$application->application_no}) has been approved. Please log in to your dashboard to download the generated agreement, sign it, and upload the scanned copy within 5 days.";
                 } else {
-                    $message = "Your application ({$application->application_no}) has been approved and your Allotment Letter has been generated. Please log in to download your allotment letter.";
+                    $documentName = match($application->application_type) {
+                        'allotment' => 'Allotment Letter',
+                        'possession' => 'Possession Letter',
+                        default => ucfirst(str_replace('_', ' ', $application->application_type))
+                    };
+                    $message = "Your application ({$application->application_no}) has been approved and your {$documentName} has been generated. Please log in to download your " . strtolower($documentName) . ".";
                 }
             } else {
                 $message = "Your application ({$application->application_no}) has been rejected.";
@@ -739,46 +744,9 @@ class ApplicationController extends Controller
                     'mailable' => $customMailableAllottee
                 ]);
             }
-
-            // Mail to Estate Officer
-            $divisionId = $application->allottee->division_id ?? null;
-            $estateOfficerRole = \App\Models\Role::where('slug', 'estate-officer')->first();
-            if ($estateOfficerRole && $divisionId) {
-                $estateOfficer = User::on('adms_jshb')
-                    ->where('role_id', $estateOfficerRole->id)
-                    ->where('division_id', $divisionId)
-                    ->where('status', 1)
-                    ->first();
-
-                if ($estateOfficer) {
-                    $customMailableEstate = new \App\Mail\ApplicationForwardedMail(
-                        $estateOfficer->name,
-                        $application->application_no,
-                        $user->name,
-                        $request->action_type,
-                        $dashboardUrl,
-                        '', // Remarks are hidden for approve/reject
-                        $message // Pass custom message
-                    );
-
-                    app(\App\Services\NotificationService::class)->send([
-                        'user_id' => $estateOfficer->id,
-                        'is_allottee' => false,
-                        'application_id' => $application->id,
-                        'notification_type' => 'application_movement',
-                        'subject' => $subject,
-                        'message' => $message,
-                        'send_email' => true,
-                        'send_sms' => false,
-                        'send_whatsapp' => false,
-                        'link' => '/login',
-                        'mailable' => $customMailableEstate
-                    ]);
-                }
-            }
         }
 
-        return redirect()->route('engineer.applications.show', $application)
+        return redirect()->route('coassistant.applications.show', $application)
             ->with('success', 'Office noting and action recorded successfully.');
     }
 
