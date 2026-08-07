@@ -52,27 +52,27 @@ Route::get('/fix-storage', function () {
     try {
         $publicStorage = public_path('storage');
         $appStorage = storage_path('app/public');
-        
+
         $messages = [];
-        
+
         if (!file_exists($appStorage)) {
             mkdir($appStorage, 0775, true);
             $messages[] = "Created storage/app/public directory.";
         }
-        
+
         if (file_exists($publicStorage) && !is_link($publicStorage)) {
             \Illuminate\Support\Facades\File::deleteDirectory($publicStorage);
             $messages[] = "Deleted invalid physical 'storage' folder in public.";
         }
-        
+
         if (is_link($publicStorage)) {
             unlink($publicStorage);
             $messages[] = "Removed broken symlink.";
         }
-        
+
         \Illuminate\Support\Facades\Artisan::call('storage:link');
         $messages[] = "Created fresh storage symlink successfully!";
-        
+
         return implode("<br><br>", $messages);
     } catch (\Exception $e) {
         return "Error fixing storage: " . $e->getMessage();
@@ -96,12 +96,12 @@ Route::get('/run-python', function () {
     try {
         $path = base_path('hello.py');
         $command = "python " . escapeshellarg($path) . " 2>&1";
-        
+
         // Use python3 if we are on linux/mac and python is not aliased
         if (DIRECTORY_SEPARATOR === '/') {
             $command = "python3 " . escapeshellarg($path) . " 2>&1";
         }
-        
+
         $output = shell_exec($command);
         return 'Python Output:<br><strong>' . nl2br(htmlspecialchars($output)) . '</strong>';
     } catch (\Exception $e) {
@@ -141,7 +141,7 @@ Route::middleware('auth')->group(function () {
     // Global OTP routes
     Route::post('/global-otp/send', [App\Http\Controllers\GlobalOtpController::class, 'sendOtp'])->name('global-otp.send');
     Route::post('/global-otp/verify', [App\Http\Controllers\GlobalOtpController::class, 'verifyOtp'])->name('global-otp.verify');
-    
+
     // My Activity
     Route::get('/my-activity', [App\Http\Controllers\AdminController::class, 'myActivity'])->name('my-activity');
 
@@ -155,8 +155,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/get-property-sub-types/{typeId}', [CommonController::class, 'getPropertySubType']);
     Route::get('/districts/{stateId}', [CommonController::class, 'getDistrict']);
     Route::post('/scheme-list', [CommonController::class, 'getSchemeList']);
-    Route::get('/get-scheme-details/{id}',[CommonController::class, 'getSchemeDetails']
-);
+    Route::get(
+        '/get-scheme-details/{id}',
+        [CommonController::class, 'getSchemeDetails']
+    );
 });
 
 // Development Routes
@@ -170,6 +172,11 @@ Route::get('/api/photo-session/check/{token}', [App\Http\Controllers\PhotoCaptur
 Route::get('/mobile/capture/{token}', [App\Http\Controllers\PhotoCaptureController::class, 'captureForm'])->name('mobile.capture');
 Route::post('/mobile/capture/{token}/upload', [App\Http\Controllers\PhotoCaptureController::class, 'upload'])->name('mobile.capture.upload');
 
+// Media Fallback Routes
+Route::get('/media/profile/{filename}', [\App\Http\Controllers\MediaController::class, 'profileImage'])->name('media.profile');
+Route::get('/media/document', [\App\Http\Controllers\MediaController::class, 'document'])->name('media.document');
+Route::get('/media/image', [\App\Http\Controllers\MediaController::class, 'genericImage'])->name('media.image');
+
 require __DIR__ . '/user-routes.php';
 require __DIR__ . '/admin-routes.php';
 require __DIR__ . '/staff-routes.php';
@@ -180,10 +187,3 @@ require __DIR__ . '/accountant-routes.php';
 require __DIR__ . '/managing-routes.php';
 require __DIR__ . '/operator-routes.php';
 require __DIR__ . '/coassistant-routes.php';
-
- / /   M e d i a   F a l l b a c k   R o u t e s 
- R o u t e : : g e t ( ' / m e d i a / p r o f i l e / { f i l e n a m e } ' ,   [ A p p \ H t t p \ C o n t r o l l e r s \ M e d i a C o n t r o l l e r : : c l a s s ,   ' p r o f i l e I m a g e ' ] ) - > n a m e ( ' m e d i a . p r o f i l e ' ) ; 
- R o u t e : : g e t ( ' / m e d i a / d o c u m e n t ' ,   [ A p p \ H t t p \ C o n t r o l l e r s \ M e d i a C o n t r o l l e r : : c l a s s ,   ' d o c u m e n t ' ] ) - > n a m e ( ' m e d i a . d o c u m e n t ' ) ; 
- R o u t e : : g e t ( ' / m e d i a / i m a g e ' ,   [ A p p \ H t t p \ C o n t r o l l e r s \ M e d i a C o n t r o l l e r : : c l a s s ,   ' g e n e r i c I m a g e ' ] ) - > n a m e ( ' m e d i a . i m a g e ' ) ; 
-  
- 
