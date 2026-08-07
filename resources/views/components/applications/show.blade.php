@@ -182,7 +182,7 @@
                                 @if($doc->file_path)
                                 @php
                                 $docBaseUrl = rtrim(env('DOC_API_URL', ''), '/');
-                                $previewSrc = $docBaseUrl . '/' . ltrim($doc->file_path, '/');
+                                $previewSrc = route('media.document', ['path' => $docBaseUrl . '/' . ltrim($doc->file_path, '/')]);
                                 @endphp
                                 <button type="button" onclick="viewDocument('{{ $previewSrc }}', '{{ addslashes($doc->document_name) }}')" class="btn-compact" style="border: none; cursor: pointer;">
                                     <i class="fa-solid fa-eye" style="font-size: 10px;"></i> View
@@ -333,7 +333,7 @@
                                 @if($doc->uploaded_doc && $doc->uploaded_doc->file_path)
                                 @php
                                 $docBaseUrl = rtrim(env('DOC_API_URL', ''), '/');
-                                $previewSrc = $docBaseUrl . '/' . ltrim($doc->uploaded_doc->file_path, '/');
+                                $previewSrc = route('media.document', ['path' => $docBaseUrl . '/' . ltrim($doc->uploaded_doc->file_path, '/')]);
                                 $docName = addslashes($doc->master->document_name);
                                 @endphp
                                 <a href="javascript:void(0)" onclick="viewDocument('{{ $previewSrc }}', '{{ $docName }}')" style="display: inline-block; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Click to view document">

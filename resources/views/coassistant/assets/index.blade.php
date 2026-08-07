@@ -241,7 +241,7 @@
                                 @foreach($assets as $asset)
                                     <div class="asset-item">
                                         <div class="asset-preview">
-                                            <img src="{{ asset($asset->file_path) }}" alt="{{ $asset->asset_type }}">
+                                            <img src="{{ route('media.image', ['path' => $asset->file_path]) }}" alt="{{ $asset->asset_type }}">
                                         </div>
                                         <div class="asset-info">
                                             <span class="asset-type-badge">

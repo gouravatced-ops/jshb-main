@@ -180,3 +180,10 @@ require __DIR__ . '/accountant-routes.php';
 require __DIR__ . '/managing-routes.php';
 require __DIR__ . '/operator-routes.php';
 require __DIR__ . '/coassistant-routes.php';
+
+ / /   M e d i a   F a l l b a c k   R o u t e s 
+ R o u t e : : g e t ( ' / m e d i a / p r o f i l e / { f i l e n a m e } ' ,   [ A p p \ H t t p \ C o n t r o l l e r s \ M e d i a C o n t r o l l e r : : c l a s s ,   ' p r o f i l e I m a g e ' ] ) - > n a m e ( ' m e d i a . p r o f i l e ' ) ; 
+ R o u t e : : g e t ( ' / m e d i a / d o c u m e n t ' ,   [ A p p \ H t t p \ C o n t r o l l e r s \ M e d i a C o n t r o l l e r : : c l a s s ,   ' d o c u m e n t ' ] ) - > n a m e ( ' m e d i a . d o c u m e n t ' ) ; 
+ R o u t e : : g e t ( ' / m e d i a / i m a g e ' ,   [ A p p \ H t t p \ C o n t r o l l e r s \ M e d i a C o n t r o l l e r : : c l a s s ,   ' g e n e r i c I m a g e ' ] ) - > n a m e ( ' m e d i a . i m a g e ' ) ; 
+  
+ 
