@@ -407,7 +407,15 @@ class AuthController extends Controller
             'action' => $isBlocked ? 'login_blocked' : 'login_failed',
         ]);
 
-        return back()->withInput()->with('error', $msg);
+        $redirect = back()->withInput()->with('error', $msg);
+
+        // If the failure happened during the OTP stage, preserve the OTP view state
+        if ($request->input('otp_stage')) {
+            $redirect->with('otp_required', true)
+                     ->with('email', $request->email);
+        }
+
+        return $redirect;
     }
 
     private function resetLockoutState(User $user)
