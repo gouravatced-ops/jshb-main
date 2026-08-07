@@ -48,7 +48,7 @@
         @if ($agreementDocument)
             {{-- VIEW SIGNED COPY --}}
             @if ($agreementDocument->signed_file_path)
-                <a href="{{ asset($agreementDocument->signed_file_path) }}" target="_blank" class="btn-brand"
+                <a href="{{ route('media.document', ['path' => $agreementDocument->signed_file_path]) }}" target="_blank" class="btn-brand"
                     style="
                             background:rgba(255,255,255,.95);
                             color:var(--brand);
@@ -57,7 +57,7 @@
                     View Signed Copy
                 </a>
                 {{-- DOWNLOAD SIGNED COPY --}}
-                <a href="{{ asset($agreementDocument->signed_file_path) }}" download class="btn-brand"
+                <a href="{{ route('media.document', ['path' => $agreementDocument->signed_file_path]) }}" download class="btn-brand"
                     style="
                             background:rgba(255,255,255,.95);
                             color:var(--brand);
@@ -67,7 +67,7 @@
                 </a>
             @else
                 {{-- VIEW UPLOAD LETTER --}}
-                <a href="{{ asset($agreementDocument->file_path) }}" target="_blank" class="btn-brand"
+                <a href="{{ route('media.document', ['path' => $agreementDocument->file_path]) }}" target="_blank" class="btn-brand"
                     style="
                         background:rgba(255,255,255,.95);
                         color:var(--brand);
@@ -76,7 +76,7 @@
                     View Uploaded Copy
                 </a>
                 {{-- DOWNLOAD UPLOAD LETTER --}}
-                <a href="{{ asset($agreementDocument->file_path) }}" download class="btn-brand"
+                <a href="{{ route('media.document', ['path' => $agreementDocument->file_path]) }}" download class="btn-brand"
                     style="
                         background:rgba(255,255,255,.95);
                         color:var(--brand);

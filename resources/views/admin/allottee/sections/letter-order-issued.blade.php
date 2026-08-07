@@ -71,7 +71,7 @@
                 ">
 
                     <!-- VIEW -->
-                    <a href="{{ asset($filePath) }}" target="_blank" class="btn-brand"
+                    <a href="{{ route('media.document', ['path' => $filePath]) }}" target="_blank" class="btn-brand"
                         style="
                             background:rgba(255,255,255,.2);
                             border:1.5px solid rgba(255,255,255,.4)
@@ -81,7 +81,7 @@
                     </a>
 
                     <!-- DOWNLOAD -->
-                    <a href="{{ asset($filePath) }}" download class="btn-brand"
+                    <a href="{{ route('media.document', ['path' => $filePath]) }}" download class="btn-brand"
                         style="
                     background:rgba(255,255,255,.95);
                     color:var(--brand)

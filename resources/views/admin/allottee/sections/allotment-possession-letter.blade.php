@@ -47,7 +47,7 @@
             ">
         @if ($possessionLetter)
             {{-- VIEW GENERATED LETTER --}}
-            <a href="{{ asset($possessionLetter->file_path) }}" target="_blank" class="btn-brand"
+            <a href="{{ route('media.document', ['path' => $possessionLetter->file_path]) }}" target="_blank" class="btn-brand"
                 style="
                         background:rgba(255,255,255,.95);
                         color:var(--brand);
@@ -56,7 +56,7 @@
                 View Generated Copy
             </a>
             {{-- DOWNLOAD GENERATED LETTER --}}
-            <a href="{{ asset($possessionLetter->file_path) }}" download class="btn-brand"
+            <a href="{{ route('media.document', ['path' => $possessionLetter->file_path]) }}" download class="btn-brand"
                 style="
                         background:rgba(255,255,255,.95);
                         color:var(--brand);
@@ -66,7 +66,7 @@
             </a>
             {{-- VIEW SIGNED COPY --}}
             @if ($possessionLetter->signed_file_path)
-                <a href="{{ asset($possessionLetter->signed_file_path) }}" target="_blank" class="btn-brand"
+                <a href="{{ route('media.document', ['path' => $possessionLetter->signed_file_path]) }}" target="_blank" class="btn-brand"
                     style="
                             background:rgba(255,255,255,.95);
                             color:var(--brand);
@@ -75,7 +75,7 @@
                     View Signed Copy
                 </a>
                 {{-- DOWNLOAD SIGNED COPY --}}
-                <a href="{{ asset($possessionLetter->signed_file_path) }}" download class="btn-brand"
+                <a href="{{ route('media.document', ['path' => $possessionLetter->signed_file_path]) }}" download class="btn-brand"
                     style="
                             background:rgba(255,255,255,.95);
                             color:var(--brand);
