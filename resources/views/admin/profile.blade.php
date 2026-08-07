@@ -138,7 +138,8 @@ $activeTab = old('active_tab', request()->get('tab', 'basic'));
                         'chief-accounts-officer',
                         'chief-financial-officer',
                         'secretary-chief-engineer',
-                        'co-assistant'
+                        'co-assistant',
+                        'executive-engineer'
                         ]);
                         @endphp
                         @if($requiresInternalPassword)

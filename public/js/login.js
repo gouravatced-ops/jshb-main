@@ -136,4 +136,83 @@ if (togglePassword && password) {
     if (document.getElementById('btnResendForgot')) {
         startResendTimer('btnResendForgot', 'resendTimerForgot', 60);
     }
+})();
+
+(function () {
+    // Toggle logic
+    const toggleBtn = document.getElementById('toggle-login-mode');
+    const toggleText = document.getElementById('toggle-text');
+    const usernameSection = document.getElementById('username-login-section');
+    const emailLabel = document.getElementById('email-label');
+    const loginMethodInput = document.getElementById('login_method');
+    const submitBtnText = document.getElementById('submit-btn-text');
+    const passwordInput = document.getElementById('password');
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const isEmailOtp = loginMethodInput.value === 'email_otp';
+            
+            if (isEmailOtp) {
+                // Switch to Username
+                usernameSection.classList.add('show');
+                toggleBtn.classList.add('toggled');
+                emailLabel.innerHTML = '<i class="fa-regular fa-envelope"></i> Email or Username';
+                loginMethodInput.value = 'username';
+                submitBtnText.innerText = 'Login to Account';
+                if(passwordInput) passwordInput.required = true;
+                toggleText.innerText = 'Login with OTP instead';
+            } else {
+                // Switch to Email OTP
+                usernameSection.classList.remove('show');
+                toggleBtn.classList.remove('toggled');
+                emailLabel.innerHTML = '<i class="fa-regular fa-envelope"></i> Email Address';
+                loginMethodInput.value = 'email_otp';
+                submitBtnText.innerText = 'Send OTP';
+                if(passwordInput) passwordInput.required = false;
+                toggleText.innerText = 'Login with Password instead';
+            }
+        });
+    }
+
+    // Digit Box Logic
+    const digitBoxes = document.querySelectorAll('.digit-box');
+    const otpHidden = document.getElementById('otp_code_hidden');
+    const loginBtn = document.getElementById('loginBtn');
+
+    if (digitBoxes.length > 0) {
+        digitBoxes.forEach((box, index) => {
+            box.addEventListener('keyup', (e) => {
+                if (e.key >= '0' && e.key <= '9') {
+                    if (box.dataset.next) {
+                        document.getElementById(box.dataset.next).focus();
+                    }
+                    updateHiddenOtp();
+                } else if (e.key === 'Backspace') {
+                    if (box.dataset.previous && box.value === '') {
+                        document.getElementById(box.dataset.previous).focus();
+                    }
+                    updateHiddenOtp();
+                } else {
+                    box.value = ''; // Ensure only numbers are entered
+                }
+            });
+
+            // Prevent copy/paste completely via JS as fallback
+            box.addEventListener('paste', e => e.preventDefault());
+            box.addEventListener('copy', e => e.preventDefault());
+        });
+
+        function updateHiddenOtp() {
+            let val = '';
+            digitBoxes.forEach(b => val += b.value);
+            if (otpHidden) otpHidden.value = val;
+            
+            // Auto submit on last digit
+            if (val.length === 6) {
+                if (!loginBtn.disabled) {
+                    loginBtn.click();
+                }
+            }
+        }
+    }
 })();

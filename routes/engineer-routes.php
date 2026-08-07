@@ -21,7 +21,12 @@ Route::middleware('auth')
         Route::post('/applications/{application}/action', [App\Http\Controllers\Engineer\ApplicationController::class, 'processAction'])->name('applications.action');
         Route::post('/applications/{application}/reset', [App\Http\Controllers\Engineer\ApplicationController::class, 'resetWorkflow'])->name('applications.reset');
         Route::post('/applications/{application}/upload-document', [App\Http\Controllers\Engineer\ApplicationController::class, 'uploadDocument'])->name('applications.upload-document');
+        Route::post('/applications/{application}/verify-upload', [App\Http\Controllers\Engineer\ApplicationController::class, 'verifyAndUploadDocument'])->name('applications.verify-upload');
         Route::get('/applications/{application}/notes-pdf', [App\Http\Controllers\Engineer\ApplicationController::class, 'previewNotesPdf'])->name('applications.notes.pdf');
+        Route::get('/applications/{id}/site-verification', [App\Http\Controllers\Engineer\ApplicationController::class, 'siteVerificationForm'])->name('applications.site-verification.form');
+        Route::post('/applications/{id}/site-verification/send-otp', [App\Http\Controllers\Engineer\ApplicationController::class, 'sendSiteVerificationOtp'])->name('applications.site-verification.send-otp');
+        Route::post('/applications/{id}/site-verification', [App\Http\Controllers\Engineer\ApplicationController::class, 'storeSiteVerification'])->name('applications.site-verification.store');
+        
         Route::post('/document-requests/store', [App\Http\Controllers\Engineer\ApplicationController::class, 'requestDocument'])->name('document-requests.store');
 
         // Assets (Signatures, Stamps)

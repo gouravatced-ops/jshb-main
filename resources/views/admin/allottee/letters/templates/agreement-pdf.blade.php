@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>vuqca/k i= - झारखण्ड राज्य आवास बोर्ड</title>
+    <title>अनुबंध पत्र - झारखण्ड राज्य आवास बोर्ड</title>
     <style>
         @font-face {
             font-family: 'KrutiDev';
@@ -155,8 +155,7 @@
                     : '28.11.2026' }}
             </strong>
         </span> dks cksMZ eq[;ky; ds lHkk d{k esa
-        fudkyh xbZ ykWVjh ds vkyksd esa Jh fot; dqekj flag] firk Jh
-        cynso dqekj flag] lk0&822123] eks0 % 9934100038
+        fudkyh xbZ ykWVjh ds vkyksd esa {{ $allottee->allottee_prefix_hindi ?? '' }} {{ trim(($allottee->allottee_name_hindi ?? '') . ' ' . ($allottee->allottee_middle_hindi ?? '') . ' ' . ($allottee->allottee_surname_hindi ?? '')) }}] {{ $allottee->relation_prefix_hindi ?? '' }} {{ $allottee->relation_name_hindi ?? '' }}] lk0&{{ optional($allottee->alloteeAdresses)->present_pincode ?? '' }}] eks0 % {{ optional($allottee->alloteeAdresses)->mobile_number ?? '' }}
         ----- vkosnu la[;k& <span
             style="
                     font-size:12px;
@@ -169,76 +168,6 @@
         cksMZ }kjk iznku dh tk;sxhA
 
     </div>
-
-
-    <!-- DIRECTION -->
-
-    <table style="margin-top:10px; font-size:17px;">
-
-        <tr>
-
-            <td style="width:50%; padding-bottom:2px;">
-                mRrj
-                ---------------------------
-            </td>
-
-            <td style="width:50%; padding-bottom:2px;">
-                nf{k.k
-                ---------------------------
-            </td>
-
-        </tr>
-
-        <tr>
-
-            <td>
-                iwoZ
-                ---------------------------
-            </td>
-
-            <td>
-                if’pe
-                ---------------------------
-            </td>
-
-        </tr>
-
-    </table>
-
-
-    <!-- AREA -->
-
-    <table style="
-        margin-top:8px;
-        font-size:17px;
-        width:85%;
-    ">
-
-        <tr>
-            <td>iwoZ ls if’pe mRrj rjQ</td>
-            <td>--------------------</td>
-            <td>QhV</td>
-        </tr>
-
-        <tr>
-            <td>iwoZ ls if’pe nf{k.k rjQ</td>
-            <td>--------------------</td>
-            <td>QhV</td>
-        </tr>
-
-        <tr>
-            <td>mRrj ls nf{k.k iwoZ rjQ</td>
-            <td>--------------------</td>
-            <td>QhV</td>
-        </tr>
-
-        <tr>
-            <td>mRrj ls nf{k.k if’pe rjQ</td>
-            <td>--------------------</td>
-            <td>QhV</td>
-        </tr>
-
-    </table>
 
 
     <!-- PARA 2 -->

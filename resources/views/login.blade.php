@@ -107,18 +107,24 @@
                 <form method="POST" action="{{ route('login.post') }}" class="login-form">
                     @csrf
                     <input type="hidden" name="otp_stage" value="{{ $otpRequired ? 1 : 0 }}">
+                    <input type="hidden" name="login_method" id="login_method" value="email_otp">
 
-                    <div class="field">
-                        <label for="email"><i class="fa-regular fa-envelope"></i> Email or Username</label>
-                        <input id="email" name="email" type="text" value="{{ $emailValue }}" placeholder="user@jharkhand.gov.in" required>
+                    @if(! $otpRequired)
+                    @endif
+
+                    <div class="field" id="email-field-container">
+                        <label for="email" id="email-label"><i class="fa-regular fa-envelope"></i> Email or Username</label>
+                        <input id="email" name="email" type="text" value="{{ $emailValue }}" placeholder="user@jharkhand.gov.in" required @if($otpRequired) readonly @endif>
                     </div>
 
                     @if (! $otpRequired)
-                    <div class="field">
-                        <label for="password"><i class="fa-solid fa-lock"></i> Password / PIN</label>
-                        <input id="password" name="password" type="password" placeholder="··········" required>
-                        <!-- Eye Icon -->
-                        <i id="togglePassword" class="fa-solid fa-eye"></i>
+                    <div id="username-login-section">
+                        <div class="field">
+                            <label for="password"><i class="fa-solid fa-lock"></i> Password / PIN</label>
+                            <input id="password" name="password" type="password" placeholder="··········">
+                            <!-- Eye Icon -->
+                            <i id="togglePassword" class="fa-solid fa-eye"></i>
+                        </div>
                     </div>
 
                     <div class="field captcha-field">
@@ -131,10 +137,24 @@
                     </div>
                     @endif
 
+                    @if(! $otpRequired)
+                    <div class="toggle-login-mode" id="toggle-login-mode" style="margin-top: 1rem;">
+                        <i class="fa-solid fa-lock"></i> <span id="toggle-text">Login with Password instead</span>
+                    </div>
+                    @endif
+
                     @if ($otpRequired)
                     <div class="field">
-                        <label for="otp_code"><i class="fa-solid fa-key"></i> OTP Verification</label>
-                        <input id="otp_code" name="otp_code" type="text" placeholder="6-digit OTP" inputmode="numeric" pattern="\d*" required autofocus>
+                        <label><i class="fa-solid fa-key"></i> OTP Verification</label>
+                        <div class="digit-group">
+                            <input type="text" id="digit-1" data-next="digit-2" maxlength="1" class="digit-box" onpaste="return false;" oncopy="return false;" autocomplete="off" required autofocus inputmode="numeric" pattern="\d*">
+                            <input type="text" id="digit-2" data-next="digit-3" data-previous="digit-1" maxlength="1" class="digit-box" onpaste="return false;" oncopy="return false;" autocomplete="off" required inputmode="numeric" pattern="\d*">
+                            <input type="text" id="digit-3" data-next="digit-4" data-previous="digit-2" maxlength="1" class="digit-box" onpaste="return false;" oncopy="return false;" autocomplete="off" required inputmode="numeric" pattern="\d*">
+                            <input type="text" id="digit-4" data-next="digit-5" data-previous="digit-3" maxlength="1" class="digit-box" onpaste="return false;" oncopy="return false;" autocomplete="off" required inputmode="numeric" pattern="\d*">
+                            <input type="text" id="digit-5" data-next="digit-6" data-previous="digit-4" maxlength="1" class="digit-box" onpaste="return false;" oncopy="return false;" autocomplete="off" required inputmode="numeric" pattern="\d*">
+                            <input type="text" id="digit-6" data-previous="digit-5" maxlength="1" class="digit-box" onpaste="return false;" oncopy="return false;" autocomplete="off" required inputmode="numeric" pattern="\d*">
+                        </div>
+                        <input type="hidden" name="otp_code" id="otp_code_hidden">
                     </div>
                     <p class="login-note" style="font-size:0.8rem">A secure OTP has been sent to your registered email.</p>
                     <div class="otp-actions">
@@ -151,7 +171,7 @@
                     </div>
 
                     <button type="submit" class="btn-submit" id="loginBtn" @if(! $otpRequired) disabled @endif>
-                        <i class="fa-solid fa-arrow-right-to-bracket"></i> {{ $otpRequired ? 'Verify & Login' : 'Login to Account' }}
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> <span id="submit-btn-text">{{ $otpRequired ? 'Verify & Login' : 'Send OTP' }}</span>
                     </button>
                 </form>
 

@@ -846,16 +846,22 @@
         }
     };
 
-    // Attach step-loaded event to initialize map inputs
-    window.addEventListener('step-loaded', function (e) {
-        const inputs = document.querySelectorAll('.map-input');
-        if (inputs.length > 0) {
-            inputs.forEach(input => {
-                input.removeEventListener('input', window.generateSiteMap);
-                input.addEventListener('input', window.generateSiteMap);
-            });
-            setTimeout(window.generateSiteMap, 300);
+    // Use event delegation for realtime map generation to handle dynamic loading
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('map-input')) {
+            if(typeof window.generateSiteMap === 'function') {
+                window.generateSiteMap();
+            }
         }
+    });
+
+    // Attach step-loaded event to initialize map and other dynamic elements
+    window.addEventListener('step-loaded', function (e) {
+        setTimeout(function() {
+            if(typeof window.generateSiteMap === 'function') {
+                window.generateSiteMap();
+            }
+        }, 300);
 
         // Initialize Extra Construction radio buttons
         const extraRadios = document.querySelectorAll('input[name="extra_construction"]');

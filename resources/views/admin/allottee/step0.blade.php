@@ -437,7 +437,7 @@
                     Receipt Preview
                 </div>
                 @php
-                    $docBaseUrl = rtrim(str_replace(['api/upload.php', '/api/upload.php'], '', env('DOC_API_URL', '')), '/');
+                    $docBaseUrl = rtrim(env('DOC_API_URL', ''), '/');
                     $previewSrc = !empty($applicant->payment_receipt_path) ? $docBaseUrl . '/' . ltrim($applicant->payment_receipt_path, '/') : '';
                 @endphp
                 <img id="receiptPreview" class="preview-image imagePopupModal"

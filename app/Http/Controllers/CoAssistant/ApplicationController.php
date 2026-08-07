@@ -126,8 +126,13 @@ class ApplicationController extends Controller
     {
         $user = Auth::user();
 
+        $userIds = [$user->id];
+        if ($user->assistant_to_id) {
+            $userIds[] = $user->assistant_to_id;
+        }
+
         // Fetch application IDs that the user has interacted with (took action on)
-        $historyApplicationIds = ApplicationMovement::where('from_user_id', $user->id)
+        $historyApplicationIds = ApplicationMovement::whereIn('from_user_id', $userIds)
             ->pluck('application_id')
             ->unique()
             ->toArray();
@@ -339,7 +344,7 @@ class ApplicationController extends Controller
                 'updated_at' => now()
             ]);
 
-            return redirect()->route('engineer.applications.show', $application)
+            return redirect()->route('coassistant.applications.show', $application)
                 ->with('success', 'Note added successfully.');
         }
 
@@ -464,10 +469,12 @@ class ApplicationController extends Controller
                     'username' => $allottee->username ?? ''
                 ];
 
+                $apiCategory = $isAgreement ? 'APPLICATION' : 'FINAL';
+
                 $uploadResult = $this->uploadContentToDocumentApi(
                     $pdfContent,
                     $fileName,
-                    'FINAL',
+                    $apiCategory,
                     $scheme->scheme_code ?? 'SCH',
                     $allottee->property_number ?? 'PROP',
                     $yyyy,
@@ -491,19 +498,20 @@ class ApplicationController extends Controller
                     'uploaded_at'    => now(),
                 ]);
 
-                // 4. Save to allottee_generated_documents
-                \App\Models\AllotteeGeneratedDocument::create([
-                    'allottee_id'    => $allottee->id,
-                    'document_name'  => $documentName,
-                    'document_type'  => $documentType,
-                    'file_name'      => $uploadResult['file_name'],
-                    'file_path'      => $uploadResult['file_path'],
-                    'generated_by'   => $user->id,
-                    'generated_at'   => now(),
-                    'issue_date'     => now()->format('Y-m-d'),
-                    'document_number' => $allottee->allotment_no ?? $application->application_no
-                ]);
-                
+                // 4. Save to allottee_generated_documents (ONLY IF NOT AGREEMENT)
+                if (!$isAgreement) {
+                    \App\Models\AllotteeGeneratedDocument::create([
+                        'allottee_id'    => $allottee->id,
+                        'document_name'  => $documentName,
+                        'document_type'  => $documentType,
+                        'file_name'      => $uploadResult['file_name'],
+                        'file_path'      => $uploadResult['file_path'],
+                        'generated_by'   => $user->id,
+                        'generated_at'   => now(),
+                        'issue_date'     => now()->format('Y-m-d'),
+                        'document_number' => $allottee->allotment_no ?? $application->application_no
+                    ]);
+                }
                 if (!$isAgreement) {
                     \Illuminate\Support\Facades\Log::info("Document generation complete. Next step unlocked for allotment (Payment Order).");
 
@@ -609,7 +617,7 @@ class ApplicationController extends Controller
         // Complete application movement tracking
         ApplicationMovement::create([
             'application_id' => $application->id,
-            'from_user_id' => $targetUserId,
+            'from_user_id' => $user->id, // Use actual Co-Assistant's ID instead of MD's
             'to_user_id' => $targetUser ? $targetUser->id : null,
             'from_role_id' => $previousRoleId,
             'from_step_id' => $previousStepId,
@@ -626,7 +634,7 @@ class ApplicationController extends Controller
         // Integrate ApplicationAuditTrail for movement
         ApplicationAuditTrail::create([
             'application_id' => $application->id,
-            'user_id' => $targetUserId,
+            'user_id' => $user->id, // Use actual Co-Assistant's ID
             'role_id' => $previousRoleId,
             'action' => 'movement_created',
             'module' => 'Application Workflow',
@@ -687,18 +695,27 @@ class ApplicationController extends Controller
             ]);
         }
 
-        // Trigger Notification to Allottee and Estate Officer on Approve / Reject
+        // Trigger Notification to Allottee on Approve / Reject
         if (in_array($request->action_type, ['approve', 'reject'])) {
             $actionWord = $request->action_type == 'approve' ? 'approved' : 'rejected';
             $subject = "Application {$actionWord}: {$application->application_no}";
 
             if ($request->action_type == 'approve') {
-                $message = "Your application ({$application->application_no}) has been approved and your Allotment Letter has been generated. Please log in to download your allotment letter.";
+                if ($application->application_type === 'agreement') {
+                    $message = "Your agreement application ({$application->application_no}) has been approved. Please log in to your dashboard to download the generated agreement, sign it, and upload the scanned copy within 5 days.";
+                } else {
+                    $documentName = match($application->application_type) {
+                        'allotment' => 'Allotment Letter',
+                        'possession' => 'Possession Letter',
+                        default => ucfirst(str_replace('_', ' ', $application->application_type))
+                    };
+                    $message = "Your application ({$application->application_no}) has been approved and your {$documentName} has been generated. Please log in to download your " . strtolower($documentName) . ".";
+                }
             } else {
                 $message = "Your application ({$application->application_no}) has been rejected.";
             }
 
-            $dashboardUrl = url('/login');
+            $dashboardUrl = env('ALLOTTEE_APP_URL', url('/login'));
 
             // Mail to Allottee
             $allotteeUser = \App\Models\User::on('adms_allottees')->find($application->allottee->user_id);
@@ -709,7 +726,8 @@ class ApplicationController extends Controller
                     $user->name,
                     $request->action_type,
                     $dashboardUrl,
-                    ''
+                    '', // Remarks are hidden for approve/reject
+                    $message // Pass custom message
                 );
 
                 app(\App\Services\NotificationService::class)->send([
@@ -726,45 +744,9 @@ class ApplicationController extends Controller
                     'mailable' => $customMailableAllottee
                 ]);
             }
-
-            // Mail to Estate Officer
-            $divisionId = $application->allottee->division_id ?? null;
-            $estateOfficerRole = \App\Models\Role::where('slug', 'estate-officer')->first();
-            if ($estateOfficerRole && $divisionId) {
-                $estateOfficer = User::on('adms_jshb')
-                    ->where('role_id', $estateOfficerRole->id)
-                    ->where('division_id', $divisionId)
-                    ->where('status', 1)
-                    ->first();
-
-                if ($estateOfficer) {
-                    $customMailableEstate = new \App\Mail\ApplicationForwardedMail(
-                        $estateOfficer->name,
-                        $application->application_no,
-                        $user->name,
-                        $request->action_type,
-                        $dashboardUrl,
-                        ''
-                    );
-
-                    app(\App\Services\NotificationService::class)->send([
-                        'user_id' => $estateOfficer->id,
-                        'is_allottee' => false,
-                        'application_id' => $application->id,
-                        'notification_type' => 'application_movement',
-                        'subject' => $subject,
-                        'message' => $message,
-                        'send_email' => true,
-                        'send_sms' => false,
-                        'send_whatsapp' => false,
-                        'link' => '/login',
-                        'mailable' => $customMailableEstate
-                    ]);
-                }
-            }
         }
 
-        return redirect()->route('engineer.applications.show', $application)
+        return redirect()->route('coassistant.applications.show', $application)
             ->with('success', 'Office noting and action recorded successfully.');
     }
 

@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Models\CommunicationTrack;
 use App\Mail\GenericNotificationMail;
 
 class NotificationService
@@ -76,7 +77,7 @@ class NotificationService
         $isEmailSent = false;
         $isSmsSent = false;
         $isWhatsappSent = false;
-        
+
         $emailSentAt = null;
         $smsSentAt = null;
         $whatsappSentAt = null;
@@ -93,11 +94,43 @@ class NotificationService
                 $isEmailSent = true;
                 $emailSentAt = now();
                 Log::channel('send_mail')->info("Email sent to {$emailId} | Subject: {$subject}");
+
+                $this->logCommunication(
+                    $isAllottee,
+                    $userId,
+                    'email',
+                    $subject,
+                    $message,
+                    'success',
+                    null,
+                    $params
+                );
             } catch (\Exception $e) {
                 Log::channel('send_mail')->error("Failed to send Email to {$emailId} | Error: " . $e->getMessage());
+
+                $this->logCommunication(
+                    $isAllottee,
+                    $userId,
+                    'email',
+                    $subject,
+                    $message,
+                    'failed',
+                    $e->getMessage(),
+                    $params
+                );
             }
         } elseif ($sendEmail) {
             Log::channel('send_mail')->warning("Skipped Email sending: Invalid or missing email address for User ID: {$userId}");
+            $this->logCommunication(
+                $isAllottee,
+                $userId,
+                'email',
+                $subject,
+                $message,
+                'failed',
+                'Invalid or missing email address',
+                $params
+            );
         }
 
         // 2. Send SMS
@@ -106,11 +139,43 @@ class NotificationService
                 $isSmsSent = true;
                 $smsSentAt = now();
                 Log::channel('sms')->info("SMS sent to {$phoneNumber} | Message: {$message}");
+
+                $this->logCommunication(
+                    $isAllottee,
+                    $userId,
+                    'sms',
+                    $subject,
+                    $message,
+                    'success',
+                    null,
+                    $params
+                );
             } catch (\Exception $e) {
                 Log::channel('sms')->error("Failed to send SMS to {$phoneNumber} | Error: " . $e->getMessage());
+
+                $this->logCommunication(
+                    $isAllottee,
+                    $userId,
+                    'sms',
+                    $subject,
+                    $message,
+                    'failed',
+                    $e->getMessage(),
+                    $params
+                );
             }
         } elseif ($sendSms) {
             Log::channel('sms')->warning("Skipped SMS sending: Invalid or missing phone number for User ID: {$userId}");
+            $this->logCommunication(
+                $isAllottee,
+                $userId,
+                'sms',
+                $subject,
+                $message,
+                'failed',
+                'Invalid or missing phone number',
+                $params
+            );
         }
 
         // 3. Send WhatsApp
@@ -119,11 +184,43 @@ class NotificationService
                 $isWhatsappSent = true;
                 $whatsappSentAt = now();
                 Log::channel('whatsapp')->info("WhatsApp sent to {$phoneNumber} | Message: {$message}");
+
+                $this->logCommunication(
+                    $isAllottee,
+                    $userId,
+                    'whatsapp',
+                    $subject,
+                    $message,
+                    'success',
+                    null,
+                    $params
+                );
             } catch (\Exception $e) {
                 Log::channel('whatsapp')->error("Failed to send WhatsApp to {$phoneNumber} | Error: " . $e->getMessage());
+
+                $this->logCommunication(
+                    $isAllottee,
+                    $userId,
+                    'whatsapp',
+                    $subject,
+                    $message,
+                    'failed',
+                    $e->getMessage(),
+                    $params
+                );
             }
         } elseif ($sendWhatsapp) {
             Log::channel('whatsapp')->warning("Skipped WhatsApp sending: Invalid or missing phone number for User ID: {$userId}");
+            $this->logCommunication(
+                $isAllottee,
+                $userId,
+                'whatsapp',
+                $subject,
+                $message,
+                'failed',
+                'Invalid or missing phone number',
+                $params
+            );
         }
 
         // 4. Save to Database
@@ -164,5 +261,48 @@ class NotificationService
         }
 
         return $notification;
+    }
+
+    private function logCommunication($isAllottee, $userId, $type, $subject, $content, $status, $error, $params = [])
+    {
+        $request = request();
+        $senderId = \Illuminate\Support\Facades\Auth::id();
+        $senderType = $senderId ? 'jshb_user' : 'system';
+
+        // If an allottee is doing an action in their portal, how do we know?
+        // Usually, internal users have Auth::id(), but allottees might have Auth::guard('allottee')->id() or similar.
+        // We must check if the guard is defined first to avoid "Auth guard not defined" errors.
+        if (config('auth.guards.allottee') && \Illuminate\Support\Facades\Auth::guard('allottee')->check()) {
+            $senderType = 'allottee';
+            $senderId = \Illuminate\Support\Facades\Auth::guard('allottee')->id();
+        }
+
+        $appId = $params['application_id'] ?? null;
+        $allotteeId = $params['allottee_id'] ?? ($isAllottee ? $userId : null);
+
+        $receiverType = $isAllottee ? 'allottee' : 'jshb_user';
+        $roleId = null;
+
+        if (!$isAllottee && $userId) {
+            $user = User::find($userId);
+            $roleId = $user ? $user->role_id : null;
+        }
+
+        CommunicationTrack::create([
+            'application_id' => $appId,
+            'allottee_id' => $allotteeId,
+            'sender_type' => $senderType,
+            'sender_id' => $senderId,
+            'receiver_type' => $receiverType,
+            'receiver_id' => $userId,
+            'role_id' => $roleId,
+            'communication_type' => $type,
+            'subject' => $subject,
+            'content' => $content,
+            'ip_address' => $request->ip(),
+            'browser_agent' => $request->userAgent(),
+            'status' => $status,
+            'error_message' => $error,
+        ]);
     }
 }

@@ -214,7 +214,7 @@
 
             <div class="field">
                 <label class="field-label">
-                    First Name (Hindi)
+                    First Name (Hindi) <span class="req-star">*</span>
                 </label>
                 <div class="input-group">
                     @php $prefixes = ['श्री', 'श्रीमती', 'सुश्री', 'डॉ.', 'मो.', 'स्व०', 'मेसर्स' , 'मेजर', 'कैप्टन']; @endphp
@@ -260,6 +260,25 @@
                     <input type="text" name="relation_name" class="custom-input only-alphabet"
                         value="{{ old('relation_name', $applicant->relation_name ?? '') }}"
                         placeholder="e.g. Father, Mother, Husband, Wife">
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label">
+                    Relation of allottee (Hindi) <span class="req-star">*</span>
+                </label>
+                <div class="input-group">
+                    @php $relationPrefixesHindi = ['पिता', 'माता', 'पति', 'पत्नी']; @endphp
+                    <select name="relation_prefix_hindi" class="prefix-select krutidev">
+                        @foreach ($relationPrefixesHindi as $prefix)
+                        <option value="{{ $prefix }}" {{ ($applicant->relation_prefix_hindi ?? '') === $prefix ? 'selected' : '' }}>
+                            {{ $prefix }}
+                        </option>
+                        @endforeach
+                    </select>
+                    <input type="text" name="relation_name_hindi" class="krutidev custom-input"
+                        value="{{ old('relation_name_hindi', $applicant->relation_name_hindi ?? '') }}"
+                        placeholder="e.g. पिता, माता, पति, पत्नी">
                 </div>
             </div>
 

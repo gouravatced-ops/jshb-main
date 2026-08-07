@@ -160,8 +160,14 @@
         <!-- Body -->
         <div class="body-content">
             <div class="message-text">
-                {!! nl2br(e($mailBody)) !!}
+                {!! nl2br(e($mailBody ?? $message)) !!}
             </div>
+
+            @if(isset($link) && $link)
+            <div class="action-btn-container">
+                <a href="{{ $link }}" class="action-btn">View Details</a>
+            </div>
+            @endif
         </div>
 
         <!-- Footer -->

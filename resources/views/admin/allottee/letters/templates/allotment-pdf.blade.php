@@ -155,8 +155,7 @@
                     : '28.11.2026' }}
             </strong>
         </span> dks cksMZ eq[;ky; ds lHkk d{k esa
-        fudkyh xbZ ykWVjh ds vkyksd esa Jh fot; dqekj flag] firk Jh
-        cynso dqekj flag] lk0&822123] eks0 % 9934100038
+        fudkyh xbZ ykWVjh ds vkyksd esa {{ $allottee->allottee_prefix_hindi ?? '' }} {{ trim(($allottee->allottee_name_hindi ?? '') . ' ' . ($allottee->allottee_middle_hindi ?? '') . ' ' . ($allottee->allottee_surname_hindi ?? '')) }}] {{ $allottee->relation_prefix_hindi ?? '' }} {{ $allottee->relation_name_hindi ?? '' }}] lk0&{{ optional($allottee->alloteeAdresses)->present_pincode ?? '' }}] eks0 % {{ optional($allottee->alloteeAdresses)->mobile_number ?? '' }}
         ----- vkosnu la[;k& <span
             style="
                     font-size:12px;

@@ -28,12 +28,18 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|string',
-            'password' => 'required_without:otp_stage|string',
             'otp_code' => 'required_if:otp_stage,1|string',
             'otp_stage' => 'sometimes|boolean',
+            'login_method' => 'sometimes|string',
         ]);
 
         $otpStage = (bool) $request->input('otp_stage', false);
+        $loginMethod = $request->input('login_method', 'username');
+
+        if (!$otpStage && $loginMethod !== 'email_otp' && empty($request->password)) {
+            return back()->withInput()->with('error', 'The password field is required.');
+        }
+
         $user = User::where('email', $request->email)
             ->orWhere('name', $request->email)
             ->first();
@@ -62,9 +68,6 @@ class AuthController extends Controller
 
         // ─── OTP VERIFICATION STAGE ─────────────────────────────
         if ($otpStage) {
-            if (! $user->login_with_otp) {
-                return back()->withInput()->with('error', 'This account does not use OTP login.');
-            }
 
             // Verify OTP from database via OtpService
             $isValid = $this->otpService->verifyOtp($user->id, $request->otp_code, 'login');
@@ -104,6 +107,23 @@ class AuthController extends Controller
             $this->setSessionExpiry($request);
 
             return redirect()->route($this->dashboardRoute($user))->with('success', 'Welcome back, ' . $user->name);
+        }
+
+        // ─── EMAIL OTP LOGIN REQUEST ──────────────────────────
+        if ($loginMethod === 'email_otp') {
+            $this->otpService->generateAndSendOtp(
+                $user->id,
+                $user->email,
+                'login',
+                'Your OTP for login verification is:',
+                $request->ip(),
+                $request->userAgent()
+            );
+
+            return back()->withInput()
+                ->with('success', 'OTP has been sent to your email. Enter it below to complete login.')
+                ->with('otp_required', true)
+                ->with('email', $request->email);
         }
 
         // ─── PASSWORD CHECK ─────────────────────────────────────

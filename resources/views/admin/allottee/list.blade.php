@@ -352,6 +352,13 @@
                             </a>
                             @endif
 
+                            @if ($allottee->is_step_completed == 1 && $allottee->current_step == 3)
+                            <button type="button" class="action-btn" style="background:#2563eb; color:#fff; cursor: pointer; border: none;"
+                                onclick="sendCredentialMail({{ $allottee->id }}, this)" title="Send Portal Credentials">
+                                <i class="fa-solid fa-envelope"></i>
+                            </button>
+                            @endif
+
                         </div>
                     </td>
                 </tr>
@@ -432,7 +439,7 @@
                                                         <th style="padding: 6px 8px;">Current Stage</th>
                                                         <th style="padding: 6px 8px;">Pending With</th>
                                                         <th style="padding: 6px 8px;">Status</th>
-                                                        <th style="padding: 6px 8px; text-align: center;">Audit Trail</th>
+                                                        <th style="padding: 6px 8px; text-align: center;">Action / Tracks</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -448,11 +455,19 @@
                                                             <span style="background: #e2e8f0; color: #0f172a; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; border: 1px solid #cbd5e1;">{{ $app->status }}</span>
                                                         </td>
                                                         <td style="text-align: center;">
-                                                            <button type="button" class="btn btn-sm" onclick="openAuditTrailModal({{ $app->id }})" style="padding: 4px 12px; font-size: 11px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 6px; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
-                                                                <i class="fa-solid fa-clock-rotate-left"></i> View ({{ $app->movements ? $app->movements->count() : 0 }})
-                                                            </button>
+                                                            <div style="display: flex; gap: 5px; justify-content: center;">
+                                                                <button type="button" class="btn btn-sm" onclick="openAuditTrailModal({{ $app->id }})" style="padding: 4px 12px; font-size: 11px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 6px; font-weight: 700; transition: all 0.2s;" title="Audit Trail" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                                                                    <i class="fa-solid fa-clock-rotate-left"></i> ({{ $app->movements ? $app->movements->count() : 0 }})
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm" onclick="openCommTrackModal({{ $app->id }})" style="padding: 4px 12px; font-size: 11px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; font-weight: 700; transition: all 0.2s;" title="Communication Track" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                                                    <i class="fa-solid fa-envelope"></i> ({{ $app->communicationTracks ? $app->communicationTracks->count() : 0 }})
+                                                                </button>
+                                                            </div>
                                                             <script id="audit-data-{{ $app->id }}" type="application/json">
                                                                 {!! $app->movements ? $app->movements->load(['fromUser', 'toUser', 'fromRole', 'toRole', 'fromStep', 'toStep'])->toJson() : '[]' !!}
+                                                            </script>
+                                                            <script id="comm-data-{{ $app->id }}" type="application/json">
+                                                                {!! $app->communicationTracks ? $app->communicationTracks->toJson() : '[]' !!}
                                                             </script>
                                                         </td>
                                                     </tr>
@@ -755,7 +770,98 @@
     </div>
 </div>
 
+<!-- Communication Track Modal -->
+<div class="modal fade" id="commTrackModal" tabindex="-1" aria-labelledby="commTrackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="commTrackModalLabel" style="font-weight: 700; color: #0f172a;"><i class="fa-solid fa-envelope" style="color: #2563eb; margin-right: 8px;"></i> Communication Track</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto; background: #ffffff;">
+                <div id="commTrackContent">
+                    <!-- Comm tracks will be injected here -->
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; align-items: center;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-weight: 600; padding: 6px 16px; background: #64748b; border: none;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    function openCommTrackModal(appId) {
+        var dataEl = document.getElementById('comm-data-' + appId);
+        var contentDiv = document.getElementById('commTrackContent');
+        
+        if (!dataEl) {
+            contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">Communication data not found.</div>';
+            var myModal = new bootstrap.Modal(document.getElementById('commTrackModal'));
+            myModal.show();
+            return;
+        }
+
+        try {
+            var tracks = JSON.parse(dataEl.innerHTML);
+            if (tracks.length === 0) {
+                contentDiv.innerHTML = '<div style="text-align: center; padding: 40px 0; color: #64748b;"><i class="fa-solid fa-envelope-open-text fa-3x mb-3" style="opacity: 0.5;"></i><h4>No Communication Yet</h4><p>No messages have been sent for this application.</p></div>';
+            } else {
+                var html = '<div class="audit-timeline">';
+                tracks.forEach(function(t) {
+                    var commType = (t.communication_type || 'unknown').toLowerCase();
+                    var commColor = '#64748b';
+                    var commIcon = 'fa-envelope';
+                    
+                    if (commType === 'email') {
+                        commColor = '#ea4335'; // Google Red
+                        commIcon = 'fa-envelope';
+                    } else if (commType === 'sms') {
+                        commColor = '#3b82f6'; // Blue
+                        commIcon = 'fa-comment-sms';
+                    } else if (commType === 'whatsapp') {
+                        commColor = '#25D366'; // WhatsApp Green
+                        commIcon = 'fa-brands fa-whatsapp';
+                    }
+
+                    var statusColor = t.status === 'success' ? '#10b981' : '#ef4444';
+                    var dateStr = new Date(t.created_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
+
+                    html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
+                    html += '<div class="audit-timeline-marker" style="background: ' + commColor + '"><i class="fa-solid ' + commIcon + '"></i></div>';
+                    html += '<div class="audit-timeline-content">';
+                    html += '<div class="audit-timeline-header">';
+                    html += '<div class="audit-timeline-action" style="color: ' + commColor + '">' + commType.toUpperCase() + '</div>';
+                    html += '<div class="audit-timeline-date">' + dateStr + '</div>';
+                    html += '</div>';
+                    html += '<div class="audit-timeline-route">';
+                    html += '<strong style="color:#1e293b;">To: ' + (t.receiver_type || 'User') + '</strong> <span style="color:' + statusColor + '; font-weight:600; font-size:11px; padding:2px 6px; background:#f1f5f9; border-radius:4px; margin-left:auto;">' + (t.status || 'unknown').toUpperCase() + '</span>';
+                    html += '</div>';
+                    html += '<div style="margin-top:8px; font-size:13px; color:#334155;"><strong>Subject:</strong> ' + (t.subject || 'No Subject') + '</div>';
+                    html += '<div class="audit-timeline-notes" onclick="event.stopPropagation()">';
+                    html += '<strong style="display:block; margin-bottom:6px; color:#64748b; font-size:12px; text-transform:uppercase;"><i class="fa-solid fa-align-left" style="margin-right:4px;"></i> Message Content</strong>';
+                    html += '<div style="line-height:1.6; max-height:200px; overflow-y:auto; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">' + (t.message || '<em style="color:#94a3b8;">No content.</em>') + '</div>';
+                    if (t.error_message) {
+                        html += '<strong style="display:block; margin-top:10px; margin-bottom:6px; color:#ef4444; font-size:12px; text-transform:uppercase;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Error Info</strong>';
+                        html += '<div style="color:#dc2626; font-size:12px;">' + t.error_message + '</div>';
+                    }
+                    html += '</div>';
+                    html += '<div class="click-hint"><i class="fa-solid fa-hand-pointer"></i> Click to view message</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                contentDiv.innerHTML = html;
+            }
+        } catch (e) {
+            contentDiv.innerHTML = '<div class="alert alert-danger">Error parsing communication data.</div>';
+            console.error(e);
+        }
+
+        var myModal = new bootstrap.Modal(document.getElementById('commTrackModal'));
+        myModal.show();
+    }
+
     function openAuditTrailModal(appId) {
         var dataEl = document.getElementById('audit-data-' + appId);
         var contentDiv = document.getElementById('auditTrailContent');
@@ -826,6 +932,40 @@
 
         var myModal = new bootstrap.Modal(document.getElementById('auditTrailModal'));
         myModal.show();
+    }
+    function sendCredentialMail(allotteeId, btnElement) {
+        if (!confirm('Are you sure you want to generate a new password and send the portal credentials email to this allottee?')) {
+            return;
+        }
+
+        var originalHtml = btnElement.innerHTML;
+        btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        btnElement.disabled = true;
+
+        fetch('{{ url("admin/allottees") }}/' + allotteeId + '/send-credentials', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            btnElement.innerHTML = originalHtml;
+            btnElement.disabled = false;
+            
+            if (data.success) {
+                alert(data.message || 'Credentials sent successfully!');
+            } else {
+                alert('Error: ' + (data.message || 'Something went wrong.'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            btnElement.innerHTML = originalHtml;
+            btnElement.disabled = false;
+            alert('An error occurred while sending the email.');
+        });
     }
 </script>
 @endsection
