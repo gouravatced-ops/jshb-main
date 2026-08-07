@@ -260,7 +260,7 @@
 
         <div class="lock-avatar">
             @if ($user->photo)
-                <img src="{{ asset('storage/photos/' . $user->photo) }}" alt="{{ $user->name }}">
+                <img src="{{ route('media.profile', ['filename' => $user->photo]) }}" alt="{{ $user->name }}">
             @else
                 {{ strtoupper(substr($user->name, 0, 2)) }}
             @endif

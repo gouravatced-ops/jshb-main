@@ -24,7 +24,7 @@ $activeTab = old('active_tab', request()->get('tab', 'basic'));
             <div class="sidebar-content">
                 <div class="avatar-section">
                     @if($user->photo)
-                    <img src="{{ asset('storage/photos/' . $user->photo) }}" class="avatar-img" alt="Profile Photo">
+                    <img src="{{ route('media.profile', ['filename' => $user->photo]) }}" class="avatar-img" alt="Profile Photo">
                     @else
                     <div class="avatar-placeholder">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
                     @endif
@@ -317,7 +317,7 @@ $activeTab = old('active_tab', request()->get('tab', 'basic'));
                             <div class="photo-section">
                                 <div class="photo-preview">
                                     @if($user->photo)
-                                    <img src="{{ asset('storage/photos/' . $user->photo) }}" alt="Profile Photo" class="preview-img" id="photoPreview">
+                                    <img src="{{ route('media.profile', ['filename' => $user->photo]) }}" alt="Profile Photo" class="preview-img" id="photoPreview">
                                     @else
                                     <div class="preview-placeholder" id="photoPreviewPlaceholder">
                                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">

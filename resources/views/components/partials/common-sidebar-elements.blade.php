@@ -47,7 +47,7 @@
     <div class="sidebar-user">
         <div class="sidebar-avatar">
             @if ($sidebarUser && $sidebarUser->photo)
-                <img src="{{ asset('storage/photos/' . $sidebarUser->photo) }}" alt="Profile Photo"
+                <img src="{{ route('media.profile', ['filename' => $sidebarUser->photo]) }}" alt="Profile Photo"
                     style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
             @else
                 {{ $sidebarInitials }}
