@@ -23,11 +23,7 @@ $activeTab = old('active_tab', request()->get('tab', 'basic'));
         <div class="profile-sidebar">
             <div class="sidebar-content">
                 <div class="avatar-section">
-                    @if($user->photo)
-                    <img src="{{ route('media.profile', ['filename' => $user->photo]) }}" class="avatar-img" alt="Profile Photo">
-                    @else
-                    <div class="avatar-placeholder">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
-                    @endif
+                    <img src="{{ route('media.profile', ['filename' => $user->photo ?? 'default', 'user_id' => $user->id ?? '']) }}" class="avatar-img" alt="Profile Photo">
                     <button type="button" class="avatar-edit-btn" data-tab="photo" title="Change Photo">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -266,7 +262,12 @@ $activeTab = old('active_tab', request()->get('tab', 'basic'));
                                 </div>
                                 <div class="form-group">
                                     <label>State / Province</label>
-                                    <input type="text" name="state" class="form-control" value="{{ old('state', $userDetail->state) }}" placeholder="State">
+                                    <select name="state" class="form-control" required>
+                                        <option value="">Select State</option>
+                                        @foreach($states as $st)
+                                        <option value="{{ $st->name_en }}" {{ old('state', $userDetail->state) == $st->name_en ? 'selected' : '' }}>{{ $st->name_en }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label>Postal Code</label>
@@ -274,13 +275,8 @@ $activeTab = old('active_tab', request()->get('tab', 'basic'));
                                 </div>
                                 <div class="form-group">
                                     <label>Country</label>
-                                    <select name="country" class="form-control">
-                                        <option value="India" {{ old('country', $userDetail->country ?? 'India') == 'India' ? 'selected' : '' }}>India</option>
-                                        <option value="United States" {{ old('country', $userDetail->country) == 'United States' ? 'selected' : '' }}>United States</option>
-                                        <option value="United Kingdom" {{ old('country', $userDetail->country) == 'United Kingdom' ? 'selected' : '' }}>United Kingdom</option>
-                                        <option value="Canada" {{ old('country', $userDetail->country) == 'Canada' ? 'selected' : '' }}>Canada</option>
-                                        <option value="Australia" {{ old('country', $userDetail->country) == 'Australia' ? 'selected' : '' }}>Australia</option>
-                                        <option value="Germany" {{ old('country', $userDetail->country) == 'Germany' ? 'selected' : '' }}>Germany</option>
+                                    <select name="country" class="form-control" readonly>
+                                        <option value="India" selected>India</option>
                                     </select>
                                 </div>
                             </div>

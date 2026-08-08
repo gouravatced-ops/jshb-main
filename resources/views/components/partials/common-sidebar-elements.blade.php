@@ -46,12 +46,8 @@
 <div class="sidebar-footer">
     <div class="sidebar-user">
         <div class="sidebar-avatar">
-            @if ($sidebarUser && $sidebarUser->photo)
-                <img src="{{ route('media.profile', ['filename' => $sidebarUser->photo]) }}" alt="Profile Photo"
+                <img src="{{ route('media.profile', ['filename' => $sidebarUser->photo ?? 'default', 'user_id' => $sidebarUser->id ?? '']) }}" alt="Profile Photo"
                     style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
-            @else
-                {{ $sidebarInitials }}
-            @endif
         </div>
         <div class="sidebar-user-info">
             <div class="sidebar-user-name">{{ $sidebarUser->name ?? 'Guest User' }}</div>

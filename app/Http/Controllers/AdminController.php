@@ -21,7 +21,7 @@ class AdminController extends Controller
 
         $user = Auth::user();
         $userDetail = $user->detail ?? new UserDetail(['user_id' => $user->id]);
-        
+
         $loginLogs = LoginLog::where('user_id', $user->id)
             ->latest()
             ->limit(50)
@@ -32,7 +32,9 @@ class AdminController extends Controller
             ->limit(50)
             ->get();
 
-        return view('admin.profile', compact('user', 'userDetail', 'loginLogs', 'otpLogs'));
+        $states = \App\Models\State::where('id', '!=', 37)->orderBy('name_en', 'asc')->get();
+
+        return view('admin.profile', compact('user', 'userDetail', 'loginLogs', 'otpLogs', 'states'));
     }
 
     public function myActivity()
@@ -42,7 +44,7 @@ class AdminController extends Controller
         }
 
         $user = Auth::user();
-        
+
         // Paginate logs for the dedicated activity page
         $loginLogs = LoginLog::where('user_id', $user->id)
             ->latest()
@@ -62,7 +64,7 @@ class AdminController extends Controller
         }
 
         $user = Auth::user();
-        
+
         // Fix: Use the correct relationship name 'detail' instead of 'userDetail'
         $userDetail = $user->detail ?? new UserDetail(['user_id' => $user->id]);
 
@@ -141,9 +143,19 @@ class AdminController extends Controller
 
         // Update or create user detail
         $userDetail->fill($request->only([
-            'phone', 'address_line1', 'address_line2', 'city', 'state', 'postal_code', 'country',
-            'designation', 'additional_info', 'date_of_joining', 'date_of_retirement',
-            'date_of_contractual', 'date_of_deputation'
+            'phone',
+            'address_line1',
+            'address_line2',
+            'city',
+            'state',
+            'postal_code',
+            'country',
+            'designation',
+            'additional_info',
+            'date_of_joining',
+            'date_of_retirement',
+            'date_of_contractual',
+            'date_of_deputation'
         ]));
         $userDetail->user_id = $user->id;
         $userDetail->save();

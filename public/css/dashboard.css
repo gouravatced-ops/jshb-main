@@ -3248,6 +3248,19 @@ textarea.form-control {
     border: 1px solid var(--border-light);
 }
 
+.tabs-nav .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 30px; /* Better pill shape */
+    border: none; /* override default tab-btn bottom border */
+}
+
+.tabs-nav .tab-btn svg, .tabs-nav .tab-btn i {
+    flex-shrink: 0;
+}
+
 .profile-footer {
     display: flex;
     justify-content: flex-end;
