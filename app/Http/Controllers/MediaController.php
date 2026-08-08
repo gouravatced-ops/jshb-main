@@ -12,17 +12,23 @@ class MediaController extends Controller
     /**
      * Serve a profile image, falling back to a role-based default if not found.
      */
-    public function profileImage($filename)
+    public function profileImage(Request $request, $filename)
     {
-        $path = storage_path('app/public/photos/' . $filename);
-
-        if (File::exists($path) && is_file($path)) {
-            return response()->file($path);
+        if ($filename && $filename !== 'default') {
+            $path = storage_path('app/public/photos/' . $filename);
+            if (File::exists($path) && is_file($path)) {
+                return response()->file($path);
+            }
         }
 
-        // Determine fallback based on user role (if possible to deduce from filename)
-        // Typically we would need the user ID, but we can search by photo filename.
-        $user = User::where('photo', $filename)->first();
+        $user = null;
+        if ($request->has('user_id')) {
+            $user = User::find($request->query('user_id'));
+        }
+        
+        if (!$user && $filename !== 'default') {
+            $user = User::where('photo', $filename)->first();
+        }
 
         $fallbackPath = public_path('img/user-profile.png'); // Default
 

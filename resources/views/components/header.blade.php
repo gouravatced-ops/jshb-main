@@ -114,11 +114,7 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
         <div style="position:relative">
             <button class="profile-btn" id="profileBtn" onclick="toggleProfile()">
                 <div class="profile-avatar">
-                    @if($authUser && $authUser->photo)
-                    <img src="{{ route('media.profile', ['filename' => $authUser->photo]) }}" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
-                    @else
-                    {{ $profileInitials }}
-                    @endif
+                    <img src="{{ route('media.profile', ['filename' => $authUser->photo ?? 'default', 'user_id' => $authUser->id ?? '']) }}" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
                 </div>
                 <div style="text-align:left">
                     <div class="profile-name">{{ $authUser->name ?? 'Guest User' }}</div>
