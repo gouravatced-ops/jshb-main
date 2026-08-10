@@ -688,6 +688,21 @@ class AllotteeController extends Controller
             'division:id,name',
             'subDivision:id,name',
             'propertyCategory:id,name',
+            'applications.currentStep',
+            'applications.currentUser',
+            'applications.currentRole',
+            'applications.movements.fromUser',
+            'applications.movements.toUser',
+            'applications.movements.fromRole',
+            'applications.movements.toRole',
+            'applications.movements.fromStep',
+            'applications.movements.toStep',
+            'applications.communicationTracks',
+            'applications.correspondences.generatedBy',
+            'applications.bypassRequests.requestedBy',
+            'applications.bypassRequests.targetUser',
+            'applications.bypassRequests.targetRole',
+            'applications.bypassRequests.targetStep'
         ]);
         if ($request->filled('search')) {
             $search = trim((string) $request->search);

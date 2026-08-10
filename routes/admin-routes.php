@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PropertyMainTypeController;
 use App\Http\Controllers\Admin\QuarterTypeController;
 use App\Http\Controllers\Admin\WorkflowController;
+use App\Http\Controllers\Admin\BypassRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -101,6 +102,12 @@ Route::middleware('auth')
         Route::put('/workflows/{workflow}', [WorkflowController::class, 'update'])->name('workflows.update');
         Route::post('/workflows/{workflow}/toggle-status', [WorkflowController::class, 'toggleStatus'])->name('workflows.toggle-status');
         Route::delete('/workflows/{workflow}', [WorkflowController::class, 'destroy'])->name('workflows.destroy');
+
+        // Bypass Requests
+        Route::get('/bypass-requests/history', [BypassRequestController::class, 'history'])->name('bypass-requests.history');
+        Route::get('/bypass-requests', [BypassRequestController::class, 'index'])->name('bypass-requests.index');
+        Route::post('/bypass-requests/{id}/approve', [BypassRequestController::class, 'approve'])->name('bypass-requests.approve');
+        Route::post('/bypass-requests/{id}/reject', [BypassRequestController::class, 'reject'])->name('bypass-requests.reject');
 
         // Scheme
         Route::get('/schemes', [SchemeController::class, 'index'])->name('schemes.index');

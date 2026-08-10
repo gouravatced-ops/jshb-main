@@ -25,7 +25,7 @@
                             @foreach($documentMasters->whereIn('id', $requiredDocumentIds)->whereNotIn('id', $excludedDocIds) as $dm)
                             <div class="form-check" style="margin-bottom: 8px;">
                                 <input class="form-check-input" type="checkbox" name="document_master_ids[]" value="{{ $dm->id }}" id="doc_{{ $dm->id }}">
-                                <label class="form-check-label" for="doc_{{ $dm->id }}" style="font-size: 13px; color: #334155;">
+                                <label class="form-check-label" for="doc_{{ $dm->id }}" style="font-size: 13px; color: #334155; margin:0px;">
                                     {{ $dm->document_name }} <span class="text-danger" style="font-size: 11px;">(Required)</span>
                                 </label>
                             </div>
@@ -35,7 +35,7 @@
                             @foreach($documentMasters->whereNotIn('id', $requiredDocumentIds)->whereNotIn('id', $excludedDocIds) as $dm)
                             <div class="form-check" style="margin-bottom: 8px;">
                                 <input class="form-check-input" type="checkbox" name="document_master_ids[]" value="{{ $dm->id }}" id="doc_{{ $dm->id }}">
-                                <label class="form-check-label" for="doc_{{ $dm->id }}" style="font-size: 13px; color: #334155;">
+                                <label class="form-check-label" for="doc_{{ $dm->id }}" style="font-size: 13px; color: #334155; margin:0px;">
                                     {{ $dm->document_name }}
                                 </label>
                             </div>
@@ -44,7 +44,7 @@
                             @foreach($documentMasters->whereNotIn('id', $excludedDocIds) as $dm)
                             <div class="form-check" style="margin-bottom: 8px;">
                                 <input class="form-check-input" type="checkbox" name="document_master_ids[]" value="{{ $dm->id }}" id="doc_{{ $dm->id }}">
-                                <label class="form-check-label" for="doc_{{ $dm->id }}" style="font-size: 13px; color: #334155;">
+                                <label class="form-check-label" for="doc_{{ $dm->id }}" style="font-size: 13px; color: #334155; margin:0px;">
                                     {{ $dm->document_name }}
                                 </label>
                             </div>

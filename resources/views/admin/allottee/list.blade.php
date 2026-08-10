@@ -455,12 +455,18 @@
                                                             <span style="background: #e2e8f0; color: #0f172a; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; border: 1px solid #cbd5e1;">{{ $app->status }}</span>
                                                         </td>
                                                         <td style="text-align: center;">
-                                                            <div style="display: flex; gap: 5px; justify-content: center;">
-                                                                <button type="button" class="btn btn-sm" onclick="openAuditTrailModal({{ $app->id }})" style="padding: 4px 12px; font-size: 11px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 6px; font-weight: 700; transition: all 0.2s;" title="Audit Trail" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                                                            <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; width: 120px; margin: 0 auto;">
+                                                                <button type="button" class="btn btn-sm" onclick="openAuditTrailModal({{ $app->id }})" style="padding: 4px 8px; font-size: 11px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 6px; font-weight: 700; transition: all 0.2s;" title="Audit Trail" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
                                                                     <i class="fa-solid fa-clock-rotate-left"></i> ({{ $app->movements ? $app->movements->count() : 0 }})
                                                                 </button>
-                                                                <button type="button" class="btn btn-sm" onclick="openCommTrackModal({{ $app->id }})" style="padding: 4px 12px; font-size: 11px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; font-weight: 700; transition: all 0.2s;" title="Communication Track" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                                                <button type="button" class="btn btn-sm" onclick="openCommTrackModal({{ $app->id }})" style="padding: 4px 8px; font-size: 11px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; font-weight: 700; transition: all 0.2s;" title="Communication Track" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
                                                                     <i class="fa-solid fa-envelope"></i> ({{ $app->communicationTracks ? $app->communicationTracks->count() : 0 }})
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm" onclick="openCorrespondenceModal({{ $app->id }})" style="padding: 4px 8px; font-size: 11px; background: #fffbeb; color: #d97706; border: 1px solid #fde68a; border-radius: 6px; font-weight: 700; transition: all 0.2s;" title="Office Correspondence" onmouseover="this.style.background='#fef3c7'" onmouseout="this.style.background='#fffbeb'">
+                                                                    <i class="fa-solid fa-file-invoice"></i> ({{ $app->correspondences ? $app->correspondences->count() : 0 }})
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm" onclick="openBypassModal({{ $app->id }})" style="padding: 4px 8px; font-size: 11px; background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; border-radius: 6px; font-weight: 700; transition: all 0.2s;" title="Bypass Requests" onmouseover="this.style.background='#fce7f3'" onmouseout="this.style.background='#fdf2f8'">
+                                                                    <i class="fa-solid fa-forward-step"></i> ({{ $app->bypassRequests ? $app->bypassRequests->count() : 0 }})
                                                                 </button>
                                                             </div>
                                                             <script id="audit-data-{{ $app->id }}" type="application/json">
@@ -468,6 +474,12 @@
                                                             </script>
                                                             <script id="comm-data-{{ $app->id }}" type="application/json">
                                                                 {!! $app->communicationTracks ? $app->communicationTracks->toJson() : '[]' !!}
+                                                            </script>
+                                                            <script id="corr-data-{{ $app->id }}" type="application/json">
+                                                                {!! $app->correspondences ? $app->correspondences->toJson() : '[]' !!}
+                                                            </script>
+                                                            <script id="bypass-data-{{ $app->id }}" type="application/json">
+                                                                {!! $app->bypassRequests ? $app->bypassRequests->toJson() : '[]' !!}
                                                             </script>
                                                         </td>
                                                     </tr>
@@ -790,6 +802,46 @@
     </div>
 </div>
 
+<!-- Office Correspondence Modal -->
+<div class="modal fade" id="correspondenceModal" tabindex="-1" aria-labelledby="correspondenceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: #fffbeb; border-bottom: 1px solid #fde68a; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="correspondenceModalLabel" style="font-weight: 700; color: #92400e;"><i class="fa-solid fa-file-invoice" style="color: #d97706; margin-right: 8px;"></i> Office Correspondence</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto; background: #ffffff;">
+                <div id="correspondenceContent">
+                    <!-- Correspondences will be injected here -->
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; align-items: center;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-weight: 600; padding: 6px 16px; background: #64748b; border: none;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bypass Requests Modal -->
+<div class="modal fade" id="bypassModal" tabindex="-1" aria-labelledby="bypassModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: #fdf2f8; border-bottom: 1px solid #fbcfe8; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="bypassModalLabel" style="font-weight: 700; color: #9d174d;"><i class="fa-solid fa-forward-step" style="color: #db2777; margin-right: 8px;"></i> Bypass Requests</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto; background: #ffffff;">
+                <div id="bypassContent">
+                    <!-- Bypass Requests will be injected here -->
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; align-items: center;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-weight: 600; padding: 6px 16px; background: #64748b; border: none;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function openCommTrackModal(appId) {
         var dataEl = document.getElementById('comm-data-' + appId);
@@ -931,6 +983,120 @@
         }
 
         var myModal = new bootstrap.Modal(document.getElementById('auditTrailModal'));
+        myModal.show();
+    }
+
+    function openCorrespondenceModal(appId) {
+        var dataEl = document.getElementById('corr-data-' + appId);
+        var contentDiv = document.getElementById('correspondenceContent');
+        
+        if (!dataEl) {
+            contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">Correspondence data not found.</div>';
+            var myModal = new bootstrap.Modal(document.getElementById('correspondenceModal'));
+            myModal.show();
+            return;
+        }
+
+        try {
+            var correspondences = JSON.parse(dataEl.innerHTML);
+            if (correspondences.length === 0) {
+                contentDiv.innerHTML = '<div style="text-align: center; padding: 40px 0; color: #92400e;"><i class="fa-solid fa-file-invoice fa-3x mb-3" style="opacity: 0.5;"></i><h4>No Correspondences</h4><p>No office correspondence has been generated for this application.</p></div>';
+            } else {
+                var html = '<div class="audit-timeline">';
+                correspondences.forEach(function(c) {
+                    var typeLabel = c.type === 'LT' ? 'LETTER' : (c.type === 'OO' ? 'OFFICE ORDER' : 'OFFICE DRAFT');
+                    var statusColor = c.status === 'published' ? '#10b981' : '#f59e0b';
+                    var dateStr = new Date(c.created_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
+                    var generatedBy = c.generated_by ? c.generated_by.name : 'Unknown';
+
+                    html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
+                    html += '<div class="audit-timeline-marker" style="background: #d97706;"><i class="fa-solid fa-file-invoice"></i></div>';
+                    html += '<div class="audit-timeline-content">';
+                    html += '<div class="audit-timeline-header">';
+                    html += '<div class="audit-timeline-action" style="color: #d97706;">' + typeLabel + '</div>';
+                    html += '<div class="audit-timeline-date">' + dateStr + '</div>';
+                    html += '</div>';
+                    html += '<div class="audit-timeline-route">';
+                    html += '<strong style="color:#1e293b;">Ref No: ' + c.reference_number + '</strong> <span style="color:' + statusColor + '; font-weight:600; font-size:11px; padding:2px 6px; background:#fef3c7; border-radius:4px; margin-left:auto;">' + (c.status || '').toUpperCase() + '</span>';
+                    html += '</div>';
+                    html += '<div style="margin-top:8px; font-size:13px; color:#334155;"><strong>Subject:</strong> ' + (c.subject || 'No Subject') + '</div>';
+                    html += '<div style="margin-top:4px; font-size:12px; color:#64748b;"><strong>Generated By:</strong> ' + generatedBy + '</div>';
+                    html += '<div class="audit-timeline-notes" onclick="event.stopPropagation()">';
+                    html += '<div style="line-height:1.6; max-height:300px; overflow-y:auto; background:#fffbeb; padding:15px; border-radius:6px; border:1px solid #fde68a;">' + (c.content || '') + '</div>';
+                    html += '</div>';
+                    html += '<div class="click-hint"><i class="fa-solid fa-hand-pointer"></i> Click to view content</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                contentDiv.innerHTML = html;
+            }
+        } catch (e) {
+            contentDiv.innerHTML = '<div class="alert alert-danger">Error parsing correspondence data.</div>';
+            console.error(e);
+        }
+
+        var myModal = new bootstrap.Modal(document.getElementById('correspondenceModal'));
+        myModal.show();
+    }
+
+    function openBypassModal(appId) {
+        var dataEl = document.getElementById('bypass-data-' + appId);
+        var contentDiv = document.getElementById('bypassContent');
+        
+        if (!dataEl) {
+            contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">Bypass data not found.</div>';
+            var myModal = new bootstrap.Modal(document.getElementById('bypassModal'));
+            myModal.show();
+            return;
+        }
+
+        try {
+            var bypassRequests = JSON.parse(dataEl.innerHTML);
+            if (bypassRequests.length === 0) {
+                contentDiv.innerHTML = '<div style="text-align: center; padding: 40px 0; color: #9d174d;"><i class="fa-solid fa-forward-step fa-3x mb-3" style="opacity: 0.5;"></i><h4>No Bypass Requests</h4><p>No workflow bypass has been requested for this application.</p></div>';
+            } else {
+                var html = '<div class="audit-timeline">';
+                bypassRequests.forEach(function(b) {
+                    var statusColor = b.status === 'approved' ? '#10b981' : (b.status === 'rejected' ? '#ef4444' : '#f59e0b');
+                    if (b.status === 'used') statusColor = '#8b5cf6'; // Purple for used
+                    var dateStr = new Date(b.created_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
+                    
+                    var reqBy = b.requested_by ? b.requested_by.name : 'Unknown';
+                    var target = b.target_user ? b.target_user.name : (b.target_role ? b.target_role.name : 'Unknown');
+
+                    html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
+                    html += '<div class="audit-timeline-marker" style="background: #db2777;"><i class="fa-solid fa-forward-step"></i></div>';
+                    html += '<div class="audit-timeline-content">';
+                    html += '<div class="audit-timeline-header">';
+                    html += '<div class="audit-timeline-action" style="color: #db2777;">BYPASS REQUEST</div>';
+                    html += '<div class="audit-timeline-date">' + dateStr + '</div>';
+                    html += '</div>';
+                    html += '<div class="audit-timeline-route">';
+                    html += '<strong style="color:#1e293b;">Req By: ' + reqBy + '</strong> <i class="fa-solid fa-arrow-right-long mx-2"></i> <strong style="color:#1e293b;">Target: ' + target + '</strong>';
+                    html += '<span style="color:' + statusColor + '; font-weight:600; font-size:11px; padding:2px 6px; background:#fce7f3; border-radius:4px; margin-left:auto;">' + (b.status || '').toUpperCase() + '</span>';
+                    html += '</div>';
+                    html += '<div class="audit-timeline-notes" onclick="event.stopPropagation()">';
+                    html += '<strong style="display:block; margin-bottom:6px; color:#64748b; font-size:12px; text-transform:uppercase;"><i class="fa-solid fa-comment-dots" style="margin-right:4px;"></i> Reason for Bypass</strong>';
+                    html += '<div style="line-height:1.6;">' + (b.reason || '<em style="color:#94a3b8;">No reason provided.</em>') + '</div>';
+                    if (b.admin_remarks) {
+                        html += '<strong style="display:block; margin-top:10px; margin-bottom:6px; color:#64748b; font-size:12px; text-transform:uppercase;"><i class="fa-solid fa-reply" style="margin-right:4px;"></i> Admin Remarks</strong>';
+                        html += '<div style="line-height:1.6; color:#0f172a; background:#f1f5f9; padding:8px; border-radius:4px;">' + b.admin_remarks + '</div>';
+                    }
+                    html += '</div>';
+                    html += '<div class="click-hint"><i class="fa-solid fa-hand-pointer"></i> Click to view details</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                contentDiv.innerHTML = html;
+            }
+        } catch (e) {
+            contentDiv.innerHTML = '<div class="alert alert-danger">Error parsing bypass data.</div>';
+            console.error(e);
+        }
+
+        var myModal = new bootstrap.Modal(document.getElementById('bypassModal'));
         myModal.show();
     }
     function sendCredentialMail(allotteeId, btnElement) {

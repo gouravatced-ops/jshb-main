@@ -28,6 +28,13 @@ Route::middleware('auth')
         Route::post('/applications/{id}/site-verification', [App\Http\Controllers\Engineer\ApplicationController::class, 'storeSiteVerification'])->name('applications.site-verification.store');
         
         Route::post('/document-requests/store', [App\Http\Controllers\Engineer\ApplicationController::class, 'requestDocument'])->name('document-requests.store');
+        
+        // Correspondence (LT, OO, OD)
+        Route::get('/applications/{application}/correspondence/create', [App\Http\Controllers\Engineer\CorrespondenceController::class, 'create'])->name('applications.correspondence.create');
+        Route::post('/applications/{application}/correspondence', [App\Http\Controllers\Engineer\CorrespondenceController::class, 'store'])->name('applications.correspondence.store');
+        Route::get('/applications/{application}/correspondence/{correspondence}', [App\Http\Controllers\Engineer\CorrespondenceController::class, 'show'])->name('applications.correspondence.show');
+        Route::get('/applications/{application}/correspondence/{correspondence}/edit', [App\Http\Controllers\Engineer\CorrespondenceController::class, 'edit'])->name('applications.correspondence.edit');
+        Route::put('/applications/{application}/correspondence/{correspondence}', [App\Http\Controllers\Engineer\CorrespondenceController::class, 'update'])->name('applications.correspondence.update');
 
         // Assets (Signatures, Stamps)
         Route::get('/assets', [App\Http\Controllers\Engineer\AssetController::class, 'index'])->name('assets.index');

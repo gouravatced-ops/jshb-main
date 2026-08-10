@@ -62,7 +62,7 @@
                 </div>
 
                 <div class="hero-description">
-                    Jharkhand Housing Board – comprehensive digital management for allotments, schemes, public works.
+                    Jharkhand State Housing Board – comprehensive digital management for allotments, schemes.
                 </div>
             </div>
 

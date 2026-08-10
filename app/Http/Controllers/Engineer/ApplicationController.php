@@ -203,7 +203,10 @@ class ApplicationController extends Controller
             'notes.user.division',
             'documents',
             'workflow.requiredDocuments',
-            'workflow.steps.role'
+            'workflow.steps.role',
+            'bypassRequests' => function ($q) {
+                $q->where('status', 'pending');
+            }
         ]);
 
         $documentMasters = \App\Models\DocumentMaster::where('status', 1)->orderBy('sort_order')->get();
@@ -237,17 +240,29 @@ class ApplicationController extends Controller
             abort(404);
         }
 
+        $approvedBypass = \App\Models\BypassRequest::where('application_id', $application->id)
+            ->where('status', 'approved')
+            ->where('is_used', false)
+            ->orderBy('id', 'desc')
+            ->first();
+
         $nextStep = null;
         $forwardOptions = [];
         $sendBackOptions = [];
 
         if ($action_type == 'forward' && $application->currentStep) {
-            $eligibleSteps = WorkflowStep::with('role')
-                ->where('workflow_id', $application->workflow_id)
-                ->whereIn('action_type', ['verify', 'approve'])
-                ->where('step_order', '>', $application->currentStep->step_order)
-                ->orderBy('step_order', 'asc')
-                ->get();
+            if ($approvedBypass) {
+                $eligibleSteps = WorkflowStep::with('role')
+                    ->where('id', $approvedBypass->target_step_id)
+                    ->get();
+            } else {
+                $eligibleSteps = WorkflowStep::with('role')
+                    ->where('workflow_id', $application->workflow_id)
+                    ->whereIn('action_type', ['verify', 'approve'])
+                    ->where('step_order', '>', $application->currentStep->step_order)
+                    ->orderBy('step_order', 'asc')
+                    ->get();
+            }
 
             $divisionId = $application->allottee->division_id ?? null;
 
@@ -323,14 +338,14 @@ class ApplicationController extends Controller
                 ->exists();
         }
 
-        return view('engineer.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep', 'forwardOptions', 'sendBackOptions', 'isSiteVerificationStep', 'isSiteVerificationCompleted'));
+        return view('engineer.applications.actions.' . $action_type, compact('application', 'roles', 'nextStep', 'forwardOptions', 'sendBackOptions', 'isSiteVerificationStep', 'isSiteVerificationCompleted', 'approvedBypass'));
     }
 
     public function processAction(Request $request, Application $application)
     {
         $request->validate([
             'action_type' => 'required|string',
-            'remarks' => 'required|string'
+            'remarks' => $request->has('is_bypass_request') ? 'nullable|string' : 'required|string'
         ]);
 
         if ($request->action_type == 'forward' && $application->currentStep && $application->currentStep->action_type == 'site_verification') {
@@ -385,6 +400,91 @@ class ApplicationController extends Controller
 
             $nextStep = WorkflowStep::find($nextStepId);
             $targetUser = User::on('adms_jshb')->find($targetUserId);
+            
+            if ($request->has('is_bypass_request') && $request->is_bypass_request == '1') {
+                $request->validate([
+                    'bypass_reason' => 'required|string'
+                ]);
+
+                \App\Models\BypassRequest::create([
+                    'application_id' => $application->id,
+                    'requested_by_user_id' => $user->id,
+                    'target_step_id' => $nextStepId,
+                    'target_role_id' => $nextStep ? $nextStep->role_id : null,
+                    'target_user_id' => $targetUserId,
+                    'reason' => $request->bypass_reason,
+                    'status' => 'pending',
+                ]);
+
+                // Save Noting only if remarks are provided
+                if ($request->filled('remarks')) {
+                    \App\Models\ApplicationNote::create([
+                        'application_id' => $application->id,
+                        'user_id' => $user->id,
+                        'role_id' => $user->role_id,
+                        'remarks' => $request->remarks,
+                        'font_family' => $request->font_family ?? 'english',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+
+                // Notify Admins
+                $admins = \App\Models\User::on('adms_jshb')->where('role_id', 1)->get();
+                $mailSubject = "Bypass Request Pending for Application: " . $application->application_no;
+                $mailBody = "A workflow bypass request has been requested by " . $user->name . " for Application No: " . $application->application_no . ". Reason: " . $request->bypass_reason;
+                $link = route('admin.bypass-requests.index');
+
+                foreach ($admins as $admin) {
+                    \App\Models\Notification::create([
+                        'application_id' => $application->id,
+                        'user_id' => $admin->id,
+                        'notification_type' => 'bypass_request',
+                        'subject' => $mailSubject,
+                        'message' => $mailBody,
+                        'link' => $link,
+                        'is_read' => false
+                    ]);
+
+                    if ($admin->email) {
+                        try {
+                            \Illuminate\Support\Facades\Mail::to($admin->email)->send(new \App\Mail\GenericNotificationMail($mailSubject, $mailBody, $link));
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error("Failed to send bypass request mail to admin: " . $e->getMessage());
+                        }
+                    }
+                }
+
+                return redirect()->route('engineer.applications.show', $application)
+                    ->with('success', 'Bypass Request submitted successfully. Waiting for Admin approval.');
+            }
+
+            // Not a new bypass request - Validate if it's a skipped level
+            if ($application->currentStep) {
+                $immediateNextStep = \App\Models\WorkflowStep::where('workflow_id', $application->workflow_id)
+                    ->whereIn('action_type', ['verify', 'approve'])
+                    ->where('step_order', '>', $application->currentStep->step_order)
+                    ->orderBy('step_order', 'asc')
+                    ->first();
+
+                if ($immediateNextStep && $nextStepId != $immediateNextStep->id) {
+                    // This is a bypass forward! Verify there's an approved request for this step.
+                    $approvedBypass = \App\Models\BypassRequest::where('application_id', $application->id)
+                        ->where('target_step_id', $nextStepId)
+                        ->where('status', 'approved')
+                        ->where('is_used', false)
+                        ->first();
+
+                    if (!$approvedBypass) {
+                        return redirect()->back()->with('error', 'You cannot forward to this step without an approved bypass request from Admin.');
+                    }
+
+                    // Mark as used so it cannot be reused if sent back
+                    $approvedBypass->is_used = true;
+                    $approvedBypass->save();
+                }
+            }
+
             $newStatus = 'forwarded';
         } elseif ($request->action_type == 'send_back') {
             $request->validate([

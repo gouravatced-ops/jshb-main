@@ -534,7 +534,7 @@ body {
     align-items: center;
     justify-content: center;
     background: #f8fafc;
-    border: 1px solid #e9edf2;
+    /* border: 1px solid #e9edf2; */
     border-radius: 0.25rem;
     transition: all 0.2s ease;
     padding: 2px;

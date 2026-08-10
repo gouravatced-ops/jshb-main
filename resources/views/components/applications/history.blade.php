@@ -11,7 +11,7 @@
                 <i class="fa-solid fa-filter"></i> Filter
             </button>
             @if(request()->anyFilled(['application_no', 'status', 'created_date_from', 'created_date_to', 'property_number', 'sub_division_id']))
-                <a href="{{ route($routePrefix . '.applications.history') }}" class="btn-secondary" style="padding: 8px 16px; font-size: 14px; background: #e2e8f0; color: #334155; border-radius: 4px; text-decoration: none; margin-left: 10px;">Clear</a>
+            <a href="{{ route($routePrefix . '.applications.history') }}" class="btn-secondary" style="padding: 8px 16px; font-size: 14px; background: #e2e8f0; color: #334155; border-radius: 4px; text-decoration: none; margin-left: 10px;">Clear</a>
             @endif
         </div>
     </div>
@@ -25,7 +25,7 @@
                     <button type="button" onclick="closeFilterModal()" style="background: none; border: none; font-size: 22px; color: #999; cursor: pointer; line-height: 1;">&times;</button>
                 </div>
             </div>
-            
+
             <form action="{{ route($routePrefix . '.applications.history') }}" method="GET">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                     <div>
@@ -33,7 +33,7 @@
                         <select name="sub_division_id" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                             <option value="">All Sub Divisions</option>
                             @foreach($subDivisions as $sd)
-                                <option value="{{ $sd->id }}" {{ request('sub_division_id') == $sd->id ? 'selected' : '' }}>{{ $sd->name }}</option>
+                            <option value="{{ $sd->id }}" {{ request('sub_division_id') == $sd->id ? 'selected' : '' }}>{{ $sd->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -119,9 +119,18 @@
                         <div class="table-user">
                             <div>
                                 <div class="table-name">{{ trim(($app->allottee->prefix ?? '') . ' ' . ($app->allottee->allottee_name ?? '') . ' ' . ($app->allottee->allottee_middle_name ?? '') . ' ' . ($app->allottee->allottee_surname ?? '')) ?: '-' }}</div>
-                                <div class="table-subtitle">{{ trim(($app->allottee->allottee_prefix_hindi ?? '') . ' ' . ($app->allottee->allottee_name_hindi ?? '') . ' ' . ($app->allottee->allottee_middle_hindi ?? '') . ' ' . ($app->allottee->allottee_surname_hindi ?? '')) ?: '-' }}</div>
+                                <div class="table-subtitle">
+                                    {{ $app->allottee_prefix_hindi ?? '' }}
+
+                                    <span style="font-family: 'KrutiDev', sans-serif, Arial; font-size: 20px;">
+                                        {{ trim(
+                                            ($app->allottee_name_hindi ?? '') . ' ' .
+                                            ($app->allottee_middle_hindi ?? '') . ' ' .
+                                            ($app->allottee_surname_hindi ?? '')
+                                        ) ?: '-' }}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
                     </td>
                     <td>
                         <div>Property: {{ $app->allottee->property_number ?? 'N/A' }}</div>
@@ -132,18 +141,18 @@
                     </td>
                     <td>
                         @if($app->status == 'completed' || $app->status == 'approved')
-                            <span class="badge-status active"><i class="fa-solid fa-check"></i> {{ ucfirst($app->status) }}</span>
+                        <span class="badge-status active"><i class="fa-solid fa-check"></i> {{ ucfirst($app->status) }}</span>
                         @elseif($app->status == 'rejected')
-                            <span class="badge-status inactive"><i class="fa-solid fa-times"></i> {{ ucfirst($app->status) }}</span>
+                        <span class="badge-status inactive"><i class="fa-solid fa-times"></i> {{ ucfirst($app->status) }}</span>
                         @else
-                            <span class="badge-status" style="background:#e2e8f0; color:#333;"><i class="fa-solid fa-spinner"></i> {{ ucfirst(str_replace('_', ' ', $app->status)) }}</span>
+                        <span class="badge-status" style="background:#e2e8f0; color:#333;"><i class="fa-solid fa-spinner"></i> {{ ucfirst(str_replace('_', ' ', $app->status)) }}</span>
                         @endif
                     </td>
                     <td>
                         @if($app->priority === 'Urgent' || $app->priority === 'Overdue')
-                            <span class="badge-status inactive"><i class="fa-solid fa-circle"></i> {{ $app->priority }}</span>
+                        <span class="badge-status inactive"><i class="fa-solid fa-circle"></i> {{ $app->priority }}</span>
                         @else
-                            <span class="badge-status active"><i class="fa-solid fa-circle"></i> {{ $app->priority }}</span>
+                        <span class="badge-status active"><i class="fa-solid fa-circle"></i> {{ $app->priority }}</span>
                         @endif
                     </td>
                     <td>
@@ -156,36 +165,36 @@
             </tbody>
         </table>
     </div>
-    
+
     @if ($applications->total() > 0)
-        <div class="table-pagination">
-            <span>
-                Showing <strong>{{ $applications->firstItem() }}</strong> to
-                <strong>{{ $applications->lastItem() }}</strong> of <strong>{{ $applications->total() }}</strong>
-                applications
-            </span>
-            <div class="pagination-btns">
-                @if ($applications->onFirstPage())
-                    <span class="pag-btn" style="pointer-events:none;opacity:.5;"><i
-                            class="fa-solid fa-chevron-left"></i></span>
-                @else
-                    <a class="pag-btn" href="{{ $applications->previousPageUrl() }}"><i
-                            class="fa-solid fa-chevron-left"></i></a>
-                @endif
+    <div class="table-pagination">
+        <span>
+            Showing <strong>{{ $applications->firstItem() }}</strong> to
+            <strong>{{ $applications->lastItem() }}</strong> of <strong>{{ $applications->total() }}</strong>
+            applications
+        </span>
+        <div class="pagination-btns">
+            @if ($applications->onFirstPage())
+            <span class="pag-btn" style="pointer-events:none;opacity:.5;"><i
+                    class="fa-solid fa-chevron-left"></i></span>
+            @else
+            <a class="pag-btn" href="{{ $applications->previousPageUrl() }}"><i
+                    class="fa-solid fa-chevron-left"></i></a>
+            @endif
 
-                @foreach ($applications->getUrlRange(1, $applications->lastPage()) as $page => $url)
-                    <a class="pag-btn {{ $page === $applications->currentPage() ? 'active' : '' }}"
-                        href="{{ $url }}">{{ $page }}</a>
-                @endforeach
+            @foreach ($applications->getUrlRange(1, $applications->lastPage()) as $page => $url)
+            <a class="pag-btn {{ $page === $applications->currentPage() ? 'active' : '' }}"
+                href="{{ $url }}">{{ $page }}</a>
+            @endforeach
 
-                @if ($applications->hasMorePages())
-                    <a class="pag-btn" href="{{ $applications->nextPageUrl() }}"><i
-                            class="fa-solid fa-chevron-right"></i></a>
-                @else
-                    <span class="pag-btn" style="pointer-events:none;opacity:.5;"><i
-                            class="fa-solid fa-chevron-right"></i></span>
-                @endif
-            </div>
+            @if ($applications->hasMorePages())
+            <a class="pag-btn" href="{{ $applications->nextPageUrl() }}"><i
+                    class="fa-solid fa-chevron-right"></i></a>
+            @else
+            <span class="pag-btn" style="pointer-events:none;opacity:.5;"><i
+                    class="fa-solid fa-chevron-right"></i></span>
+            @endif
         </div>
+    </div>
     @endif
 </div>
