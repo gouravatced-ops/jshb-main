@@ -26,6 +26,10 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
+Route::get('/e-lottery', function () {
+    return view('elottery');
+})->name('elottery');
+
 Route::get('/tenders', function () {
     return view('tenders');
 })->name('tenders');

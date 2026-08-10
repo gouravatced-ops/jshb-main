@@ -95,6 +95,38 @@
             href="{{ route('admin.workflows.create') }}">
             <i class="fa-solid fa-plus"></i> Add Workflow
         </a>
+
+    </div>
+</div>
+
+<!-- Bypass Management -->
+@php
+    $pendingBypassCount = \App\Models\BypassRequest::where('status', 'pending')->count();
+@endphp
+<div class="nav-item-wrap">
+    <div class="nav-link-custom {{ request()->routeIs('admin.bypass-requests.*') ? 'active' : '' }}" onclick="toggleSubmenu('bypass-requests-menu',this)">
+        <div class="nav-icon">
+            <i class="fa-solid fa-forward-step" style="color: #ffc107;"></i>
+        </div>
+        <span class="nav-text" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            Bypass Requests
+            @if($pendingBypassCount > 0)
+                <span class="badge bg-danger rounded-pill" style="font-size: 11px; padding: 3px 6px;">{{ $pendingBypassCount }}</span>
+            @endif
+        </span>
+        <i class="fa-solid fa-chevron-right nav-chevron" id="bypass-requests-menu-chev"></i>
+    </div>
+
+    <div class="submenu" id="bypass-requests-menu" style="{{ request()->routeIs('admin.bypass-requests.*') ? 'display:block' : '' }}">
+        <a class="submenu-item {{ request()->routeIs('admin.bypass-requests.index') ? 'active' : '' }}"
+            href="{{ route('admin.bypass-requests.index') }}">
+            <i class="fa-solid fa-list-check"></i> Pending Requests
+        </a>
+
+        <a class="submenu-item {{ request()->routeIs('admin.bypass-requests.history') ? 'active' : '' }}"
+            href="{{ route('admin.bypass-requests.history') }}">
+            <i class="fa-solid fa-clock-rotate-left"></i> Bypass History
+        </a>
     </div>
 </div>
 

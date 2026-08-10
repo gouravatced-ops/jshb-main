@@ -59,6 +59,11 @@ class Application extends Model
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
+    public function bypassRequests()
+    {
+        return $this->hasMany(BypassRequest::class, 'application_id');
+    }
+
     public function currentStep()
     {
         return $this->belongsTo(WorkflowStep::class, 'current_step_id');
@@ -77,6 +82,11 @@ class Application extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function correspondences()
+    {
+        return $this->hasMany(ApplicationCorrespondence::class);
     }
 
     public function movements()

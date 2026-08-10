@@ -1,255 +1,258 @@
 @extends('layouts.public')
 
 @section('content')
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-bg-gradient"></div>
-        <div class="hero-bg-pattern"></div>
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg-gradient"></div>
+    <div class="hero-bg-pattern"></div>
 
-        <div class="container hero-grid">
+    <div class="container hero-grid">
+        <div>
+            <div class="live-badge">
+                <span class="ping">
+                    <span class="ping-circle"></span>
+                    <span class="ping-dot"></span>
+                </span>
+                Official Portal Live
+            </div>
+
+            <h1 class="hero-title">
+                Building Homes, <br>
+                <span class="text-gradient">Building Jharkhand.</span>
+            </h1>
+
+            <p class="hero-desc">
+                The comprehensive digital platform for allotments, housing schemes, and public works management. Access your member portal for a seamless digital experience.
+            </p>
+
+            <div class="hero-actions">
+                <a href="{{ route('login') }}" class="btn-large btn-dark">
+                    Access Portal <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <a href="{{ route('elottery') }}" class="btn-large btn-outline">
+                    <i class="fa-solid fa-ticket"></i> E-Lottery
+                </a>
+                <a href="#schemes" class="btn-large btn-outline">
+                    View Schemes
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-image-wrapper">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+
+            <div class="glass-card" style="padding: 1rem;">
+                <!-- Carousel Container -->
+                <div class="carousel-container" id="heroCarousel">
+                    <div class="carousel-slide active">
+                        <img src="{{ asset('img/slider1.png') }}" alt="Slider 1" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Jharkhand+Housing'">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ asset('img/slider_3.png') }}" alt="Slider 3" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Digital+Governance'">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ asset('img/slider2.png') }}" alt="Slider 2" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Building+Jharkhand'">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ asset('img/slider_4.png') }}" alt="Slider 3" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Digital+Governance'">
+                    </div>
+
+                    <!-- Indicators -->
+                    <div class="carousel-indicators">
+                        <span class="indicator active" onclick="goToSlide(0)"></span>
+                        <span class="indicator" onclick="goToSlide(1)"></span>
+                        <span class="indicator" onclick="goToSlide(2)"></span>
+                        <span class="indicator" onclick="goToSlide(3)"></span>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <i class="fa-solid fa-building-user stat-icon"></i>
+                        <h3 class="stat-value">Digital</h3>
+                        <p class="stat-label">Allotments</p>
+                    </div>
+                    <div class="stat-box blue">
+                        <i class="fa-solid fa-file-signature stat-icon"></i>
+                        <h3 class="stat-value">Secure</h3>
+                        <p class="stat-label">Applications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Key Features Section (With Background Pattern) -->
+<section id="schemes" class="section-padding bg-subtle-pattern">
+    <div class="container">
+        <div class="section-title-wrapper">
+            <span class="section-subtitle">Our Services</span>
+            <h2 class="section-title">Everything you need to <br>manage your housing journey</h2>
+        </div>
+
+        <div class="features-grid">
+            <!-- Feature 1 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <i class="fa-solid fa-house-user"></i>
+                </div>
+                <h3>Digital Allotments</h3>
+                <p>Apply for housing schemes, track your application status, and manage your property allotments completely online without visiting the office.</p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <h3>Online Payments</h3>
+                <p>Securely pay your EMI, maintenance charges, and processing fees through our integrated digital payment gateway.</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <i class="fa-solid fa-helmet-safety"></i>
+                </div>
+                <h3>Public Works</h3>
+                <p>Track ongoing construction, view public works tenders, and monitor the progress of housing board development projects.</p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <h3>Support & Grievances</h3>
+                <p>Lodge complaints, submit requests for property transfers, and communicate directly with the housing board officials.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Allottee Portal Dedicated Section -->
+<section id="allottee" class="section-padding" style="background-color: #7f1d1d; color: white;">
+    <div class="container">
+        <div class="hero-grid" style="align-items: center;">
             <div>
-                <div class="live-badge">
-                    <span class="ping">
-                        <span class="ping-circle"></span>
-                        <span class="ping-dot"></span>
-                    </span>
-                    Official Portal Live
-                </div>
-
-                <h1 class="hero-title">
-                    Building Homes, <br>
-                    <span class="text-gradient">Building Jharkhand.</span>
-                </h1>
-
-                <p class="hero-desc">
-                    The comprehensive digital platform for allotments, housing schemes, and public works management. Access your member portal for a seamless digital experience.
+                <span class="live-badge" style="background: rgba(255,255,255,0.1); color: var(--primary); border-color: rgba(250, 204, 21, 0.3);">
+                    <i class="fa-solid fa-star"></i> For Existing Allottees
+                </span>
+                <h2 class="section-title" style="color: white; margin-bottom: 1rem;">Exclusive Allottee Portal</h2>
+                <p class="hero-desc" style="color: #f1f5f9; margin-bottom: 2rem;">
+                    Are you an existing property owner under the Jharkhand State Housing Board? Access your dedicated dashboard to manage your property, pay EMIs, view maintenance dues, and download important documents.
                 </p>
-
-                <div class="hero-actions">
-                    <a href="{{ route('login') }}" class="btn-large btn-dark">
-                        Access Portal <i class="fa-solid fa-arrow-right"></i>
-                    </a>
-                    <a href="#schemes" class="btn-large btn-outline">
-                        View Schemes
-                    </a>
-                </div>
+                <a href="https://portal.adms.jshb.computered.co.in/" target="_blank" class="btn-large btn-dark" style="background: var(--primary); color: var(--secondary-dark);">
+                    Go to Allottee Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
             </div>
-
-            <div class="hero-image-wrapper">
-                <div class="blob blob-1"></div>
-                <div class="blob blob-2"></div>
-
-                <div class="glass-card" style="padding: 1rem;">
-                    <!-- Carousel Container -->
-                    <div class="carousel-container" id="heroCarousel">
-                        <div class="carousel-slide active">
-                            <img src="{{ asset('img/slider1.png') }}" alt="Slider 1" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Jharkhand+Housing'">
-                        </div>
-                        <div class="carousel-slide">
-                            <img src="{{ asset('img/slider_3.png') }}" alt="Slider 3" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Digital+Governance'">
-                        </div>
-                        <div class="carousel-slide">
-                            <img src="{{ asset('img/slider2.png') }}" alt="Slider 2" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Building+Jharkhand'">
-                        </div>
-                        <div class="carousel-slide">
-                            <img src="{{ asset('img/slider_4.png') }}" alt="Slider 3" class="carousel-img" onerror="this.src='https://placehold.co/600x400/f8fafc/94a3b8?text=Digital+Governance'">
-                        </div>
-
-                        <!-- Indicators -->
-                        <div class="carousel-indicators">
-                            <span class="indicator active" onclick="goToSlide(0)"></span>
-                            <span class="indicator" onclick="goToSlide(1)"></span>
-                            <span class="indicator" onclick="goToSlide(2)"></span>
-                            <span class="indicator" onclick="goToSlide(3)"></span>
-                        </div>
-                    </div>
-
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <i class="fa-solid fa-building-user stat-icon"></i>
-                            <h3 class="stat-value">Digital</h3>
-                            <p class="stat-label">Allotments</p>
-                        </div>
-                        <div class="stat-box blue">
-                            <i class="fa-solid fa-file-signature stat-icon"></i>
-                            <h3 class="stat-value">Secure</h3>
-                            <p class="stat-label">Applications</p>
-                        </div>
-                    </div>
+            <div style="text-align: right;">
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2.5rem; display: inline-block;">
+                    <i class="fa-solid fa-house-chimney-user" style="font-size: 6rem; color: var(--primary); margin-bottom: 1.5rem;"></i>
+                    <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Manage Your Property</h3>
+                    <p style="color: #cbd5e1; font-size: 0.95rem;">Secure, Digital & Transparent</p>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Key Features Section (With Background Pattern) -->
-    <section id="schemes" class="section-padding bg-subtle-pattern">
-        <div class="container">
-            <div class="section-title-wrapper">
-                <span class="section-subtitle">Our Services</span>
-                <h2 class="section-title">Everything you need to <br>manage your housing journey</h2>
+<!-- New Dynamic Section: Latest Announcements -->
+<section id="announcements" class="section-padding bg-soft-emerald">
+    <div class="container">
+        <div class="section-title-wrapper">
+            <span class="section-subtitle" style="color: var(--primary-dark);">Stay Updated</span>
+            <h2 class="section-title light">Latest Announcements & <br>Important Notices</h2>
+        </div>
+
+        <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem;">
+            <!-- News 1 -->
+            <div class="news-card">
+                <img src="{{ asset('img/slider2.png') }}" alt="News" class="news-image" onerror="this.src='https://placehold.co/400x250/e2e8f0/64748b?text=News+Update'">
+                <div class="news-content">
+                    <span class="news-date">August 15, 2026</span>
+                    <h3 class="news-title">New Housing Scheme Launched in Ranchi</h3>
+                    <p class="news-desc">The board has announced a new affordable housing scheme for LIG/MIG categories. Apply online before September 30th.</p>
+                </div>
             </div>
 
-            <div class="features-grid">
-                <!-- Feature 1 -->
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">
-                        <i class="fa-solid fa-house-user"></i>
-                    </div>
-                    <h3>Digital Allotments</h3>
-                    <p>Apply for housing schemes, track your application status, and manage your property allotments completely online without visiting the office.</p>
+            <!-- News 2 -->
+            <div class="news-card">
+                <img src="{{ asset('img/slider1.png') }}" alt="News" class="news-image" onerror="this.src='https://placehold.co/400x250/e2e8f0/64748b?text=Digital+Payment'">
+                <div class="news-content">
+                    <span class="news-date">July 20, 2026</span>
+                    <h3 class="news-title">Online Payment Gateway Integration</h3>
+                    <p class="news-desc">Allottees can now pay their monthly EMIs and maintenance dues seamlessly through our newly integrated UPI and Card payment systems.</p>
                 </div>
+            </div>
 
-                <!-- Feature 2 -->
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">
-                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                    </div>
-                    <h3>Online Payments</h3>
-                    <p>Securely pay your EMI, maintenance charges, and processing fees through our integrated digital payment gateway.</p>
-                </div>
-
-                <!-- Feature 3 -->
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">
-                        <i class="fa-solid fa-helmet-safety"></i>
-                    </div>
-                    <h3>Public Works</h3>
-                    <p>Track ongoing construction, view public works tenders, and monitor the progress of housing board development projects.</p>
-                </div>
-
-                <!-- Feature 4 -->
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">
-                        <i class="fa-solid fa-headset"></i>
-                    </div>
-                    <h3>Support & Grievances</h3>
-                    <p>Lodge complaints, submit requests for property transfers, and communicate directly with the housing board officials.</p>
+            <!-- News 3 -->
+            <div class="news-card">
+                <img src="{{ asset('img/slider_4.png') }}" alt="News" class="news-image" onerror="this.src='https://placehold.co/400x250/e2e8f0/64748b?text=Public+Notice'">
+                <div class="news-content">
+                    <span class="news-date">July 10, 2026</span>
+                    <h3 class="news-title">Important Notice for Defaulters</h3>
+                    <p class="news-desc">Final notice issued for pending dues. Please clear your outstanding balances immediately to avoid legal action and penalty charges.</p>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Allottee Portal Dedicated Section -->
-    <section id="allottee" class="section-padding" style="background-color: #7f1d1d; color: white;">
-        <div class="container">
-            <div class="hero-grid" style="align-items: center;">
-                <div>
-                    <span class="live-badge" style="background: rgba(255,255,255,0.1); color: var(--primary); border-color: rgba(250, 204, 21, 0.3);">
-                        <i class="fa-solid fa-star"></i> For Existing Allottees
-                    </span>
-                    <h2 class="section-title" style="color: white; margin-bottom: 1rem;">Exclusive Allottee Portal</h2>
-                    <p class="hero-desc" style="color: #f1f5f9; margin-bottom: 2rem;">
-                        Are you an existing property owner under the Jharkhand State Housing Board? Access your dedicated dashboard to manage your property, pay EMIs, view maintenance dues, and download important documents.
-                    </p>
-                    <a href="https://portal.adms.jshb.computered.co.in/" target="_blank" class="btn-large btn-dark" style="background: var(--primary); color: var(--secondary-dark);">
-                        Go to Allottee Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </a>
-                </div>
-                <div style="text-align: right;">
-                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2.5rem; display: inline-block;">
-                        <i class="fa-solid fa-house-chimney-user" style="font-size: 6rem; color: var(--primary); margin-bottom: 1.5rem;"></i>
-                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Manage Your Property</h3>
-                        <p style="color: #cbd5e1; font-size: 0.95rem;">Secure, Digital & Transparent</p>
-                    </div>
-                </div>
-            </div>
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="#all-news" class="btn-primary" style="padding: 1rem 2.5rem;">View All Updates</a>
         </div>
-    </section>
-
-    <!-- New Dynamic Section: Latest Announcements -->
-    <section id="announcements" class="section-padding bg-soft-emerald">
-        <div class="container">
-            <div class="section-title-wrapper">
-                <span class="section-subtitle" style="color: var(--primary-dark);">Stay Updated</span>
-                <h2 class="section-title light">Latest Announcements & <br>Important Notices</h2>
-            </div>
-
-            <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem;">
-                <!-- News 1 -->
-                <div class="news-card">
-                    <img src="{{ asset('img/slider2.png') }}" alt="News" class="news-image" onerror="this.src='https://placehold.co/400x250/e2e8f0/64748b?text=News+Update'">
-                    <div class="news-content">
-                        <span class="news-date">August 15, 2026</span>
-                        <h3 class="news-title">New Housing Scheme Launched in Ranchi</h3>
-                        <p class="news-desc">The board has announced a new affordable housing scheme for LIG/MIG categories. Apply online before September 30th.</p>
-                    </div>
-                </div>
-
-                <!-- News 2 -->
-                <div class="news-card">
-                    <img src="{{ asset('img/slider1.png') }}" alt="News" class="news-image" onerror="this.src='https://placehold.co/400x250/e2e8f0/64748b?text=Digital+Payment'">
-                    <div class="news-content">
-                        <span class="news-date">July 20, 2026</span>
-                        <h3 class="news-title">Online Payment Gateway Integration</h3>
-                        <p class="news-desc">Allottees can now pay their monthly EMIs and maintenance dues seamlessly through our newly integrated UPI and Card payment systems.</p>
-                    </div>
-                </div>
-
-                <!-- News 3 -->
-                <div class="news-card">
-                    <img src="{{ asset('img/slider_4.png') }}" alt="News" class="news-image" onerror="this.src='https://placehold.co/400x250/e2e8f0/64748b?text=Public+Notice'">
-                    <div class="news-content">
-                        <span class="news-date">July 10, 2026</span>
-                        <h3 class="news-title">Important Notice for Defaulters</h3>
-                        <p class="news-desc">Final notice issued for pending dues. Please clear your outstanding balances immediately to avoid legal action and penalty charges.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 3rem;">
-                <a href="#all-news" class="btn-primary" style="padding: 1rem 2.5rem;">View All Updates</a>
-            </div>
-        </div>
-    </section>
+    </div>
+</section>
 
 @endsection
 
 @push('scripts')
-    <!-- Carousel Logic -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const slides = document.querySelectorAll('.carousel-slide');
-            const indicators = document.querySelectorAll('.indicator');
-            let currentSlide = 0;
-            let slideInterval;
+<!-- Carousel Logic -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slides = document.querySelectorAll('.carousel-slide');
+        const indicators = document.querySelectorAll('.indicator');
+        let currentSlide = 0;
+        let slideInterval;
 
-            function showSlide(index) {
-                // Remove active class from all
-                slides.forEach(slide => slide.classList.remove('active'));
-                indicators.forEach(indicator => indicator.classList.remove('active'));
+        function showSlide(index) {
+            // Remove active class from all
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
 
-                // Set new active slide
-                currentSlide = index;
-                if (currentSlide >= slides.length) currentSlide = 0;
-                if (currentSlide < 0) currentSlide = slides.length - 1;
+            // Set new active slide
+            currentSlide = index;
+            if (currentSlide >= slides.length) currentSlide = 0;
+            if (currentSlide < 0) currentSlide = slides.length - 1;
 
-                slides[currentSlide].classList.add('active');
-                if (indicators[currentSlide]) indicators[currentSlide].classList.add('active');
-            }
+            slides[currentSlide].classList.add('active');
+            if (indicators[currentSlide]) indicators[currentSlide].classList.add('active');
+        }
 
-            function nextSlide() {
-                showSlide(currentSlide + 1);
-            }
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
 
-            // Expose goToSlide globally for indicator clicks
-            window.goToSlide = function(index) {
-                showSlide(index);
-                resetInterval();
-            };
+        // Expose goToSlide globally for indicator clicks
+        window.goToSlide = function(index) {
+            showSlide(index);
+            resetInterval();
+        };
 
-            function startInterval() {
-                slideInterval = setInterval(nextSlide, 4000); // Change image every 4 seconds
-            }
+        function startInterval() {
+            slideInterval = setInterval(nextSlide, 4000); // Change image every 4 seconds
+        }
 
-            function resetInterval() {
-                clearInterval(slideInterval);
-                startInterval();
-            }
+        function resetInterval() {
+            clearInterval(slideInterval);
+            startInterval();
+        }
 
-            // Start auto slide
-            if (slides.length > 0) {
-                startInterval();
-            }
-        });
-    </script>
+        // Start auto slide
+        if (slides.length > 0) {
+            startInterval();
+        }
+    });
+</script>
 @endpush

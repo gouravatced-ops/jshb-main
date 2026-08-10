@@ -30,6 +30,7 @@
             <div class="nav-links">
                 <a href="{{ route('about') }}" class="nav-link">About Us</a>
                 <a href="{{ route('schemes') }}" class="nav-link">Schemes</a>
+                <a href="{{ route('elottery') }}" class="nav-link">E-Lottery</a>
                 <a href="{{ route('tenders') }}" class="nav-link">Tenders & Notices</a>
                 <a href="{{ route('contact') }}" class="nav-link">Contact</a>
                 

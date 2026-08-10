@@ -1,8 +1,8 @@
 @props(['application', 'routePrefix', 'documentMasters' => collect(), 'allotteeDocuments' => collect(), 'documentRequests' => collect(), 'requiredDocumentIds' => [], 'excludedDocIds' => [], 'isSiteVerificationCompleted' => false])
 
 @php
-    $hasVerifyUploadRoute    = \Illuminate\Support\Facades\Route::has($routePrefix . '.applications.verify-upload');
-    $hasSiteVerificationRoute = \Illuminate\Support\Facades\Route::has($routePrefix . '.applications.site-verification.form');
+$hasVerifyUploadRoute = \Illuminate\Support\Facades\Route::has($routePrefix . '.applications.verify-upload');
+$hasSiteVerificationRoute = \Illuminate\Support\Facades\Route::has($routePrefix . '.applications.site-verification.form');
 @endphp
 
 @include('components.partials.compact-css')
@@ -21,13 +21,45 @@
 </div>
 
 @php
-    // CoAssistant acts on behalf of their superior (assistant_to_id), so check both role IDs
-    $effectiveRoleId = Auth::user()->assistant_to_id
-        ? (\App\Models\User::find(Auth::user()->assistant_to_id)?->role_id ?? Auth::user()->role_id)
-        : Auth::user()->role_id;
+// CoAssistant acts on behalf of their superior (assistant_to_id), so check both role IDs
+$effectiveRoleId = Auth::user()->assistant_to_id
+? (\App\Models\User::find(Auth::user()->assistant_to_id)?->role_id ?? Auth::user()->role_id)
+: Auth::user()->role_id;
 @endphp
 
-@if(Auth::check() && $application->current_role_id == $effectiveRoleId && $application->currentStep)
+@if($application->bypassRequests->isNotEmpty())
+<div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #ffc107;">
+    <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; background: #fff8e1;">
+        <div>
+            <strong style="color: #d35400; font-size: 14px; margin-right: 15px;">
+                <i class="fa-solid fa-triangle-exclamation" style="color: #e67e22;"></i> Bypass Request Pending
+            </strong><br>
+            <span style="color: #666; font-size: 13px;">A workflow bypass request is pending approval from Admin/Higher Authority.</span>
+        </div>
+    </div>
+</div>
+@endif
+
+@if($application->status === 'rejected')
+@php
+    $rejectMovement = $application->movements->where('action_type', 'rejected')->last();
+@endphp
+<div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #dc3545;">
+    <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; background: #f8d7da;">
+        <div>
+            <strong style="color: #721c24; font-size: 14px; margin-right: 15px;">
+                <i class="fa-solid fa-ban" style="color: #dc3545;"></i> Application Rejected
+            </strong><br>
+            <span style="color: #721c24; font-size: 13px;">This application has been rejected and cannot be processed further.</span>
+            @if($rejectMovement && $rejectMovement->remarks)
+                <div style="margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 4px; font-size: 13px; color: #721c24; border-left: 3px solid #dc3545;">
+                    <strong>Reason for Rejection:</strong> {{ $rejectMovement->remarks }}
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+@elseif(Auth::check() && $application->current_role_id == $effectiveRoleId && $application->currentStep && $application->bypassRequests->isEmpty())
 <div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #3498db;">
     <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;">
         <div>
@@ -50,11 +82,11 @@
             <a href="{{ route($routePrefix . '.applications.action.form', ['application' => $application, 'action_type' => 'approve']) }}" class="btn-compact" style="background: #17a2b8; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-check"></i> Approve</a>
             @endif
             @if($hasSiteVerificationRoute && (strtolower($application->currentStep->action_type) == 'site_verification' || strtolower($application->currentStep->action_type) == 'site verification'))
-                @if(isset($isSiteVerificationCompleted) && $isSiteVerificationCompleted)
-                    <a href="{{ route($routePrefix . '.applications.site-verification.form', \Illuminate\Support\Facades\Crypt::encryptString($application->id)) }}" class="btn-compact" style="background: #28a745; color: #fff; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-circle-check"></i> Site Verified (View)</a>
-                @else
-                    <a href="{{ route($routePrefix . '.applications.site-verification.form', \Illuminate\Support\Facades\Crypt::encryptString($application->id)) }}" class="btn-compact" style="background: #e67e22; color: #fff; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-map-location-dot"></i> Site Verification</a>
-                @endif
+            @if(isset($isSiteVerificationCompleted) && $isSiteVerificationCompleted)
+            <a href="{{ route($routePrefix . '.applications.site-verification.form', \Illuminate\Support\Facades\Crypt::encryptString($application->id)) }}" class="btn-compact" style="background: #28a745; color: #fff; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-circle-check"></i> Site Verified (View)</a>
+            @else
+            <a href="{{ route($routePrefix . '.applications.site-verification.form', \Illuminate\Support\Facades\Crypt::encryptString($application->id)) }}" class="btn-compact" style="background: #e67e22; color: #fff; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-map-location-dot"></i> Site Verification</a>
+            @endif
             @endif
             @if($application->currentStep->can_upload_document)
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#uploadDocModal" style="background: #34495e;"><i class="fa-solid fa-upload"></i> Upload Doc</button>
@@ -65,7 +97,6 @@
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#verifyUploadDocModal" style="background: #17a2b8;"><i class="fa-solid fa-file-signature"></i> Verify & Upload</button>
             @endif
             @endif
-            <a href="{{ route($routePrefix . '.applications.action.form', ['application' => $application, 'action_type' => 'add_note']) }}" class="btn-compact" style="background: #6c757d; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-comment-dots"></i> Add Note</a>
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#workflowModal" style="background: #6f42c1; color: white; border: none; cursor: pointer;"><i class="fa-solid fa-code-branch"></i> View Workflow</button>
         </div>
     </div>
@@ -125,7 +156,17 @@
             </div>
             <div class="data-pair">
                 <div class="data-label">Hindi Name</div>
-                <div class="data-value" style="font-family: 'KrutiDev', sans-serif, Arial; font-size: 20px;">{{ trim(($application->allottee->allottee_prefix_hindi ?? '') . ' ' . ($application->allottee->allottee_name_hindi ?? '') . ' ' . ($application->allottee->allottee_middle_hindi ?? '') . ' ' . ($application->allottee->allottee_surname_hindi ?? '')) ?: '-' }}</div>
+                <div class="data-value">
+                    {{ $application->allottee->allottee_prefix_hindi ?? '' }}
+
+                    <span style="font-family: 'KrutiDev', sans-serif, Arial; font-size: 20px;">
+                        {{ trim(
+                            ($application->allottee->allottee_name_hindi ?? '') . ' ' .
+                            ($application->allottee->allottee_middle_hindi ?? '') . ' ' .
+                            ($application->allottee->allottee_surname_hindi ?? '')
+                        ) ?: '-' }}
+                    </span>
+                </div>
             </div>
             <div class="data-pair">
                 <div class="data-label">Property Number</div>
@@ -252,6 +293,77 @@
             <div style="text-align: center; color: #999; padding: 40px 20px;">
                 <i class="fa-regular fa-comment-dots" style="font-size: 32px; color: #ddd; margin-bottom: 10px;"></i>
                 <div>No application notes available</div>
+            </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Office Correspondences (col-12) -->
+    <div class="compact-card col-span-12">
+        <div class="compact-card-header header-green" style="display: flex; justify-content: space-between; align-items: center; background: #e8f5e9; color: #2e7d32; border-top: 3px solid #4caf50;">
+            <div>
+                <span><i class="fa-solid fa-envelope-open-text"></i> Office Correspondences (LT/OO/OD)</span>
+                <span class="badge-compact" style="background: rgba(46,125,50,0.1); color: #2e7d32; margin-left: 5px;">{{ $application->correspondences ? $application->correspondences->count() : 0 }} Records</span>
+            </div>
+            <a href="{{ route($routePrefix . '.applications.correspondence.create', $application) }}" class="btn-compact" style="background: #4caf50; color: white; border: none; text-decoration: none;"><i class="fa-solid fa-plus"></i> Create New</a>
+        </div>
+        <div class="compact-card-body" style="padding: 0;">
+            @if($application->correspondences && $application->correspondences->count() > 0)
+            <div class="table-responsive">
+                <table class="compact-table">
+                    <thead>
+                        <tr>
+                            <th>Reference No</th>
+                            <th>Type</th>
+                            <th>Subject</th>
+                            <th>Generated By</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($application->correspondences->sortByDesc('id') as $corr)
+                        <tr>
+                            <td style="font-weight: 500; color: #2c3e50;">{{ $corr->reference_number }}</td>
+                            <td>
+                                @if($corr->type == 'LT')
+                                <span class="badge bg-primary" style="font-size: 11px;">Letter</span>
+                                @elseif($corr->type == 'OO')
+                                <span class="badge bg-info" style="font-size: 11px;">Office Order</span>
+                                @else
+                                <span class="badge bg-secondary" style="font-size: 11px;">Office Draft</span>
+                                @endif
+                            </td>
+                            <td>{{ \Illuminate\Support\Str::limit($corr->subject, 40) }}</td>
+                            <td>{{ $corr->generatedBy->name ?? 'System' }}</td>
+                            <td>{{ $corr->created_at->format('d M, Y') }}</td>
+                            <td>
+                                @if($corr->status === 'published')
+                                    <span class="badge bg-success" style="font-size: 11px;"><i class="fa-solid fa-check"></i> Published</span>
+                                @else
+                                    <span class="badge bg-warning text-dark" style="font-size: 11px;"><i class="fa-solid fa-pen"></i> Draft</span>
+                                @endif
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                @if($corr->status !== 'published')
+                                <a href="{{ route($routePrefix . '.applications.correspondence.edit', [$application, $corr]) }}" class="btn-compact" style="background: #f59e0b; color: #fff; text-decoration: none; margin-right: 5px;">
+                                    <i class="fa-solid fa-pen-to-square" style="font-size: 10px;"></i> Edit
+                                </a>
+                                @endif
+                                <a href="{{ route($routePrefix . '.applications.correspondence.show', [$application, $corr]) }}" target="_blank" class="btn-compact" style="background: #34495e; color: #fff; text-decoration: none;">
+                                    <i class="fa-solid fa-eye" style="font-size: 10px;"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @else
+            <div style="text-align: center; color: #999; padding: 40px 20px;">
+                <i class="fa-solid fa-envelope-open" style="font-size: 32px; color: #ddd; margin-bottom: 10px;"></i>
+                <div>No office correspondences generated yet.</div>
             </div>
             @endif
         </div>
