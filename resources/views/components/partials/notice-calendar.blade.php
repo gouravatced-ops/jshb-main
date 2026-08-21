@@ -145,7 +145,7 @@
                 let html = `
                     <div class="card mb-3 border-0 shadow-sm" style="border-left: 4px solid #3b82f6 !important;">
                         <div class="card-body">
-                            <h6 class="card-title fw-bold">
+                            <h6 class="fw-bold">
                                 <span class="badge ${badgeClass} me-2">${typeLabel}</span>
                                 <span style="color:green;">${notice.title}</span>
                             </h6>
@@ -167,7 +167,7 @@
                 let html = `
                     <div class="card mb-3 border-0 shadow-sm" style="border-left: 4px solid #8b5cf6 !important; background-color: #fcfaff;">
                         <div class="card-body">
-                            <h6 class="card-title fw-bold text-dark">
+                            <h6 class="fw-bold text-dark">
                                 <span class="badge me-2" style="background-color: #8b5cf6;"><i class="fa-solid fa-bell me-1"></i> NOTIFICATION</span>
                                 ${notif.subject || 'System Notification'}
                             </h6>
@@ -189,7 +189,7 @@
                 let html = `
                     <div class="card mb-3 border-0 shadow-sm" style="border-left: 4px solid #fa5c7c !important; background-color: #fff0f2;">
                         <div class="card-body">
-                            <h6 class="card-title fw-bold text-dark">
+                            <h6 class="fw-bold text-dark">
                                 <span class="badge me-2 bg-danger"><i class="fa-solid fa-file-signature me-1"></i> FORWARDED APP</span>
                                 App No: ${app.application_no}
                             </h6>

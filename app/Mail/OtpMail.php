@@ -18,17 +18,19 @@ class OtpMail extends Mailable
     public $attachmentPaths;
     public $purpose;
     public $userName;
+    public $fromAddress;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($otp, $messageBody, $attachmentPaths = [], $purpose = 'login', $userName = null)
+    public function __construct($otp, $messageBody, $attachmentPaths = [], $purpose = 'login', $userName = null, $fromAddress = null)
     {
         $this->otp = $otp;
         $this->messageBody = $messageBody;
         $this->attachmentPaths = $attachmentPaths;
         $this->purpose = $purpose;
         $this->userName = $userName;
+        $this->fromAddress = $fromAddress;
     }
 
     /**
@@ -42,7 +44,12 @@ class OtpMail extends Mailable
             default          => 'Verification',
         };
 
+        // Use explicitly passed fromAddress or default to Security email
+        $senderAddress = $this->fromAddress ?: env('MAIL_SECURITY_USERNAME', 'security@adms.jshb.computered.co.in');
+        $from = new \Illuminate\Mail\Mailables\Address($senderAddress, config('app.name') . ' Security');
+
         return new Envelope(
+            from: $from,
             subject: "Your OTP for {$purposeLabel} - " . config('app.name'),
         );
     }

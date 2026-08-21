@@ -17,15 +17,17 @@ class GenericNotificationMail extends Mailable
     public $mailSubject;
     public $mailBody;
     public $link;
+    public $fromAddress;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($mailSubject, $mailBody, $link = null)
+    public function __construct($mailSubject, $mailBody, $link = null, $fromAddress = null)
     {
         $this->mailSubject = $mailSubject;
         $this->mailBody = $mailBody;
         $this->link = $link;
+        $this->fromAddress = $fromAddress;
     }
 
     /**
@@ -33,7 +35,10 @@ class GenericNotificationMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $from = $this->fromAddress ? new \Illuminate\Mail\Mailables\Address($this->fromAddress, config('app.name')) : null;
+
         return new Envelope(
+            from: $from,
             subject: $this->mailSubject,
         );
     }

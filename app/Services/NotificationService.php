@@ -89,7 +89,24 @@ class NotificationService
         // 1. Send Email
         if ($sendEmail && filter_var($emailId, FILTER_VALIDATE_EMAIL)) {
             try {
-                $mailable = $params['mailable'] ?? new GenericNotificationMail($subject, $message, $link);
+                // Determine From Address based on routing rules
+                $fromAddress = null;
+                if ($isAllottee) {
+                    $fromAddress = env('MAIL_NOREPLY_USERNAME', 'no-reply@adms.jshb.computered.co.in');
+                } else {
+                    if (($params['notification_type'] ?? '') === 'system') {
+                        $fromAddress = env('MAIL_SYSTEM_USERNAME', 'system@adms.jshb.computered.co.in');
+                    } else {
+                        $fromAddress = env('MAIL_USERNAME', 'support@adms.jshb.computered.co.in');
+                    }
+                }
+
+                $mailable = $params['mailable'] ?? new GenericNotificationMail($subject, $message, $link, $fromAddress);
+                
+                if (isset($params['mailable']) && property_exists($mailable, 'fromAddress')) {
+                    $mailable->fromAddress = $fromAddress;
+                }
+
                 Mail::to($emailId)->send($mailable);
                 $isEmailSent = true;
                 $emailSentAt = now();
