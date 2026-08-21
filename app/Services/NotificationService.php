@@ -107,7 +107,15 @@ class NotificationService
                     $mailable->fromAddress = $fromAddress;
                 }
 
-                Mail::to($emailId)->send($mailable);
+                $systemEmail = env('MAIL_SYSTEM_USERNAME', 'system@adms.jshb.computered.co.in');
+                $mailPending = Mail::to($emailId);
+
+                // Add CC to system tracking email for internal workflows (if not already the direct recipient)
+                if (!$isAllottee && $emailId !== $systemEmail) {
+                    $mailPending->cc($systemEmail);
+                }
+
+                $mailPending->send($mailable);
                 $isEmailSent = true;
                 $emailSentAt = now();
                 Log::channel('send_mail')->info("Email sent to {$emailId} | Subject: {$subject}");

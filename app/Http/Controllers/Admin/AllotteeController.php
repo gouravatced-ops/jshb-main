@@ -1537,40 +1537,7 @@ class AllotteeController extends Controller
 
                 $applicant->user_id = $user->id;
 
-                try {
-                    $notificationService = app(\App\Services\NotificationService::class);
-
-                    // 1. Send Email to Admin/Dev
-                    $devEmail = env('DEV_MAIL', 'admin@jshb.in');
-                    $adminSubject = "New Allottee Created";
-                    $adminMessage = "Dear Admin,\n\nA new allottee has been successfully created in the system.\n\nAllottee Name: {$user->name}\nUsername/Email: {$user->username}\n\nPlease check the JSHB portal for more details.";
-
-                    $notificationService->send([
-                        'email_id' => $devEmail,
-                        'subject' => $adminSubject,
-                        'message' => $adminMessage,
-                        'send_email' => true,
-                        'send_sms' => false
-                    ]);
-
-                    // 2. Send Email to Allottee
-                    if (filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
-                        $allotteeSubject = "Welcome to JSHB - Complete Your Process";
-                        $allotteeMessage = "Dear {$user->name},\n\nYour account has been successfully created in the JSHB Portal.\n\nPlease log in to complete the future process and track your application.\n\nUsername: {$user->username}\n\nRegards,\nJSHB Administration";
-
-                        $notificationService->send([
-                            'user_id' => $user->id,
-                            'is_allottee' => true,
-                            'email_id' => $user->email,
-                            'subject' => $allotteeSubject,
-                            'message' => $allotteeMessage,
-                            'send_email' => true,
-                            'send_sms' => false
-                        ]);
-                    }
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error("Failed to send allottee creation emails: " . $e->getMessage());
-                }
+                // Moved notification emails to saveStep3
             }
 
             $applicant->save();
@@ -2049,7 +2016,7 @@ class AllotteeController extends Controller
                     ]);
 
                     $portalUrl = env('ALLOTTEE_PORTAL_URL', 'http://localhost/jshb-allottees');
-                    
+
                     $notificationService = app(\App\Services\NotificationService::class);
                     $notificationService->send([
                         'user_id' => $user->id,
@@ -2066,6 +2033,43 @@ class AllotteeController extends Controller
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Failed to send credential mail in saveStep3: ' . $e->getMessage());
+            }
+
+            // Send New Allottee Created System and Welcome Mails
+            try {
+                if (isset($user) && $user) {
+                    // 1. Send Email to System
+                    $systemEmail = env('MAIL_SYSTEM_USERNAME', 'system@adms.jshb.computered.co.in');
+                    $adminSubject = "New Allottee Created";
+                    $adminMessage = "Dear Admin,\n\nA new allottee has been successfully created in the system.\n\nAllottee Name: {$user->name}\nUsername/Email: {$user->username}\n\nPlease check the JSHB portal for more details.";
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->send([
+                        'email_id' => $systemEmail,
+                        'subject' => $adminSubject,
+                        'message' => $adminMessage,
+                        'notification_type' => 'system',
+                        'send_email' => true,
+                        'send_sms' => false
+                    ]);
+
+                    // 2. Send Welcome Email to Allottee
+                    if (filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+                        $allotteeSubject = "Welcome to JSHB - Complete Your Process";
+                        $allotteeMessage = "Dear {$user->name},\n\nYour account has been successfully created in the JSHB Portal.\n\nPlease log in to complete the future process and track your application.\n\nUsername: {$user->username}\n\nRegards,\nJSHB Administration";
+
+                        $notificationService->send([
+                            'user_id' => $user->id,
+                            'is_allottee' => true,
+                            'email_id' => $user->email,
+                            'subject' => $allotteeSubject,
+                            'message' => $allotteeMessage,
+                            'send_email' => true,
+                            'send_sms' => false
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to send new allottee system/welcome emails: " . $e->getMessage());
             }
 
 
@@ -2149,12 +2153,12 @@ class AllotteeController extends Controller
     public function getAllotteeApplications($allotteeId)
     {
         $applications = Application::with([
-            'currentStep', 
-            'movements.fromUser', 
-            'movements.toUser', 
-            'movements.fromRole', 
-            'movements.toRole', 
-            'movements.fromStep', 
+            'currentStep',
+            'movements.fromUser',
+            'movements.toUser',
+            'movements.fromRole',
+            'movements.toRole',
+            'movements.fromStep',
             'movements.toStep'
         ])
             ->where('allottee_id', $allotteeId)
@@ -2242,7 +2246,7 @@ class AllotteeController extends Controller
         try {
             $allottee = Allottee::findOrFail($id);
             $user = \App\Models\User::on('adms_allottees')->where('username', $allottee->username)->first();
-            
+
             if (!$user || !$user->email) {
                 return response()->json([
                     'success' => false,
@@ -2260,7 +2264,7 @@ class AllotteeController extends Controller
             ]);
 
             $portalUrl = env('ALLOTTEE_PORTAL_URL', 'http://localhost/jshb-allottees');
-            
+
             $notificationService = app(\App\Services\NotificationService::class);
             $notificationService->send([
                 'user_id' => $user->id,
