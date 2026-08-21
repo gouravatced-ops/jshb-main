@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Mail;
 use App\Models\User;
 use App\Models\Notification;
 use App\Models\AllotteeNotification;
@@ -33,9 +34,9 @@ class AppServiceProvider extends ServiceProvider
                 $model = $isAllottee ? AllotteeNotification::class : Notification::class;
 
                 $notifications = $model::where('user_id', $user->id)
-                                    ->orderBy('created_at', 'desc')
-                                    ->take(10)
-                                    ->get();
+                    ->orderBy('created_at', 'desc')
+                    ->take(10)
+                    ->get();
                 $unreadCount = $model::where('user_id', $user->id)->where('is_read', 0)->count();
                 $view->with('headerNotifications', $notifications)->with('unreadNotifCount', $unreadCount);
             }
