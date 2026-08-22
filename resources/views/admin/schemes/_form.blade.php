@@ -9,7 +9,7 @@
                 <select name="division_id" id="division_id" class="form-select" required>
                     <option value="">Select Division</option>
                     @foreach ($divisions as $division)
-                        <option value="{{ $division->id }}"
+                        <option value="{{ $division->id }}" data-encrypted="{{ encryptId($division->id) }}"
                             {{ old('division_id', $scheme->division_id) == $division->id ? 'selected' : '' }}>
                             {{ $division->name }}
                         </option>
@@ -48,7 +48,7 @@
                 <select name="p_type_id" id="property_type" class="form-select" required>
                     <option value="">Select Type</option>
                     @foreach ($propertyTypes as $type)
-                        <option value="{{ $type->id }}"
+                        <option value="{{ $type->id }}" data-encrypted="{{ encryptId($type->id) }}"
                             {{ old('p_type_id', $scheme->p_type_id) == $type->id ? 'selected' : '' }}>
                             {{ $type->name }}
                         </option>
@@ -531,4 +531,62 @@
         'DOMContentLoaded',
         calculateFinancials
     );
+
+    // DYNAMIC DROPDOWNS FOR SCHEME FORM
+    const divisionSelect = el('division_id');
+    const subDivisionSelect = el('sub_division_id');
+    const propertyTypeSelect = el('property_type');
+    const propertySubTypeSelect = el('property_sub_type');
+
+    if (divisionSelect) {
+        divisionSelect.addEventListener('change', async function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const encryptedId = selectedOption?.getAttribute('data-encrypted');
+            
+            subDivisionSelect.innerHTML = '<option value="">Select Sub Division</option>';
+            
+            if (!encryptedId) return;
+            
+            try {
+                const response = await fetch(`/get-sub-divisions/${encryptedId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        subDivisionSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching sub divisions:', error);
+            }
+        });
+    }
+
+    if (propertyTypeSelect) {
+        propertyTypeSelect.addEventListener('change', async function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const encryptedId = selectedOption?.getAttribute('data-encrypted');
+            
+            propertySubTypeSelect.innerHTML = '<option value="">Select Sub Type</option>';
+            
+            if (!encryptedId) return;
+            
+            try {
+                const response = await fetch(`/get-property-sub-types/${encryptedId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        propertySubTypeSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching property sub types:', error);
+            }
+        });
+    }
 </script>
