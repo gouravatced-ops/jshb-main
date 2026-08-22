@@ -2044,6 +2044,7 @@ class AllotteeController extends Controller
                     $adminMessage = "Dear Admin,\n\nA new allottee has been successfully created in the system.\n\nAllottee Name: {$user->name}\nUsername/Email: {$user->username}\n\nPlease check the JSHB portal for more details.";
                     $notificationService = app(\App\Services\NotificationService::class);
                     $notificationService->send([
+                        'user_id' => 6,
                         'email_id' => $systemEmail,
                         'subject' => $adminSubject,
                         'message' => $adminMessage,
