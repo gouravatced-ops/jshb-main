@@ -1506,7 +1506,9 @@ class AllotteeController extends Controller
             }
 
             // Auto-create User for the allottee (if not already exists)
-            if (!User::on('adms_allottees')->where('username', $applicant->username)->exists()) {
+            $user = User::on('adms_allottees')->where('username', $applicant->username)->first();
+            
+            if (!$user) {
                 $fullName = trim(implode(' ', array_filter([
                     $applicant->allottee_name,
                     $applicant->allottee_middle_name,
@@ -1538,6 +1540,12 @@ class AllotteeController extends Controller
                 $applicant->user_id = $user->id;
 
                 // Moved notification emails to saveStep3
+            } else {
+                // Update email for existing user
+                $user->email = $request->email;
+                $user->save();
+                
+                $applicant->user_id = $user->id;
             }
 
             $applicant->save();
