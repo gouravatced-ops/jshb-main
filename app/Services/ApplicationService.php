@@ -590,8 +590,8 @@ class ApplicationService
         ]);
 
         // Trigger Notification to target engineer if applicable
-        if ($targetUser && in_array($request->action_type, ['forward', 'send_back'])) {
-            $actionWord = $request->action_type == 'forward' ? 'forwarded' : 'sent back';
+        if ($targetUser && in_array($request->action_type, ['forward', 'send_back', 'approve'])) {
+            $actionWord = $request->action_type == 'forward' ? 'forwarded' : ($request->action_type == 'send_back' ? 'sent back' : 'approved and forwarded');
             $subject = "Application {$actionWord} to you: {$application->application_no}";
             $message = "An application ({$application->application_no}) has been {$actionWord} to you by {$user->name}.";
 
@@ -653,7 +653,7 @@ class ApplicationService
                     $message // Pass custom message
                 );
 
-                app(NotificationService::class)->send([
+                $allotteeNotificationParams = [
                     'user_id' => $allotteeUser->id,
                     'is_allottee' => true,
                     'application_id' => $application->id,
@@ -665,7 +665,14 @@ class ApplicationService
                     'send_whatsapp' => true,
                     'link' => '/login',
                     'mailable' => $customMailableAllottee
-                ]);
+                ];
+
+                if ($request->action_type == 'approve') {
+                    $allotteeNotificationParams['cc'] = [$user->email];
+                    $allotteeNotificationParams['bcc'] = ['system@adms.jshb.computered.co.in'];
+                }
+
+                app(NotificationService::class)->send($allotteeNotificationParams);
             }
         }
 
