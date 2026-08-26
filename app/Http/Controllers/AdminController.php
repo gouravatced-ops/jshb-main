@@ -10,6 +10,7 @@ use App\Models\OtpLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use App\Models\State;
 
 class AdminController extends Controller
 {
@@ -32,7 +33,7 @@ class AdminController extends Controller
             ->limit(50)
             ->get();
 
-        $states = \App\Models\State::where('id', '!=', 37)->orderBy('name_en', 'asc')->get();
+        $states = State::where('id', '!=', 37)->orderBy('name_en', 'asc')->get();
 
         return view('admin.profile', compact('user', 'userDetail', 'loginLogs', 'otpLogs', 'states'));
     }

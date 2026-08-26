@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
@@ -24,7 +26,7 @@ class PhotoCaptureController extends Controller
             'user_id' => auth()->id()
         ], now()->addMinutes(15));
 
-        \Illuminate\Support\Facades\Log::info("Live Image Capture: QR Generated", [
+        Log::info("Live Image Capture: QR Generated", [
             'ip' => $request->ip(),
             'user_id' => auth()->id(),
             'token' => $token
@@ -55,7 +57,7 @@ class PhotoCaptureController extends Controller
     {
         $session = Cache::get('photo_session_' . $token);
         if (!$session) {
-            \Illuminate\Support\Facades\Log::warning("Live Image Capture: Invalid Token Accessed", ['ip' => $request->ip(), 'token' => $token]);
+            Log::warning("Live Image Capture: Invalid Token Accessed", ['ip' => $request->ip(), 'token' => $token]);
             abort(404, 'Session expired or invalid token.');
         }
 
@@ -63,7 +65,7 @@ class PhotoCaptureController extends Controller
             abort(403, 'This link has already been used. Please generate a new QR code.');
         }
 
-        \Illuminate\Support\Facades\Log::info("Live Image Capture: Mobile View Opened", ['ip' => $request->ip(), 'token' => $token]);
+        Log::info("Live Image Capture: Mobile View Opened", ['ip' => $request->ip(), 'token' => $token]);
 
         return view('mobile.capture', compact('token'));
     }
@@ -75,7 +77,7 @@ class PhotoCaptureController extends Controller
     {
         $session = Cache::get('photo_session_' . $token);
         if (!$session || (isset($session['status']) && $session['status'] === 'completed')) {
-            \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Expired or Used Token)", ['ip' => $request->ip(), 'token' => $token]);
+            Log::error("Live Image Capture: Upload failed (Expired or Used Token)", ['ip' => $request->ip(), 'token' => $token]);
             return response()->json(['error' => 'Session expired or token already used.'], 403);
         }
 
@@ -91,17 +93,17 @@ class PhotoCaptureController extends Controller
             $imageData = substr($imageData, strpos($imageData, ',') + 1);
             $type = strtolower($type[1]); // jpg, png, etc
             if (!in_array($type, ['jpg', 'jpeg', 'png', 'gif'])) {
-                \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Invalid Type)", ['ip' => $request->ip(), 'type' => $type]);
+                Log::error("Live Image Capture: Upload failed (Invalid Type)", ['ip' => $request->ip(), 'type' => $type]);
                 return response()->json(['error' => 'Invalid image type.'], 400);
             }
         } else {
-            \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Bad URI Match)", ['ip' => $request->ip()]);
+            Log::error("Live Image Capture: Upload failed (Bad URI Match)", ['ip' => $request->ip()]);
             return response()->json(['error' => 'Did not match data URI with image data.'], 400);
         }
 
         $imageData = base64_decode($imageData);
         if ($imageData === false) {
-            \Illuminate\Support\Facades\Log::error("Live Image Capture: Upload failed (Base64 Decode)", ['ip' => $request->ip()]);
+            Log::error("Live Image Capture: Upload failed (Base64 Decode)", ['ip' => $request->ip()]);
             return response()->json(['error' => 'Base64 decode failed.'], 400);
         }
 
@@ -126,7 +128,7 @@ class PhotoCaptureController extends Controller
         // Broadcast the event to the desktop
         broadcast(new PhotoCaptured($token, $imageUrl));
 
-        \Illuminate\Support\Facades\Log::info("Live Image Capture: Success", [
+        Log::info("Live Image Capture: Success", [
             'ip' => $request->ip(),
             'user_id' => $session['user_id'],
             'url' => $imageUrl
@@ -141,7 +143,7 @@ class PhotoCaptureController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Live Image Capture: Unexpected Error", [
+            Log::error("Live Image Capture: Unexpected Error", [
                 'ip' => $request->ip(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()

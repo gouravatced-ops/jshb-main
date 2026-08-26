@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Support\Facades\File;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AllotteeSiteVerification;
@@ -83,7 +85,7 @@ class AllotteeSiteVerificationController extends Controller
                     $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
                     $type = strtolower($type[1]);
 
-                    if ($existingVerification && $existingVerification->map_image && \Illuminate\Support\Facades\File::exists(public_path($existingVerification->map_image))) {
+                    if ($existingVerification && $existingVerification->map_image && File::exists(public_path($existingVerification->map_image))) {
                         $photoPath = $existingVerification->map_image;
                     } else {
                         $imageName = 'site-verification-map-' .
@@ -94,12 +96,12 @@ class AllotteeSiteVerificationController extends Controller
 
                         $photoFolder = implode('/', ['documents', 'site-verification', 'photo', $year, $month, $day]);
                         $photoDirectory = public_path($photoFolder);
-                        \Illuminate\Support\Facades\File::ensureDirectoryExists($photoDirectory, 0755, true);
+                        File::ensureDirectoryExists($photoDirectory, 0755, true);
 
                         $photoPath = $photoFolder . '/' . $imageName;
                     }
 
-                    \Illuminate\Support\Facades\File::put(public_path($photoPath), base64_decode($base64Image));
+                    File::put(public_path($photoPath), base64_decode($base64Image));
                     
                     $data['map_image'] = $photoPath;
                 } else {
@@ -121,7 +123,7 @@ class AllotteeSiteVerificationController extends Controller
 
             if ($generatedDoc) {
                 $filePath = $generatedDoc->file_path;
-                \Illuminate\Support\Facades\File::put(public_path($filePath), $pdf->output());
+                File::put(public_path($filePath), $pdf->output());
             } else {
                 $fileName =
                     'site-verification-' .
@@ -132,10 +134,10 @@ class AllotteeSiteVerificationController extends Controller
 
                 $folder = implode('/', ['documents', 'site-verification', 'pdf', $year, $month, $day]);
                 $directory = public_path($folder);
-                \Illuminate\Support\Facades\File::ensureDirectoryExists($directory, 0755, true);
+                File::ensureDirectoryExists($directory, 0755, true);
 
                 $filePath = $folder . '/' . $fileName;
-                \Illuminate\Support\Facades\File::put(public_path($filePath), $pdf->output());
+                File::put(public_path($filePath), $pdf->output());
 
                 AllotteeGeneratedDocument::create([
                     'allottee_id' => $allottee_id,

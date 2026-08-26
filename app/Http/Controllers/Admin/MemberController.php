@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Services\NotificationService;
 
 class MemberController extends Controller
 {
@@ -82,7 +83,7 @@ class MemberController extends Controller
             ->values();
 
         $divisions = Division::where('status', true)->orderBy('name')->get();
-        
+
         $mdRole = Role::where('slug', 'managing-director')->first();
         $mdUsers = $mdRole ? User::where('role_id', $mdRole->id)->get() : collect();
 
@@ -188,7 +189,7 @@ class MemberController extends Controller
             ->values();
 
         $divisions = Division::where('status', true)->orderBy('name')->get();
-        
+
         $mdRole = Role::where('slug', 'managing-director')->first();
         $mdUsers = $mdRole ? User::where('role_id', $mdRole->id)->get() : collect();
 
@@ -231,7 +232,7 @@ class MemberController extends Controller
             return back()->withInput()->withErrors(['division_id' => 'The division field is required for the selected role.']);
         }
 
-        if($member->username == NULL){
+        if ($member->username == NULL) {
             $member->username = $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername();
         }
 
@@ -315,8 +316,8 @@ class MemberController extends Controller
         }
 
         $member = User::findOrFail($id);
-        
-        $notificationService = app(\App\Services\NotificationService::class);
+
+        $notificationService = app(NotificationService::class);
         $notificationService->send([
             'user_id' => $member->id,
             'subject' => 'Test Realtime Notification',

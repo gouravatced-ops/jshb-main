@@ -44,9 +44,9 @@
             </div>
 
             <div class="field">
-                <label class="field-label">पता</label>
+                <label class="field-label">पता <span class="req-star">*</span></label>
                 <textarea name="present_address_hindi" class="krutidev custom-input" rows="2"
-                    placeholder="Enter address in Hindi">{{ $applicant->present_address_hindi ?? '' }}</textarea>
+                    placeholder="Enter address in Hindi" required>{{ $applicant->present_address_hindi ?? '' }}</textarea>
             </div>
 
             <!-- State (English) -->

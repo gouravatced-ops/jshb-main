@@ -2,6 +2,8 @@
 
 namespace App\Mail;
 
+use Illuminate\Mail\Mailables\Address;
+
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -35,7 +37,7 @@ class GenericNotificationMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        $from = $this->fromAddress ? new \Illuminate\Mail\Mailables\Address($this->fromAddress, config('app.name')) : null;
+        $from = $this->fromAddress ? new Address($this->fromAddress, config('app.name')) : null;
 
         return new Envelope(
             from: $from,

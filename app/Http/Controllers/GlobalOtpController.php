@@ -7,6 +7,8 @@ use App\Models\OtpLog;
 use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
+use App\Services\OtpService;
+
 
 class GlobalOtpController extends Controller
 {
@@ -28,7 +30,7 @@ class GlobalOtpController extends Controller
         $messageBody = "You have requested to perform a secure operation ({$purpose}). Please use this OTP to verify your action.";
 
         // Inject OtpService
-        $otpService = app(\App\Services\OtpService::class);
+        $otpService = app(OtpService::class);
         
         try {
             // Generate, encrypt, store, and dispatch email automatically
@@ -69,7 +71,7 @@ class GlobalOtpController extends Controller
         $purpose = $request->purpose;
         $otp = $request->otp;
 
-        $otpService = app(\App\Services\OtpService::class);
+        $otpService = app(OtpService::class);
         $isValid = $otpService->verifyOtp($user->id, $otp, $purpose);
 
         if (!$isValid) {

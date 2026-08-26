@@ -1,0 +1,27 @@
+/* Styling for the step checkboxes grid */
+.step-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #e2e8f0;
+}
+.step-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.step-checkbox-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color, #0f172a);
+}
+.step-checkbox-item label {
+    margin: 0 !important;
+    font-weight: 500 !important;
+    cursor: pointer;
+    text-transform: none !important;
+    color: #475569 !important;
+    font-size: 0.85rem !important;
+}

@@ -2,6 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\Allottee\Step0Request;
+use App\Services\AllotteeService;
+use App\Http\Requests\Allottee\Step1Request;
+use App\Http\Requests\Allottee\Step2Request;
+use App\Http\Requests\Allottee\Step3Request;
+use App\Services\NotificationService;
+use App\Mail\AllotteeCredentialMail;
 use App\Http\Controllers\Controller;
 use App\Models\Allottee;
 use App\Models\Division;
@@ -15,6 +22,7 @@ use App\Models\AllotteeGeneratedDocument;
 use App\Models\AllotteePaymentOrder;
 use App\Models\AllotteeTransaction;
 use App\Models\AllotteeEmiAccount;
+use App\Models\AllotteeEmiSchedule;
 use App\Models\AllotteeMonthlyDemand;
 use App\Models\Workflow;
 use App\Models\WorkflowStep;
@@ -42,6 +50,7 @@ use App\Traits\DocumentUploadTrait;
 class AllotteeController extends Controller
 {
     use DocumentUploadTrait;
+
     private function processStepBlueprint(): array
     {
         return [
@@ -264,7 +273,6 @@ class AllotteeController extends Controller
                     ],
                 ],
             ],
-
 
             // NOC
             [
@@ -1125,12 +1133,10 @@ class AllotteeController extends Controller
             if ($validated['payment_option'] === 'one_time') {
 
                 // Remove EMI setup if already created
-                DB::table('allottee_emi_schedules')
-                    ->where('allottee_id', $allottee->id)
+                AllotteeEmiSchedule::where('allottee_id', $allottee->id)
                     ->delete();
 
-                DB::table('allottee_emi_accounts')
-                    ->where('allottee_id', $allottee->id)
+                AllotteeEmiAccount::where('allottee_id', $allottee->id)
                     ->delete();
 
                 AllotteePaymentOrder::updateOrCreate(
@@ -1162,7 +1168,7 @@ class AllotteeController extends Controller
                 AllotteePaymentOrder::where(
                     'allottee_id',
                     $allottee->id
-                )->where('order_type', 'emi')->delete();
+                )->ofType('emi')->delete();
 
                 $nextSteps = [10, 11];
             }
@@ -1173,7 +1179,7 @@ class AllotteeController extends Controller
             else {
                 // Remove one-time order if exists
                 AllotteePaymentOrder::where('allottee_id', $allottee->id)
-                    ->where('order_type', 'final')
+                    ->ofType('final')
                     ->delete();
 
                 $emiOrder = AllotteePaymentOrder::updateOrCreate(
@@ -1372,7 +1378,7 @@ class AllotteeController extends Controller
                 return back()->with('success', 'PDF generated successfully.');
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error generating Allotment Letter PDF: ' . $e->getMessage());
+            Log::error('Error generating Allotment Letter PDF: ' . $e->getMessage());
             return back()->with('error', 'Error generating PDF. Please check the logs.');
         }
     }
@@ -1392,228 +1398,28 @@ class AllotteeController extends Controller
                 return back()->with('success', 'PDF generated successfully.');
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error generating Possession Letter PDF: ' . $e->getMessage());
+            Log::error('Error generating Possession Letter PDF: ' . $e->getMessage());
             return back()->with('error', 'Error generating PDF. Please check the logs.');
         }
     }
 
-    public function saveStep0(Request $request)
+    public function saveStep0(Step0Request $request, AllotteeService $allotteeService)
     {
         try {
-            $userId = null;
-            if ($request->filled('applicant_id')) {
-                $applicant = Allottee::find($request->applicant_id);
-                if ($applicant) {
-                    $userId = $applicant->user_id;
-                }
-            }
-
-            $validator = Validator::make($request->all(), [
-                'applicant_id'     => 'nullable|integer|exists:adms_allottees.allottees,id',
-                'email'            => 'required|email|max:255|unique:adms_allottees.users,email' . ($userId ? ',' . $userId : ''),
-                'payment_amount'   => 'required|numeric|min:0.01',
-                'payment_day'      => 'required|between:1,31',
-                'payment_month'    => 'required|between:1,12',
-                'payment_year'     => 'required|max:' . now()->year,
-                'payment_utr_no'   => 'nullable|string|max:255',
-                'payment_receipt'  => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
-                'division_id'      => 'required|string',
-                'subdivision_id'   => 'required|string',
-                'pcategory_id'     => 'required|string',
-                'property_type_id' => 'required|string',
-                'quarter_id'       => 'required|string',
-                'scheme_id'        => 'required|integer|exists:schemes,id',
-            ], [
-                'scheme_id.exists' => 'Selected scheme is invalid.',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed.',
-                    'errors'  => $validator->errors(),
-                ], 422);
-            }
-
-            DB::beginTransaction();
-
-            $divisionId        = decryptId($request->division_id);
-            $subDivisionId     = decryptId($request->subdivision_id);
-            $pcategoryId       = decryptId($request->pcategory_id);
-            $propertyTypeId    = decryptId($request->property_type_id);
-            $propertySubTypeId = decryptId($request->p_sub_type_id);
-            $quarterId         = decryptId($request->quarter_id);
-
-            $applicant = $request->filled('applicant_id')
-                ? Allottee::find($request->applicant_id)
-                : new Allottee();
-
-            $isDraftLogin = !$applicant->exists || Str::startsWith((string) $applicant->username, 'DRAFT_');
-            $plainPassword = null;
-
-            if ($isDraftLogin) {
-                $usersname = $this->generateUniqueUsername($divisionId, $quarterId, $subDivisionId, $request->payment_year);
-                $plainPassword = $this->generatePassword();
-                $applicant->username = $usersname;
-                $applicant->password = Hash::make($plainPassword);
-                $applicant->create_ip_address = $request->ip();
-                $applicant->created_by = Auth::id();
-            }
-
-            if (empty($applicant->property_number)) {
-                $applicant->property_number = Allottee::generateUniquePropertyNumber();
-            }
-
-            $applicant->fill([
-                'division_id'       => $divisionId,
-                'subdivision_id'    => $subDivisionId,
-                'pcategory_id'      => $pcategoryId,
-                'property_type_id'  => $propertyTypeId,
-                'p_sub_type_id'     => $propertySubTypeId,
-                'quarter_id'        => $quarterId,
-                'scheme_id'         => $request->scheme_id,
-                'current_step'      => 1,
-                'update_ip_address' => $request->ip(),
-                'updated_by'        => Auth::id(),
-            ]);
-
-            $transaction = AllotteeTransaction::where([
-                'allottee_id'     => $applicant->id,
-                'transaction_type' => 'lottery_payment',
-                'payment_stage'   => 'application',
-            ])->first();
-
-            $receiptFile = $transaction?->receipt_file;
-            $receiptPath = $transaction?->receipt_path;
-
-            if ($request->hasFile('payment_receipt')) {
-                $file = $request->file('payment_receipt');
-                $scheme = Scheme::find($request->scheme_id);
-
-                $uploadResult = $this->uploadToDocumentApi(
-                    $file,
-                    'LOTTERY',
-                    $scheme->scheme_code ?? 'SCH',
-                    $applicant->property_number ?? 'PROP',
-                    $request->payment_year,
-                    $request->payment_month,
-                    $request->payment_day,
-                    $receiptPath
-                );
-
-                $receiptPath = $uploadResult['file_path'];
-                $receiptFile = $uploadResult['file_name'];
-            }
-
-            // Auto-create User for the allottee (if not already exists)
-            $user = User::on('adms_allottees')->where('username', $applicant->username)->first();
-            
-            if (!$user) {
-                $fullName = trim(implode(' ', array_filter([
-                    $applicant->allottee_name,
-                    $applicant->allottee_middle_name,
-                    $applicant->allottee_surname,
-                ])));
-
-                if (empty($fullName)) {
-                    $fullName = 'Applicant';
-                }
-
-                $user = new User();
-                $user->setConnection('adms_allottees');
-                $user->name = $fullName;
-                $user->username = $applicant->username;
-                $user->email = $request->email;
-                $user->login_with_otp = false;
-                $user->password_created_at = now();
-                $user->status = true;
-                $user->password = $applicant->password;
-                $user->save();
-
-                if ($plainPassword) {
-                    Log::channel('user_credentials')->info('New User Created', [
-                        'username' => $user->username,
-                        'password' => $plainPassword
-                    ]);
-                }
-
-                $applicant->user_id = $user->id;
-
-                // Moved notification emails to saveStep3
-            } else {
-                // Update email for existing user
-                $user->email = $request->email;
-                $user->save();
-                
-                $applicant->user_id = $user->id;
-            }
-
-            $applicant->save();
-
-            $amount = str_replace(',', '', $request->payment_amount);
-
-            $paidAt = Carbon::create(
-                $request->payment_year,
-                $request->payment_month,
-                $request->payment_day,
-                now()->hour,
-                now()->minute,
-                now()->second
+            $result = $allotteeService->processStep0(
+                $request->validated(),
+                $request->ip(),
+                $request->applicant_id
             );
-
-            AllotteeTransaction::updateOrCreate(
-                [
-                    'allottee_id'     => $applicant->id,
-                    'transaction_type' => 'lottery_payment',
-                    'payment_stage'   => 'application',
-                ],
-                [
-                    'amount'           => $amount,
-                    'principal_amount' => $amount,
-                    'total_amount'     => $amount,
-                    'payment_mode'     => 'cheque',
-                    'payment_status'   => 'success',
-                    'utr_no'           => $request->payment_utr_no,
-                    'receipt_file'     => $receiptFile,
-                    'receipt_path'     => $receiptPath,
-                    'remarks'          => 'pending',
-                    'payment_day'      => $request->payment_day,
-                    'payment_month'    => $request->payment_month,
-                    'payment_year'     => $request->payment_year,
-                    'paid_at'          => $paidAt,
-                    'created_by'       => Auth::id(),
-                ]
-            );
-
-            DB::commit();
 
             return response()->json([
                 'success'      => true,
                 'message'      => 'Payment details saved successfully.',
-                'applicant_id' => $applicant->id,
+                'applicant_id' => $result['applicant_id'],
                 'next_step'    => 1,
-                'credentials'  => $plainPassword ? [
-                    'username' => $applicant->username,
-                    'password' => $plainPassword
-                ] : null,
+                'credentials'  => $result['credentials'] ?? null,
             ]);
         } catch (\Throwable $e) {
-
-            DB::rollBack();
-
-            Log::error('Save Step0 Failed', [
-                'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
-                'user_id' => Auth::id(),
-                'ip'      => $request->ip(),
-                'url'     => $request->fullUrl(),
-                'payload' => $request->except([
-                    'password',
-                    'payment_receipt',
-                ]),
-            ]);
-
             return response()->json([
                 'success' => false,
                 'message' => 'Something went wrong.',
@@ -1699,400 +1505,72 @@ class AllotteeController extends Controller
         return view('admin.allottee.add', compact('allottee', 'divisions'));
     }
 
-    private function generateUniqueUsername($division, $incomeTypeId, $subDivision, $date)
+    public function saveStep1(Step1Request $request, AllotteeService $allotteeService)
     {
-        $divisionCode = Division::where('id', $division)->value('division_code');
-        $subDivisionCode = SubDivision::where('id', $subDivision)->value('subdivision_code');
-        $incomeCode = QuarterType::where('quarter_id', $incomeTypeId)->value('quarter_code');
-        $code = preg_replace('/[^A-Za-z]/', '', $incomeCode);
-        $quarterCode = strtoupper(substr($code, 0, 2));
-        $dateYear = $date;
-        $randomString = substr(str_shuffle('0123456789'), 0, 5);
-        return "{$divisionCode}{$quarterCode}{$dateYear}{$subDivisionCode}{$randomString}";
-    }
-
-    private function generatePassword($length = 12)
-    {
-        $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $lowercase = 'abcdefghijklmnopqrstuvwxyz';
-        $numbers   = '0123456789';
-        $special   = '!@#$%^&*()_+-=';
-        // Ensure at least one from each required category
-        $password  = $uppercase[random_int(0, strlen($uppercase) - 1)];
-        $password .= $lowercase[random_int(0, strlen($lowercase) - 1)];
-        $password .= $special[random_int(0, strlen($special) - 1)];
-        $password .= str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-        // Remaining random characters
-        $allChars = $uppercase . $lowercase . $numbers . $special;
-        while (strlen($password) < $length) {
-            $password .= $allChars[random_int(0, strlen($allChars) - 1)];
-        }
-        // Shuffle to remove pattern
-        return str_shuffle($password);
-    }
-
-    public function saveStep1(Request $request)
-    {
-        // return $request;
-        $validator = Validator::make($request->all(), [
-            'application_no' => [
-                'required',
-                'string',
-                'max:255'
-            ],
-            'application_day' => [
-                'required',
-                'string',
-                'between:1,31'
-            ],
-            'application_month' => [
-                'required',
-                'string',
-                'between:1,12'
-            ],
-            'application_year' => [
-                'required',
-                'integer',
-                'digits:4',
-                'min:1970',
-                'max:' . date('Y')
-            ],
-            'prefix' => [
-                'required',
-                'string',
-                'max:255'
-            ],
-            'allottee_name' => [
-                'required',
-                'string',
-                'max:255'
-            ],
-            'allottee_middle_name' => [
-                'nullable',
-                'string',
-                'max:255'
-            ],
-            'allottee_surname' => [
-                'nullable',
-                'string',
-                'max:255'
-            ],
-            'allottee_name_hindi' => [
-                'required',
-                'string',
-                'max:255'
-            ],
-            'allottee_middle_hindi' => [
-                'nullable',
-                'string',
-                'max:255'
-            ],
-            'allottee_surname_hindi' => [
-                'nullable',
-                'string',
-                'max:255'
-            ],
-            'relation_prefix' => [
-                'required',
-                'string',
-                'max:100'
-            ],
-            'relation_name' => [
-                'required',
-                'string',
-                'max:100'
-            ],
-            'relation_prefix_hindi' => [
-                'required',
-                'string',
-                'max:100'
-            ],
-            'relation_name_hindi' => [
-                'required',
-                'string',
-                'max:100'
-            ],
-            'marital_status' => [
-                'nullable',
-                'string',
-                'max:50'
-            ],
-            'allottee_gender' => [
-                'nullable',
-                'string',
-                'max:20'
-            ],
-            'allottee_category' => [
-                'nullable',
-                'string',
-                'max:100'
-            ],
-            'allottee_religion' => [
-                'nullable',
-                'string',
-                'max:100'
-            ],
-            'allottee_nationality' => [
-                'nullable',
-                'string',
-                'max:100'
-            ],
-            'date_of_birth_day' => [
-                'required',
-                'string',
-                'between:1,31'
-            ],
-            'date_of_birth_month' => [
-                'required',
-                'string',
-                'between:1,12'
-            ],
-            'date_of_birth_year' => [
-                'required',
-                'integer',
-                'digits:4',
-            ],
-            'current_age' => [
-                'nullable',
-                'string'
-            ],
-        ], [
-            'application_year.max' =>
-            'Application year cannot be greater than current year.',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed.',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $existingId = $request->filled('applicant_id') ? (int) $request->applicant_id : null;
-        if (!$existingId && $request->filled('allottee_id')) {
-            $existingId = (int) $request->allottee_id;
-        }
-        if ($existingId) {
-            $applicant = Allottee::find($existingId);
-            if (!$applicant) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Application not found.',
-                ], 404);
-            }
-        } else {
-            $applicant = new Allottee();
-        }
-
-        // If User's name needs updating, we can do it here
-        if (!empty($applicant->username)) {
-            $user = User::on('adms_allottees')->where('username', $applicant->username)->first();
-            if ($user) {
-                $fullName = trim(implode(' ', array_filter([
-                    $request->allottee_name,
-                    $request->allottee_middle_name,
-                    $request->allottee_surname,
-                ])));
-                if (!empty($fullName) && $user->name !== $fullName) {
-                    $user->name = $fullName;
-                    $user->save();
-                }
-            }
-        }
-
-        $applicant->application_no = $request->application_no;
-        $applicant->application_day = $request->application_day;
-        $applicant->application_month = $request->application_month;
-        $applicant->application_year = $request->application_year;
-        $applicant->prefix = $request->prefix;
-        $applicant->allottee_name = $request->allottee_name;
-        $applicant->allottee_middle_name = $request->allottee_middle_name;
-        $applicant->allottee_surname = $request->allottee_surname;
-        $applicant->allottee_relation_type = $request->relation_prefix;
-        $applicant->allottee_prefix_hindi = $request->allottee_prefix_hindi;
-        $applicant->allottee_name_hindi = $request->allottee_name_hindi;
-        $applicant->allottee_middle_hindi = $request->allottee_middle_hindi;
-        $applicant->allottee_surname_hindi = $request->allottee_surname_hindi;
-        $applicant->relation_prefix_hindi = $request->relation_prefix_hindi;
-        $applicant->relation_name_hindi = $request->relation_name_hindi;
-        $applicant->relation_name = $request->relation_name;
-        $applicant->marital_status = $request->marital_status;
-        $applicant->allottee_gender = $request->allottee_gender;
-        $applicant->pan_card_number = $request->pan_card_number;
-        $applicant->aadhar_card_number = $request->aadhar_card_number;
-        $applicant->allottee_category = $request->allottee_category;
-        $applicant->allottee_religion = $request->allottee_religion;
-        $applicant->allottee_nationality = $request->allottee_nationality;
-        $applicant->date_of_birth_day = $request->date_of_birth_day;
-        $applicant->date_of_birth_month = $request->date_of_birth_month;
-        $applicant->date_of_birth_year = $request->date_of_birth_year;
-        $applicant->allottee_remarks = $request->allottee_remarks;
-        $applicant->current_step = 2;
-        if (!$applicant->exists) {
-            $applicant->allottee_create_date = now();
-            $applicant->create_ip_address = $request->ip() ?? null;
-            $applicant->created_by = Auth::id();
-            $applicant->created_at = now();
-        } else {
-            $applicant->update_ip_address = $request->ip() ?? null;
-            $applicant->updated_by = Auth::id();
-        }
-        $applicant->save();
-        return response()->json([
-            'success' => true,
-            'message' => 'Allottee Details saved successfully',
-            'applicant_id' => $applicant->id,
-            'next_step' => 2
-        ]);
-    }
-
-    public function saveStep2(Request $request)
-    {
-        $applicantId = $request->applicant_id;
-        $data = $request->all();
-        $data['update_ip_address'] = $request->ip();
-        if (!$request->filled('id')) {
-            $data['create_ip_address'] = $request->ip();
-            $data['created_by'] = Auth::id();
-        }
-        $data['updated_by'] = Auth::id();
-        $record = AllotteesContactDetail::updateOrCreate(
-            ['allottee_id' => $applicantId],
-            $data
-        );
-        // Update applicant's current step (optional)
-        $applicant = Allottee::find($applicantId);
-        if ($applicant) {
-            $applicant->current_step = 3; // Move to next step
-            $applicant->save();
-        }
-        return response()->json([
-            'success' => true,
-            'message' => 'Address Details saved successfully',
-            'data' => $record,
-            'next_step' => 3
-        ]);
-    }
-
-    public function saveStep3(Request $request)
-    {
-        // return $request;
-        if (!$request->final_submission) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Something Went Wrong',
-            ]);
-        }
         try {
-            DB::beginTransaction();
-            $allottee = Allottee::find($request->applicant_id);
-            if (!$allottee) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Applicant not found',
-                ]);
-            }
-            // Step Completed
-            $allottee->is_step_completed = 1;
-            $allottee->allotment_no = str_pad($allottee->id, 3, '0', STR_PAD_LEFT) . '/' . strtoupper(Str::random(3)) . '/' . rand(111, 999) . '/' . date('Y');
-            $allottee->allotment_day = date('d');
-            $allottee->allotment_month = date('m');
-            $allottee->allotment_year = date('Y');
-            $allottee->save();
+            $applicant = $allotteeService->processStep1(
+                $request->validated(),
+                $request->ip(),
+                $request->applicant_id,
+                $request->allottee_id
+            );
 
-            $applicationService = app(\App\Services\ApplicationService::class);
-            $application = $applicationService->createApplication(
-                $allottee,
-                'allotment',
+            return response()->json([
+                'success' => true,
+                'message' => 'Allottee Details saved successfully',
+                'applicant_id' => $applicant->id,
+                'next_step' => 2
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 404);
+        }
+    }
+
+    public function saveStep2(Step2Request $request, AllotteeService $allotteeService)
+    {
+        try {
+            $record = $allotteeService->processStep2(
+                $request->all(), // We pass all data because contact details weren't explicitly validated in the original
+                $request->ip()
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Address Details saved successfully',
+                'data' => $record,
+                'next_step' => 3
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save Address Details.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function saveStep3(Step3Request $request, AllotteeService $allotteeService)
+    {
+        try {
+            $allotteeService->processStep3(
+                $request->validated(),
                 $request->ip(),
                 $request->userAgent()
             );
-
-            DB::commit();
-
-            // Send Credential Mail to Allottee on successful Step 3 completion
-            try {
-                $user = \App\Models\User::on('adms_allottees')->where('username', $allottee->username)->first();
-                if ($user && $user->email) {
-                    $plainPassword = $this->generatePassword();
-                    $user->password = \Illuminate\Support\Facades\Hash::make($plainPassword);
-                    $user->save();
-
-                    \Illuminate\Support\Facades\Log::channel('user_credentials')->info('Credentials updated via Step 3', [
-                        'username' => $user->username,
-                        'password' => $plainPassword
-                    ]);
-
-                    $portalUrl = env('ALLOTTEE_PORTAL_URL', 'http://localhost/jshb-allottees');
-
-                    $notificationService = app(\App\Services\NotificationService::class);
-                    $notificationService->send([
-                        'user_id' => $user->id,
-                        'application_id' => $application ? $application->id : null,
-                        'allottee_id' => $allottee->id,
-                        'is_allottee' => true,
-                        'notification_type' => 'info',
-                        'subject' => 'Your JSHB Allottee Portal Login Credentials',
-                        'message' => 'Credentials sent automatically after Step 3.',
-                        'email_id' => $user->email,
-                        'send_email' => true,
-                        'mailable' => new \App\Mail\AllotteeCredentialMail($user->username, $plainPassword, $portalUrl)
-                    ]);
-                }
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to send credential mail in saveStep3: ' . $e->getMessage());
-            }
-
-            // Send New Allottee Created System and Welcome Mails
-            try {
-                if (isset($user) && $user) {
-                    // 1. Send Email to System
-                    $systemEmail = env('MAIL_SYSTEM_USERNAME', 'system@adms.jshb.computered.co.in');
-                    $adminSubject = "New Allottee Created";
-                    $adminMessage = "Dear Admin,\n\nA new allottee has been successfully created in the system.\n\nAllottee Name: {$user->name}\nUsername/Email: {$user->username}\n\nPlease check the JSHB portal for more details.";
-                    $notificationService = app(\App\Services\NotificationService::class);
-                    $notificationService->send([
-                        'user_id' => 6,
-                        'email_id' => $systemEmail,
-                        'subject' => $adminSubject,
-                        'message' => $adminMessage,
-                        'notification_type' => 'system',
-                        'send_email' => true,
-                        'send_sms' => false
-                    ]);
-
-                    // 2. Send Welcome Email to Allottee
-                    if (filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
-                        $allotteeSubject = "Welcome to JSHB - Complete Your Process";
-                        $allotteeMessage = "Dear {$user->name},\n\nYour account has been successfully created in the JSHB Portal.\n\nPlease log in to complete the future process and track your application.\n\nUsername: {$user->username}\n\nRegards,\nJSHB Administration";
-
-                        $notificationService->send([
-                            'user_id' => $user->id,
-                            'is_allottee' => true,
-                            'email_id' => $user->email,
-                            'subject' => $allotteeSubject,
-                            'message' => $allotteeMessage,
-                            'send_email' => true,
-                            'send_sms' => false
-                        ]);
-                    }
-                }
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to send new allottee system/welcome emails: " . $e->getMessage());
-            }
-
 
             return response()->json([
                 'success' => true,
                 'message' => 'Application Submit Successfully',
             ]);
         } catch (\Throwable $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to submit application',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
@@ -2122,7 +1600,7 @@ class AllotteeController extends Controller
         $allottee->emiSchedule()->delete();
 
         $allottee->allotteeTransaction()
-            ->where('transaction_type', '!=', 'lottery_payment')
+            ->excludeLottery()
             ->delete();
 
         $allottee->generatedDocument()->delete();
@@ -2142,7 +1620,7 @@ class AllotteeController extends Controller
         $allottee->emiDemand()->delete();
         $allottee->emiSchedule()->delete();
         $allottee->allotteeTransaction()
-            ->where('transaction_type', '=', 'emi_payment')
+            ->emi()
             ->delete();
         $allottee->generatedDocument()
             ->where('document_type', 'emi-payment-receipt')
@@ -2254,7 +1732,7 @@ class AllotteeController extends Controller
     {
         try {
             $allottee = Allottee::findOrFail($id);
-            $user = \App\Models\User::on('adms_allottees')->where('username', $allottee->username)->first();
+            $user = User::on('adms_allottees')->where('username', $allottee->username)->first();
 
             if (!$user || !$user->email) {
                 return response()->json([
@@ -2264,17 +1742,17 @@ class AllotteeController extends Controller
             }
 
             $plainPassword = $this->generatePassword();
-            $user->password = \Illuminate\Support\Facades\Hash::make($plainPassword);
+            $user->password = Hash::make($plainPassword);
             $user->save();
 
-            \Illuminate\Support\Facades\Log::channel('user_credentials')->info('Credentials updated manually via Admin', [
+            Log::channel('user_credentials')->info('Credentials updated manually via Admin', [
                 'username' => $user->username,
                 'password' => $plainPassword
             ]);
 
-            $portalUrl = env('ALLOTTEE_PORTAL_URL', 'http://localhost/jshb-allottees');
+            $portalUrl = config('jshb.allottee_portal_url', 'http://localhost/jshb-allottees');
 
-            $notificationService = app(\App\Services\NotificationService::class);
+            $notificationService = app(NotificationService::class);
             $notificationService->send([
                 'user_id' => $user->id,
                 'allottee_id' => $allottee->id,
@@ -2284,7 +1762,7 @@ class AllotteeController extends Controller
                 'message' => 'Credentials sent manually by admin.',
                 'email_id' => $user->email,
                 'send_email' => true,
-                'mailable' => new \App\Mail\AllotteeCredentialMail($user->username, $plainPassword, $portalUrl)
+                'mailable' => new AllotteeCredentialMail($user->username, $plainPassword, $portalUrl)
             ]);
 
             return response()->json([
@@ -2292,7 +1770,7 @@ class AllotteeController extends Controller
                 'message' => 'Credential mail sent successfully.',
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send credential mail manually: ' . $e->getMessage());
+            Log::error('Failed to send credential mail manually: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send mail: ' . $e->getMessage()

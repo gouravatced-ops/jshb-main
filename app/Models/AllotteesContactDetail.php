@@ -88,4 +88,14 @@ class AllotteesContactDetail extends Model
     {
         return $this->belongsTo(Allottee::class, 'allottee_id');
     }
+
+    public function presentDistrict()
+    {
+        return $this->belongsTo(District::class, 'present_district', 'id');
+    }
+
+    public function presentState()
+    {
+        return $this->belongsTo(State::class, 'present_state', 'id');
+    }
 }

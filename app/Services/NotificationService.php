@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Auth;
+
 use App\Models\Notification;
 use App\Models\AllotteeNotification;
 use App\Models\User;
@@ -10,6 +12,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Models\CommunicationTrack;
 use App\Mail\GenericNotificationMail;
+use App\Models\CommunicationSetting;
+use App\Events\EngineerNotificationEvent;
+
 
 class NotificationService
 {
@@ -59,7 +64,7 @@ class NotificationService
 
         // Apply Communication Settings based on user's role
         if ($user && $user->role_id) {
-            $commSetting = \App\Models\CommunicationSetting::where('role_id', $user->role_id)->first();
+            $commSetting = CommunicationSetting::where('role_id', $user->role_id)->first();
             if ($commSetting) {
                 // Only send if BOTH the original request AND the global setting allow it
                 $sendEmail = $sendEmail && $commSetting->is_email_enabled;
@@ -68,10 +73,7 @@ class NotificationService
             }
         }
 
-        // Development mode override
-        if (config('app.env') === 'local') {
-            $emailId = 'gouravatced@gmail.com';
-        }
+
 
         // Initialize delivery statuses
         $isEmailSent = false;
@@ -92,12 +94,12 @@ class NotificationService
                 // Determine From Address based on routing rules
                 $fromAddress = null;
                 if ($isAllottee) {
-                    $fromAddress = env('MAIL_NOREPLY_USERNAME', 'no-reply@adms.jshb.computered.co.in');
+                    $fromAddress = config('jshb.mail_noreply_username', 'no-reply@adms.jshb.computered.co.in');
                 } else {
                     if (($params['notification_type'] ?? '') === 'system') {
-                        $fromAddress = env('MAIL_SYSTEM_USERNAME', 'system@adms.jshb.computered.co.in');
+                        $fromAddress = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
                     } else {
-                        $fromAddress = env('MAIL_USERNAME', 'support@adms.jshb.computered.co.in');
+                        $fromAddress = config('jshb.mail_username', 'support@adms.jshb.computered.co.in');
                     }
                 }
 
@@ -107,7 +109,7 @@ class NotificationService
                     $mailable->fromAddress = $fromAddress;
                 }
 
-                $systemEmail = env('MAIL_SYSTEM_USERNAME', 'system@adms.jshb.computered.co.in');
+                $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
                 $mailPending = Mail::to($emailId);
 
                 // Add CC to system tracking email for internal workflows (if not already the direct recipient)
@@ -279,7 +281,7 @@ class NotificationService
         // Broadcast Real-time Notification if it's for Engineers (jshb)
         if (!$isAllottee && $userId) {
             try {
-                \App\Events\EngineerNotificationEvent::dispatch($userId, $notification->toArray());
+                EngineerNotificationEvent::dispatch($userId, $notification->toArray());
             } catch (\Exception $e) {
                 Log::channel('notification_log')->error("Failed to broadcast EngineerNotificationEvent | Error: " . $e->getMessage());
             }
@@ -291,15 +293,15 @@ class NotificationService
     private function logCommunication($isAllottee, $userId, $type, $subject, $content, $status, $error, $params = [])
     {
         $request = request();
-        $senderId = \Illuminate\Support\Facades\Auth::id();
+        $senderId = Auth::id();
         $senderType = $senderId ? 'jshb_user' : 'system';
 
         // If an allottee is doing an action in their portal, how do we know?
         // Usually, internal users have Auth::id(), but allottees might have Auth::guard('allottee')->id() or similar.
         // We must check if the guard is defined first to avoid "Auth guard not defined" errors.
-        if (config('auth.guards.allottee') && \Illuminate\Support\Facades\Auth::guard('allottee')->check()) {
+        if (config('auth.guards.allottee') && Auth::guard('allottee')->check()) {
             $senderType = 'allottee';
-            $senderId = \Illuminate\Support\Facades\Auth::guard('allottee')->id();
+            $senderId = Auth::guard('allottee')->id();
         }
 
         $appId = $params['application_id'] ?? null;

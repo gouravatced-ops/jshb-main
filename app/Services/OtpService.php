@@ -6,6 +6,8 @@ use App\Jobs\SendOtpEmail;
 use App\Models\OtpLog;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
+
 
 class OtpService
 {
@@ -48,12 +50,6 @@ class OtpService
      */
     public function getRecipientEmail(string $userEmail): string
     {
-        if (app()->environment('local')) {
-            $devEmail = env('OTP_DEV_EMAIL', 'gouravatced@gmail.com');
-            Log::info("OTP Dev Mode: Redirecting email from {$userEmail} to {$devEmail}");
-            return $devEmail;
-        }
-
         return $userEmail;
     }
 
@@ -68,7 +64,7 @@ class OtpService
         ?string $ipAddress = null,
         ?string $userAgent = null
     ): OtpLog {
-        $expiryMinutes = (int) env('OTP_EXPIRY_MINUTES', 10);
+        $expiryMinutes = (int) config('jshb.otp_expiry_minutes', 10);
 
         $otpLog = OtpLog::create([
             'user_id'    => $userId,
@@ -184,7 +180,7 @@ class OtpService
 
         $userName = null;
         if ($userId) {
-            $user = \App\Models\User::find($userId);
+            $user = User::find($userId);
             if ($user) {
                 $userName = $user->name;
             }
@@ -278,7 +274,7 @@ class OtpService
      */
     public function isOtpLoginValid(?int $userId): bool
     {
-        $user = \App\Models\User::find($userId);
+        $user = User::find($userId);
 
         if (!$user || !$user->otp_login_valid_until) {
             return false;
@@ -292,7 +288,7 @@ class OtpService
      */
     public function setOtpLoginValidity(?int $userId): void
     {
-        $user = \App\Models\User::find($userId);
+        $user = User::find($userId);
         if ($user) {
             $validUntil = now()->addHours(8);
             $user->update(['otp_login_valid_until' => $validUntil]);
@@ -305,7 +301,7 @@ class OtpService
      */
     public function clearOtpLoginValidity(?int $userId): void
     {
-        $user = \App\Models\User::find($userId);
+        $user = User::find($userId);
         if ($user) {
             $user->update(['otp_login_valid_until' => null]);
             Log::info("OTP login validity cleared for user_id: {$userId}");

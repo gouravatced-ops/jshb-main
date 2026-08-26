@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\EngineerDetail;
 use App\Models\GuestHouseRequisition;
 use App\Models\LoginLog;
@@ -14,7 +15,8 @@ use App\Models\Application;
 use App\Models\Allottee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use \Illuminate\Support\Facades\DB;
+use App\Models\Notification;
+use App\Models\Notice;
 
 class DashboardController extends Controller
 {
@@ -56,10 +58,6 @@ class DashboardController extends Controller
 
         $user = Auth::user();
 
-        if (! $user || $user->role !== 'admin') {
-            return redirect()->route('dashboard')->with('error', 'Admin access required.');
-        }
-
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
         $otpLogs = OtpLog::latest()->take(10)->get();
@@ -89,10 +87,6 @@ class DashboardController extends Controller
         }
 
         $user = Auth::user();
-
-        if (! $user || $user->role !== 'staff') {
-            return redirect()->route('dashboard')->with('error', 'Staff access required.');
-        }
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
@@ -124,10 +118,6 @@ class DashboardController extends Controller
 
         $user = Auth::user();
 
-        if (! $user || $user->role !== 'division') {
-            return redirect()->route('dashboard')->with('error', 'Division access required.');
-        }
-
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
         $otpLogs = OtpLog::latest()->take(10)->get();
@@ -157,10 +147,6 @@ class DashboardController extends Controller
         }
 
         $user = Auth::user();
-
-        if (! $user || $user->role !== 'subdivision') {
-            return redirect()->route('dashboard')->with('error', 'Sub Division access required.');
-        }
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
@@ -192,10 +178,6 @@ class DashboardController extends Controller
 
         $user = Auth::user();
 
-        if (! $user || $user->role !== 'engineer') {
-            return redirect()->route('dashboard')->with('error', 'Engineer access required.');
-        }
-
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
         $otpLogs = OtpLog::latest()->take(10)->get();
@@ -203,7 +185,7 @@ class DashboardController extends Controller
 
         $pendingApplications = collect();
         $workflowId = Workflow::where('application_type', 'allotment')->value('id') ?? 1;
-        
+
         // 1. Get all pending application allottee IDs for this role
         $pendingAllotteeIds = Application::where('current_role_id', $user->role_id)
             ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
@@ -279,12 +261,12 @@ class DashboardController extends Controller
         })
             ->whereIn('allottee_id', $validAllotteeIds)
             ->count();
-            
+
         $totalSentBack = Application::where('current_role_id', $user->role_id)
             ->where('status', 'send_back')
             ->whereIn('allottee_id', $validAllotteeIds)
             ->count();
-            
+
         $totalRejected = Application::where('current_role_id', $user->role_id)
             ->where('status', 'rejected')
             ->whereIn('allottee_id', $validAllotteeIds)
@@ -306,10 +288,10 @@ class DashboardController extends Controller
             ->where('current_role_id', $user->role_id)
             ->whereIn('status', ['pending', 'in_progress', 'forwarded'])
             ->whereIn('allottee_id', $validAllotteeIds)
-            ->whereHas('movements', function($q) use ($user) {
+            ->whereHas('movements', function ($q) use ($user) {
                 $q->where('to_user_id', $user->id);
             })
-            ->with(['movements' => function($q) use ($user) {
+            ->with(['movements' => function ($q) use ($user) {
                 $q->where('to_user_id', $user->id)->orderBy('id', 'desc');
             }])
             ->get();
@@ -317,9 +299,9 @@ class DashboardController extends Controller
         $dashboardForwardedApps->transform(function ($app) {
             $latestMovement = $app->movements->first();
             $app->created_date = $latestMovement ? $latestMovement->movement_date : $app->created_date;
-            
+
             if ($app->allottee) {
-                $app->allottee_name = trim("{$app->allottee->prefix} {$app->allottee->allottee_name} {$app->allottee->allottee_surname}");
+                $app->allottee_name = $app->allottee->full_name;
             }
             return $app;
         });
@@ -354,10 +336,6 @@ class DashboardController extends Controller
 
         $user = Auth::user();
 
-        if (! $user || $user->role !== 'accountant') {
-            return redirect()->route('dashboard')->with('error', 'Accountant access required.');
-        }
-
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
         $otpLogs = OtpLog::latest()->take(10)->get();
@@ -387,10 +365,6 @@ class DashboardController extends Controller
         }
 
         $user = Auth::user();
-
-        if (! $user || $user->role !== 'managing') {
-            return redirect()->route('dashboard')->with('error', 'Managing Director access required.');
-        }
 
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
@@ -422,10 +396,6 @@ class DashboardController extends Controller
 
         $user = Auth::user();
 
-        if (! $user || $user->role !== 'operator') {
-            return redirect()->route('dashboard')->with('error', 'Operator access required.');
-        }
-
         $users = User::with('detail')->orderByDesc('created_at')->get();
         $loginLogs = LoginLog::latest()->take(10)->get();
         $otpLogs = OtpLog::latest()->take(10)->get();
@@ -448,7 +418,7 @@ class DashboardController extends Controller
 
     private function getNotificationsForUser($user)
     {
-        return \App\Models\Notification::where('user_id', $user->id)
+        return Notification::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
     }
@@ -456,36 +426,30 @@ class DashboardController extends Controller
     private function getNoticesForUser($user)
     {
         $now = now();
-        
+
         if ($user->role === 'admin') {
-            return \App\Models\Notice::with('creator')
-                ->where(function($q) use ($now) {
-                    $q->whereNull('end_date')
-                      ->orWhere('end_date', '>=', $now);
-                })
+            return Notice::with('creator')
+                ->active()
                 ->orderBy('created_at', 'desc')
                 ->get();
         }
 
-        return \App\Models\Notice::with('creator')
-            ->where(function($q) use ($now) {
-                $q->whereNull('end_date')
-                  ->orWhere('end_date', '>=', $now);
-            })
+        return Notice::with('creator')
+            ->active()
             ->where(function ($q) use ($user) {
                 $q->whereNull('target_user_type')
-                  ->orWhere(function ($q2) use ($user) {
-                      $q2->where('target_user_type', $user->user_type)
-                         ->where(function ($q3) use ($user) {
-                             $q3->whereNull('target_division_id')
-                                ->orWhere('target_division_id', $user->division_id);
-                         })
-                         ->where(function ($q4) use ($user) {
-                             $q4->whereNull('target_user_id')
-                                ->orWhereJsonContains('target_user_id', (string)$user->id)
-                                ->orWhereJsonContains('target_user_id', $user->id);
-                         });
-                  });
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->where('target_user_type', $user->user_type)
+                            ->where(function ($q3) use ($user) {
+                                $q3->whereNull('target_division_id')
+                                    ->orWhere('target_division_id', $user->division_id);
+                            })
+                            ->where(function ($q4) use ($user) {
+                                $q4->whereNull('target_user_id')
+                                    ->orWhereJsonContains('target_user_id', (string)$user->id)
+                                    ->orWhereJsonContains('target_user_id', $user->id);
+                            });
+                    });
             })->orderBy('created_at', 'desc')->get();
     }
 

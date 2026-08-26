@@ -437,8 +437,9 @@
                     Receipt Preview
                 </div>
                 @php
-                    $docBaseUrl = rtrim(env('DOC_API_URL', ''), '/');
-                    $previewSrc = !empty($applicant->payment_receipt_path) ? $docBaseUrl . '/' . ltrim($applicant->payment_receipt_path, '/') : '';
+                    $docBaseUrl = rtrim(config('app.doc_api_url', 'http://localhost/jshb-doc'), '/');
+                    $rawUrl = !empty($applicant->payment_receipt_path) ? $docBaseUrl . '/' . ltrim($applicant->payment_receipt_path, '/') : '';
+                    $previewSrc = !empty($rawUrl) ? route('media.document', ['path' => $rawUrl]) : '';
                 @endphp
                 <img id="receiptPreview" class="preview-image imagePopupModal"
                     src="{{ $previewSrc }}"

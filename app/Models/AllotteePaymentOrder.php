@@ -169,6 +169,11 @@ class AllotteePaymentOrder extends Model
         return $this->order_status === 'overdue';
     }
 
+    public function scopeOfType($query, $type)
+    {
+        return $query->where('order_type', $type);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | ORDER NUMBER

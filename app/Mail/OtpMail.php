@@ -2,6 +2,8 @@
 
 namespace App\Mail;
 
+use Illuminate\Mail\Mailables\Address;
+
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -45,8 +47,8 @@ class OtpMail extends Mailable
         };
 
         // Use explicitly passed fromAddress or default to Security email
-        $senderAddress = $this->fromAddress ?: env('MAIL_SECURITY_USERNAME', 'security@adms.jshb.computered.co.in');
-        $from = new \Illuminate\Mail\Mailables\Address($senderAddress, config('app.name') . ' Security');
+        $senderAddress = $this->fromAddress ?: config('jshb.mail_security_username', 'security@adms.jshb.computered.co.in');
+        $from = new Address($senderAddress, config('app.name') . ' Security');
 
         return new Envelope(
             from: $from,
@@ -73,7 +75,7 @@ class OtpMail extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

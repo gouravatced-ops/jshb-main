@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
@@ -11,6 +14,10 @@ use App\Models\ApplicationMovement;
 use App\Models\ApplicationAuditTrail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Models\Notification;
+use App\Mail\GenericNotificationMail;
+
 
 class BypassRequestController extends Controller
 {
@@ -64,13 +71,13 @@ class BypassRequestController extends Controller
             $bypassRequest->save();
 
             // Notify the engineer that their bypass request was approved
-            $engineer = \App\Models\User::on('adms_jshb')->find($bypassRequest->requested_by_user_id);
+            $engineer = User::on('adms_jshb')->find($bypassRequest->requested_by_user_id);
             if ($engineer) {
                 $mailSubject = "Bypass Request Approved for Application: " . ($bypassRequest->application->application_no ?? '');
                 $mailBody = "Your request to bypass workflow for Application No: " . ($bypassRequest->application->application_no ?? '') . " has been approved by Admin. You can now forward the application to the approved officer.";
                 $link = route('engineer.applications.show', $bypassRequest->application);
 
-                \App\Models\Notification::create([
+                Notification::create([
                     'application_id' => $bypassRequest->application_id,
                     'user_id' => $engineer->id,
                     'notification_type' => 'bypass_approved',
@@ -82,9 +89,9 @@ class BypassRequestController extends Controller
 
                 if ($engineer->email) {
                     try {
-                        \Illuminate\Support\Facades\Mail::to($engineer->email)->send(new \App\Mail\GenericNotificationMail($mailSubject, $mailBody, $link));
+                        Mail::to($engineer->email)->send(new GenericNotificationMail($mailSubject, $mailBody, $link));
                     } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error("Failed to send bypass approval mail to engineer: " . $e->getMessage());
+                        Log::error("Failed to send bypass approval mail to engineer: " . $e->getMessage());
                     }
                 }
             }

@@ -4,13 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Role;
+use App\Models\CommunicationSetting;
 
 class CommunicationSettingController extends Controller
 {
     public function index()
     {
-        $roles = \App\Models\Role::all();
-        $settings = \App\Models\CommunicationSetting::all()->keyBy('role_id');
+        $roles = Role::all();
+        $settings = CommunicationSetting::all()->keyBy('role_id');
 
         return view('admin.communication_settings.index', compact('roles', 'settings'));
     }
@@ -20,7 +22,7 @@ class CommunicationSettingController extends Controller
         $settingsInput = $request->input('settings', []);
 
         foreach ($settingsInput as $roleId => $channels) {
-            \App\Models\CommunicationSetting::updateOrCreate(
+            CommunicationSetting::updateOrCreate(
                 ['role_id' => $roleId],
                 [
                     'is_email_enabled' => isset($channels['email']) ? 1 : 0,
