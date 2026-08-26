@@ -187,10 +187,6 @@ class PropertyMainTypeController extends Controller
 
         $user = Auth::user();
 
-        if (! $user || $user->role !== 'admin') {
-            return redirect()->route('dashboard')->with('error', 'Admin access required.');
-        }
-
         return null;
     }
 }

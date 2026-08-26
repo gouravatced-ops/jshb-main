@@ -50,6 +50,7 @@ class Allottee extends Model
         'pan_card_number',
         'aadhar_card_number',
         'allottee_category',
+        'allottee_category_hindi',
         'allottee_religion',
         'allottee_nationality',
         'date_of_birth_day',
@@ -215,5 +216,10 @@ class Allottee extends Model
     public function applications()
     {
         return $this->hasMany(Application::class, 'allottee_id');
+    }
+
+    public function getFullNameAttribute()
+    {
+        return trim("{$this->prefix} {$this->allottee_name} {$this->allottee_surname}");
     }
 }

@@ -1,5 +1,9 @@
 <?php
 
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Pagination\LengthAwarePaginator;
+
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Crypt;
@@ -241,11 +245,11 @@ if (!function_exists('encryptModels')) {
             return null;
         }
 
-        if ($models instanceof \Illuminate\Database\Eloquent\Collection) {
+        if ($models instanceof Collection) {
             $models->each(function ($model) {
                 $model->encrypted_id = encryptId($model->id);
             });
-        } elseif ($models instanceof \Illuminate\Pagination\Paginator || $models instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+        } elseif ($models instanceof Paginator || $models instanceof LengthAwarePaginator) {
             $models->getCollection()->each(function ($model) {
                 $model->encrypted_id = encryptId($model->id);
             });
@@ -604,6 +608,7 @@ if (!function_exists('unicodeToKruti')) {
     {
 
         $unicode = [
+            // Vowels
             'अ',
             'आ',
             'इ',
@@ -615,6 +620,7 @@ if (!function_exists('unicodeToKruti')) {
             'ओ',
             'औ',
 
+            // Consonants
             'क',
             'ख',
             'ग',
@@ -649,6 +655,7 @@ if (!function_exists('unicodeToKruti')) {
             'स',
             'ह',
 
+            // Matras / Signs
             'ा',
             'ि',
             'ी',
@@ -662,6 +669,13 @@ if (!function_exists('unicodeToKruti')) {
             'ः',
             '्',
 
+            // Nukta
+            '़',
+
+            // Chandrabindu
+            'ँ',
+
+            // Digits
             '०',
             '१',
             '२',
@@ -673,12 +687,60 @@ if (!function_exists('unicodeToKruti')) {
             '८',
             '९',
 
+            // Common conjunct characters
+            'क्ष',
+            'त्र',
+            'ज्ञ',
+            'श्र',
+
+            // Currency / amount words
             'रुपये',
             'पैसे',
-            'मात्र'
+            'मात्र',
+
+            // Hindi punctuation
+            '।',
+            '॥',
+
+            // Brackets
+            '(',
+            ')',
+            '[',
+            ']',
+            '{',
+            '}',
+
+            // Common punctuation
+            ',',
+            '.',
+            ':',
+            ';',
+            '-',
+            '_',
+            '/',
+            '\\',
+            '|',
+            '+',
+            '=',
+            '*',
+            '%',
+            '#',
+            '@',
+            '&',
+
+            // Quotes
+            '"',
+            "'",
+
+            // Currency
+            '₹',
+
+            // Space
+            ' ',
         ];
 
         $kruti = [
+            // Vowels
             'v',
             'vk',
             'b',
@@ -690,6 +752,7 @@ if (!function_exists('unicodeToKruti')) {
             'vks',
             'vkS',
 
+            // Consonants
             'd',
             '[k',
             'x',
@@ -724,6 +787,7 @@ if (!function_exists('unicodeToKruti')) {
             'l',
             'g',
 
+            // Matras / Signs
             'k',
             'f',
             'h',
@@ -737,6 +801,13 @@ if (!function_exists('unicodeToKruti')) {
             '%',
             '~',
 
+            // Nukta
+            '+',
+
+            // Chandrabindu
+            '^',
+
+            // Digits
             '0',
             '1',
             '2',
@@ -748,9 +819,56 @@ if (!function_exists('unicodeToKruti')) {
             '8',
             '9',
 
+            // Common conjunct characters
+            '{k',
+            '=',
+            'K',
+            'J',
+
+            // Currency / amount words
             ':i;s',
             'iSls',
-            'ek='
+            'ek=',
+
+            // Hindi punctuation
+            'A',
+            'AA',
+
+            // Brackets
+            '(',
+            ')',
+            '[',
+            ']',
+            '{',
+            '}',
+
+            // Common punctuation
+            ',',
+            '.',
+            ':',
+            ';',
+            '-',
+            '_',
+            '/',
+            '\\',
+            '|',
+            '+',
+            '=',
+            '*',
+            '%',
+            '#',
+            '@',
+            '&',
+
+            // Quotes
+            '"',
+            "'",
+
+            // Currency
+            '₹',
+
+            // Space
+            ' ',
         ];
 
         $text = str_replace($unicode, $kruti, $text);
@@ -778,7 +896,7 @@ if (!function_exists('sendNotification')) {
     function sendNotification($applicationId, $userId, $notificationType, $subject, $message, $link, $isAllottee = false)
     {
         $connection = $isAllottee ? 'adms_allottees' : config('database.default', 'adms_jshb');
-        return \Illuminate\Support\Facades\DB::connection($connection)->table('notifications')->insert([
+        return DB::connection($connection)->table('notifications')->insert([
             'application_id' => $applicationId,
             'user_id' => $userId,
             'notification_type' => $notificationType,

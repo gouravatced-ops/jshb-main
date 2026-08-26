@@ -9,10 +9,10 @@
                 <select name="division_id" id="division_id" class="form-select" required>
                     <option value="">Select Division</option>
                     @foreach ($divisions as $division)
-                        <option value="{{ $division->id }}" data-encrypted="{{ encryptId($division->id) }}"
-                            {{ old('division_id', $scheme->division_id) == $division->id ? 'selected' : '' }}>
-                            {{ $division->name }}
-                        </option>
+                    <option value="{{ $division->id }}" data-encrypted="{{ encryptId($division->id) }}"
+                        {{ old('division_id', $scheme->division_id) == $division->id ? 'selected' : '' }}>
+                        {{ $division->name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -22,10 +22,10 @@
                 <select name="sub_division_id" id="sub_division_id" class="form-select">
                     <option value="">Select Sub Division</option>
                     @foreach ($subDivisions as $subDivision)
-                        <option value="{{ $subDivision->id }}"
-                            {{ old('sub_division_id', $scheme->sub_division_id) == $subDivision->id ? 'selected' : '' }}>
-                            {{ $subDivision->name }}
-                        </option>
+                    <option value="{{ $subDivision->id }}"
+                        {{ old('sub_division_id', $scheme->sub_division_id) == $subDivision->id ? 'selected' : '' }}>
+                        {{ $subDivision->name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -35,10 +35,10 @@
                 <select name="pcategory_id" id="property_category" class="form-select" required>
                     <option value="">Select Category</option>
                     @foreach ($propertyCategories as $category)
-                        <option value="{{ $category->id }}"
-                            {{ old('pcategory_id', $scheme->pcategory_id) == $category->id ? 'selected' : '' }}>
-                            {{ $category->name }}
-                        </option>
+                    <option value="{{ $category->id }}"
+                        {{ old('pcategory_id', $scheme->pcategory_id) == $category->id ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -48,10 +48,10 @@
                 <select name="p_type_id" id="property_type" class="form-select" required>
                     <option value="">Select Type</option>
                     @foreach ($propertyTypes as $type)
-                        <option value="{{ $type->id }}" data-encrypted="{{ encryptId($type->id) }}"
-                            {{ old('p_type_id', $scheme->p_type_id) == $type->id ? 'selected' : '' }}>
-                            {{ $type->name }}
-                        </option>
+                    <option value="{{ $type->id }}" data-encrypted="{{ encryptId($type->id) }}"
+                        {{ old('p_type_id', $scheme->p_type_id) == $type->id ? 'selected' : '' }}>
+                        {{ $type->name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -61,10 +61,10 @@
                 <select name="p_sub_type_id" id="property_sub_type" class="form-select">
                     <option value="">Select Sub Type</option>
                     @foreach ($propertySubTypes as $subType)
-                        <option value="{{ $subType->id }}"
-                            {{ old('p_sub_type_id', $scheme->p_sub_type_id) == $subType->id ? 'selected' : '' }}>
-                            {{ $subType->name }}
-                        </option>
+                    <option value="{{ $subType->id }}"
+                        {{ old('p_sub_type_id', $scheme->p_sub_type_id) == $subType->id ? 'selected' : '' }}>
+                        {{ $subType->name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -74,10 +74,10 @@
                 <select name="quarter_type_id" id="quarter_type" class="form-select">
                     <option value="">Select Quarter Type</option>
                     @foreach ($quarterTypes as $quarterType)
-                        <option value="{{ $quarterType->quarter_id }}"
-                            {{ old('quarter_type_id', $scheme->quarter_type_id) == $quarterType->quarter_id ? 'selected' : '' }}>
-                            {{ $quarterType->quarter_code }}
-                        </option>
+                    <option value="{{ $quarterType->quarter_id }}"
+                        {{ old('quarter_type_id', $scheme->quarter_type_id) == $quarterType->quarter_id ? 'selected' : '' }}>
+                        {{ $quarterType->quarter_code }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -133,18 +133,18 @@
                 <label class="form-label fw-semibold">Application Form Fee (₹)</label>
                 <div class="row g-2">
                     @foreach ($quarterTypes as $qt)
-                        @php
-                            $existing = $scheme->quarterFees->firstWhere('quarter_type_id', $qt->quarter_id);
-                        @endphp
+                    @php
+                    $existing = $scheme->quarterFees->firstWhere('quarter_type_id', $qt->quarter_id);
+                    @endphp
 
-                        <div class="col-md-3">
-                            <input type="hidden" name="quarter_fees[{{ $qt->quarter_id }}][quarter_type_id]"
-                                value="{{ $qt->quarter_id }}">
+                    <div class="col-md-3">
+                        <input type="hidden" name="quarter_fees[{{ $qt->quarter_id }}][quarter_type_id]"
+                            value="{{ $qt->quarter_id }}">
 
-                            <input type="number" class="form-control"
-                                name="quarter_fees[{{ $qt->quarter_id }}][application_fee]"
-                                value="{{ old('quarter_fees.' . $qt->quarter_id . '.application_fee', $existing->application_fee ?? '') }}">
-                        </div>
+                        <input type="number" class="form-control" placeholder="{{ $qt->quarter_code }} - {{ strtoupper($qt->quarter_name) }}"
+                            name="quarter_fees[{{ $qt->quarter_id }}][application_fee]"
+                            value="{{ old('quarter_fees.' . $qt->quarter_id . '.application_fee', $existing->application_fee ?? '') }}">
+                    </div>
                     @endforeach
                 </div>
             </div>
@@ -154,18 +154,18 @@
                 <label class="form-label fw-semibold">EMD (Earnest Money Deposit) (₹)</label>
                 <div class="row g-2">
                     @foreach ($quarterTypes as $qt)
-                        @php
-                            $existing = $scheme->quarterFees->firstWhere('quarter_type_id', $qt->quarter_id);
-                        @endphp
-                        <div class="col-md-3">
-                            <input type="hidden" name="quarter_fees[{{ $qt->quarter_id }}][quarter_type_id]"
-                                value="{{ $qt->quarter_id }}">
+                    @php
+                    $existing = $scheme->quarterFees->firstWhere('quarter_type_id', $qt->quarter_id);
+                    @endphp
+                    <div class="col-md-3">
+                        <input type="hidden" name="quarter_fees[{{ $qt->quarter_id }}][quarter_type_id]"
+                            value="{{ $qt->quarter_id }}">
 
-                            <input type="number" class="form-control"
-                                name="quarter_fees[{{ $qt->quarter_id }}][emd_amount]"
-                                placeholder="{{ $qt->quarter_code }} - {{ strtoupper($qt->quarter_name) }}"
-                                value="{{ old('quarter_fees.' . $qt->quarter_id . '.emd_amount', $existing->emd_amount ?? '') }}">
-                        </div>
+                        <input type="number" class="form-control"
+                            name="quarter_fees[{{ $qt->quarter_id }}][emd_amount]"
+                            placeholder="{{ $qt->quarter_code }} - {{ strtoupper($qt->quarter_name) }}"
+                            value="{{ old('quarter_fees.' . $qt->quarter_id . '.emd_amount', $existing->emd_amount ?? '') }}">
+                    </div>
                     @endforeach
                 </div>
             </div>
@@ -325,7 +325,7 @@
             </div>
 
             @php
-                $currentYear = date('Y');
+            $currentYear = date('Y');
             @endphp
 
             <div class="col-md-4">
@@ -335,10 +335,10 @@
                     <option value="">-- Select Initiation Year --</option>
                     @for ($year = 1960; $year <= $currentYear; $year++)
                         <option value="{{ $year }}"
-                            {{ old('initiation_year', $scheme->initiation_year) == $year ? 'selected' : '' }}>
-                            {{ $year }}
+                        {{ old('initiation_year', $scheme->initiation_year) == $year ? 'selected' : '' }}>
+                        {{ $year }}
                         </option>
-                    @endfor
+                        @endfor
                 </select>
             </div>
 
@@ -373,220 +373,3 @@
         style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Back</a>
     <button type="submit" class="btn-submit">{{ $submitLabel }}</button>
 </div>
-
-<script>
-    // ELEMENTS
-    const el = id => document.getElementById(id);
-
-    const totalCost = el('total_cost');
-
-    const lotteryPercent = el('lottery_percent');
-    const lotteryAmount = el('lottery_amount');
-
-    const downPercent = el('down_percent');
-    const downAmount = el('down_amount');
-
-    const balanceAmount = el('balance_amount');
-
-    const emiCount = el('emi_count');
-
-    const normalInterest = el('normal_interest');
-    const penaltyRate = el('penalty_rate');
-
-    const emiNormal = el('emi_normal');
-    const emiPenalty = el('emi_penalty');
-
-    // HELPERS
-    const num = value => parseFloat(value) || 0;
-
-    const round = value => Math.ceil(value || 0);
-
-    // EMI FORMULA
-    function calculateEMI(principal, annualRate, months) {
-
-        if (months <= 0) {
-            return 0;
-        }
-
-        const monthlyRate = annualRate / 12 / 100;
-
-        // WITHOUT INTEREST
-        if (monthlyRate <= 0) {
-            return round(principal / months);
-        }
-
-        // EMI FORMULA
-        const emi =
-            (
-                principal *
-                monthlyRate *
-                Math.pow(1 + monthlyRate, months)
-            ) /
-            (
-                Math.pow(1 + monthlyRate, months) - 1
-            );
-
-        return round(emi);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | MAIN CALCULATION
-    |--------------------------------------------------------------------------
-    |
-    | Lottery = 10%
-    | Allotment = 15%
-    |
-    | Balance =
-    | Property Cost
-    | - Lottery Amount
-    | - Allotment Amount
-    |
-    */
-
-    function calculateFinancials() {
-
-        const total = num(totalCost?.value);
-
-        // LOTTERY
-        const lotteryPer = num(lotteryPercent?.value);
-
-        const lotteryAmt = round(
-            (total * lotteryPer) / 100
-        );
-
-        if (lotteryAmount) {
-            lotteryAmount.value = lotteryAmt;
-        }
-
-        // ALLOTMENT
-        const allotmentPer = num(downPercent?.value);
-
-        const allotmentAmt = round(
-            (total * allotmentPer) / 100
-        );
-
-        if (downAmount) {
-            downAmount.value = allotmentAmt;
-        }
-
-        // BALANCE
-        const balance =
-            total -
-            lotteryAmt -
-            allotmentAmt;
-
-        if (balanceAmount) {
-            balanceAmount.value = round(balance);
-        }
-
-        // EMI
-        const principal = round(balance);
-
-        const months = num(emiCount?.value);
-
-        const interest = num(normalInterest?.value);
-
-        const penalty = num(penaltyRate?.value);
-
-        // NORMAL EMI
-        if (emiNormal) {
-
-            emiNormal.value = calculateEMI(
-                principal,
-                interest,
-                months
-            );
-        }
-
-        // PENALTY EMI
-        if (emiPenalty) {
-
-            emiPenalty.value = calculateEMI(
-                principal,
-                interest + penalty,
-                months
-            );
-        }
-    }
-
-    // EVENTS
-    [
-        totalCost,
-        lotteryPercent,
-        downPercent,
-        emiCount,
-        normalInterest,
-        penaltyRate
-    ].forEach(input => {
-
-        input?.addEventListener(
-            'input',
-            calculateFinancials
-        );
-    });
-
-    // INITIAL LOAD
-    document.addEventListener(
-        'DOMContentLoaded',
-        calculateFinancials
-    );
-
-    // DYNAMIC DROPDOWNS FOR SCHEME FORM
-    const divisionSelect = el('division_id');
-    const subDivisionSelect = el('sub_division_id');
-    const propertyTypeSelect = el('property_type');
-    const propertySubTypeSelect = el('property_sub_type');
-
-    if (divisionSelect) {
-        divisionSelect.addEventListener('change', async function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const encryptedId = selectedOption?.getAttribute('data-encrypted');
-            
-            subDivisionSelect.innerHTML = '<option value="">Select Sub Division</option>';
-            
-            if (!encryptedId) return;
-            
-            try {
-                const response = await fetch(`/get-sub-divisions/${encryptedId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    data.forEach(item => {
-                        const option = document.createElement('option');
-                        option.value = item.id;
-                        option.textContent = item.name;
-                        subDivisionSelect.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching sub divisions:', error);
-            }
-        });
-    }
-
-    if (propertyTypeSelect) {
-        propertyTypeSelect.addEventListener('change', async function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const encryptedId = selectedOption?.getAttribute('data-encrypted');
-            
-            propertySubTypeSelect.innerHTML = '<option value="">Select Sub Type</option>';
-            
-            if (!encryptedId) return;
-            
-            try {
-                const response = await fetch(`/get-property-sub-types/${encryptedId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    data.forEach(item => {
-                        const option = document.createElement('option');
-                        option.value = item.id;
-                        option.textContent = item.name;
-                        propertySubTypeSelect.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching property sub types:', error);
-            }
-        });
-    }
-</script>

@@ -42,7 +42,7 @@ $effectiveRoleId = Auth::user()->assistant_to_id
 
 @if($application->status === 'rejected')
 @php
-    $rejectMovement = $application->movements->where('action_type', 'rejected')->last();
+$rejectMovement = $application->movements->where('action_type', 'rejected')->last();
 @endphp
 <div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #dc3545;">
     <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; background: #f8d7da;">
@@ -52,9 +52,9 @@ $effectiveRoleId = Auth::user()->assistant_to_id
             </strong><br>
             <span style="color: #721c24; font-size: 13px;">This application has been rejected and cannot be processed further.</span>
             @if($rejectMovement && $rejectMovement->remarks)
-                <div style="margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 4px; font-size: 13px; color: #721c24; border-left: 3px solid #dc3545;">
-                    <strong>Reason for Rejection:</strong> {{ $rejectMovement->remarks }}
-                </div>
+            <div style="margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 4px; font-size: 13px; color: #721c24; border-left: 3px solid #dc3545;">
+                <strong>Reason for Rejection:</strong> {{ $rejectMovement->remarks }}
+            </div>
             @endif
         </div>
     </div>
@@ -102,6 +102,18 @@ $effectiveRoleId = Auth::user()->assistant_to_id
     </div>
 </div>
 @endif
+
+
+@php
+$isAllotment = $application->application_type === 'allotment';
+$isApproved = in_array(strtolower($application->status), ['approved', 'completed']);
+$hasAllotmentLetter = false;
+if ($isAllotment && $isApproved) {
+$hasAllotmentLetter = \App\Models\AllotteeGeneratedDocument::where('allottee_id', $application->allottee_id)
+->whereIn('document_type', ['allotment-letter', 'ALLOTMENT_LETTER'])
+->exists();
+}
+@endphp
 
 <div class="compact-wrapper">
 
@@ -157,10 +169,10 @@ $effectiveRoleId = Auth::user()->assistant_to_id
             <div class="data-pair">
                 <div class="data-label">Hindi Name</div>
                 <div class="data-value">
-                    {{ $application->allottee->allottee_prefix_hindi ?? '' }}
 
                     <span style="font-family: 'KrutiDev', sans-serif, Arial; font-size: 20px;">
                         {{ trim(
+                            ($application->allottee->allottee_prefix_hindi ?? '') . ' ' .
                             ($application->allottee->allottee_name_hindi ?? '') . ' ' .
                             ($application->allottee->allottee_middle_hindi ?? '') . ' ' .
                             ($application->allottee->allottee_surname_hindi ?? '')
@@ -222,7 +234,7 @@ $effectiveRoleId = Auth::user()->assistant_to_id
                             <td style="text-align: right;">
                                 @if($doc->file_path)
                                 @php
-                                $docBaseUrl = rtrim(env('DOC_API_URL', ''), '/');
+                                $docBaseUrl = rtrim(config('app.doc_api_url', 'http://localhost/jshb-doc'), '/');
                                 $previewSrc = route('media.document', ['path' => $docBaseUrl . '/' . ltrim($doc->file_path, '/')]);
                                 @endphp
                                 <button type="button" onclick="viewDocument('{{ $previewSrc }}', '{{ addslashes($doc->document_name) }}')" class="btn-compact" style="border: none; cursor: pointer;">
@@ -305,7 +317,9 @@ $effectiveRoleId = Auth::user()->assistant_to_id
                 <span><i class="fa-solid fa-envelope-open-text"></i> Office Correspondences (LT/OO/OD)</span>
                 <span class="badge-compact" style="background: rgba(46,125,50,0.1); color: #2e7d32; margin-left: 5px;">{{ $application->correspondences ? $application->correspondences->count() : 0 }} Records</span>
             </div>
+            @if(Route::has($routePrefix . '.applications.correspondence.create'))
             <a href="{{ route($routePrefix . '.applications.correspondence.create', $application) }}" class="btn-compact" style="background: #4caf50; color: white; border: none; text-decoration: none;"><i class="fa-solid fa-plus"></i> Create New</a>
+            @endif
         </div>
         <div class="compact-card-body" style="padding: 0;">
             @if($application->correspondences && $application->correspondences->count() > 0)
@@ -340,20 +354,22 @@ $effectiveRoleId = Auth::user()->assistant_to_id
                             <td>{{ $corr->created_at->format('d M, Y') }}</td>
                             <td>
                                 @if($corr->status === 'published')
-                                    <span class="badge bg-success" style="font-size: 11px;"><i class="fa-solid fa-check"></i> Published</span>
+                                <span class="badge bg-success" style="font-size: 11px;"><i class="fa-solid fa-check"></i> Published</span>
                                 @else
-                                    <span class="badge bg-warning text-dark" style="font-size: 11px;"><i class="fa-solid fa-pen"></i> Draft</span>
+                                <span class="badge bg-warning text-dark" style="font-size: 11px;"><i class="fa-solid fa-pen"></i> Draft</span>
                                 @endif
                             </td>
                             <td style="text-align: right; white-space: nowrap;">
-                                @if($corr->status !== 'published')
+                                @if($corr->status !== 'published' && Route::has($routePrefix . '.applications.correspondence.edit'))
                                 <a href="{{ route($routePrefix . '.applications.correspondence.edit', [$application, $corr]) }}" class="btn-compact" style="background: #f59e0b; color: #fff; text-decoration: none; margin-right: 5px;">
                                     <i class="fa-solid fa-pen-to-square" style="font-size: 10px;"></i> Edit
                                 </a>
                                 @endif
+                                @if(Route::has($routePrefix . '.applications.correspondence.show'))
                                 <a href="{{ route($routePrefix . '.applications.correspondence.show', [$application, $corr]) }}" target="_blank" class="btn-compact" style="background: #34495e; color: #fff; text-decoration: none;">
                                     <i class="fa-solid fa-eye" style="font-size: 10px;"></i> View
                                 </a>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -444,7 +460,7 @@ $effectiveRoleId = Auth::user()->assistant_to_id
                             <td style="text-align: center; vertical-align: middle;">
                                 @if($doc->uploaded_doc && $doc->uploaded_doc->file_path)
                                 @php
-                                $docBaseUrl = rtrim(env('DOC_API_URL', ''), '/');
+                                $docBaseUrl = rtrim(config('app.doc_api_url', 'http://localhost/jshb-doc'), '/');
                                 $previewSrc = route('media.document', ['path' => $docBaseUrl . '/' . ltrim($doc->uploaded_doc->file_path, '/')]);
                                 $docName = addslashes($doc->master->document_name);
                                 @endphp

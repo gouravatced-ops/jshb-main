@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class District extends Model
 {
+    protected $connection = 'adms_jshb';
     protected $table = 'districts';
 
     protected $fillable = [

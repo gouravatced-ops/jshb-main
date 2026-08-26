@@ -100,6 +100,14 @@ class AllotteeTransaction extends Model
             'extra_payment'
         );
     }
+    public function scopeExcludeLottery($query)
+    {
+        return $query->where(
+            'transaction_type',
+            '!=',
+            'lottery_payment'
+        );
+    }
 
     // AUTO GENERATE TRANSACTION NO
     protected static function booted()

@@ -71,16 +71,14 @@ const Step2Handler = {
                     option.value = item.id;
                     option.textContent = isHindi ? item.name_hi : item.name_en;
 
-                    // Check if this district was previously selected
-                    if (currentSelectedValue && currentSelectedValue == item.id) {
-                        option.selected = true;
-                    }
-
                     districtSelect.appendChild(option);
                 });
 
-                // If we have a selected value from before, make sure it's set
-                if (currentSelectedValue) {
+                // If we have an intended value from a checkbox copy, use it
+                if (districtSelect.dataset.intendedValue) {
+                    districtSelect.value = districtSelect.dataset.intendedValue;
+                    delete districtSelect.dataset.intendedValue;
+                } else if (currentSelectedValue) {
                     districtSelect.value = currentSelectedValue;
                 }
             })
@@ -141,6 +139,9 @@ const Step2Handler = {
             const toEl = document.querySelector(`[name="${to}"]`);
             if (fromEl && toEl) {
                 if (checkbox.checked) {
+                    if (to.includes('district')) {
+                        toEl.dataset.intendedValue = fromEl.value;
+                    }
                     toEl.value = fromEl.value;
 
                     // If it's a state select, trigger change to load districts

@@ -118,4 +118,11 @@ class Application extends Model
     {
         return $this->hasMany(CommunicationTrack::class, 'application_id')->where('communication_type', 'email');
     }
+
+    public function isSiteVerificationCompleted()
+    {
+        return $this->documents()
+            ->where('document_type', 'Site Verification')
+            ->exists();
+    }
 }

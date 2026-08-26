@@ -57,15 +57,15 @@ trait DocumentUploadTrait
         }
 
         Log::info('Document API Request', [
-            'url'     => env('DOC_UPLOAD_API_URL'),
+            'url'     => config('jshb.doc_upload_api_url'),
             'payload' => $apiPayload,
             'file'    => $file->getClientOriginalName()
         ]);
 
-        $response = Http::withToken(env('DOC_API_TOKEN'))
-            ->withHeaders(['X-API-KEY' => env('DOC_API_TOKEN')])
+        $response = Http::withToken(config('jshb.doc_api_token'))
+            ->withHeaders(['X-API-KEY' => config('jshb.doc_api_token')])
             ->attach('file', file_get_contents($file), $file->getClientOriginalName())
-            ->post(env('DOC_UPLOAD_API_URL'), $apiPayload);
+            ->post(config('jshb.doc_upload_api_url'), $apiPayload);
 
         Log::info('Document API Response', [
             'status'   => $response->status(),
@@ -126,15 +126,15 @@ trait DocumentUploadTrait
         }
 
         Log::info('Document API Request (Content)', [
-            'url'     => env('DOC_UPLOAD_API_URL'),
+            'url'     => config('jshb.doc_upload_api_url'),
             'payload' => $apiPayload,
             'file'    => $fileName
         ]);
 
-        $response = Http::withToken(env('DOC_API_TOKEN'))
-            ->withHeaders(['X-API-KEY' => env('DOC_API_TOKEN')])
+        $response = Http::withToken(config('jshb.doc_api_token'))
+            ->withHeaders(['X-API-KEY' => config('jshb.doc_api_token')])
             ->attach('file', $fileContent, $fileName)
-            ->post(env('DOC_UPLOAD_API_URL'), $apiPayload);
+            ->post(config('jshb.doc_upload_api_url'), $apiPayload);
 
         Log::info('Document API Response', [
             'status'   => $response->status(),

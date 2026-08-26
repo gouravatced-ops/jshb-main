@@ -40,4 +40,12 @@ class Notice extends Model
     {
         return $this->belongsTo(User::class, 'target_user_id');
     }
+
+    public function scopeActive($query)
+    {
+        return $query->where(function($q) {
+            $q->whereNull('end_date')
+              ->orWhere('end_date', '>=', now());
+        });
+    }
 }

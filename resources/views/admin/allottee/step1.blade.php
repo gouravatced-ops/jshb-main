@@ -115,6 +115,7 @@
         color: #000 !important;
         transition: all 0.3s ease;
     }
+
     .badge.bg-secondary {
         font-size: 14px !important;
     }
@@ -123,349 +124,415 @@
     @csrf
     <input type="hidden" name="allottee_id" value="{{$applicant->id ?? ''}}">
 
-        <div class="form-grid">
-            <div class="field">
-                <label class="field-label">
-                    Application No. <span class="req-star">*</span>
-                </label>
-                <input type="text" name="application_no" class="custom-input alpha-num-dash"
-                    value="{{ old('application_no', $applicant->application_no ?? '') }}" placeholder="e.g. 1234567890">
+    <div class="form-grid">
+        <div class="field">
+            <label class="field-label">
+                Application No. <span class="req-star">*</span>
+            </label>
+            <input type="text" name="application_no" class="custom-input alpha-num-dash"
+                value="{{ old('application_no', $applicant->application_no ?? '') }}" placeholder="e.g. 1234567890">
+        </div>
+        <div class="field">
+            <label class="field-label">
+                Application Date <span class="req-star">*</span>
+            </label>
+            <div class="date-group">
+                <!-- Day -->
+                <select name="application_day" class="custom-input">
+                    <option value="">दिन / Day</option>
+                    <?php
+                    $selectedDay =  old('application_day', $applicant->application_day ?? '');
+                    for ($d = 1; $d <= 31; $d++):
+                        $day = str_pad($d, 2, '0', STR_PAD_LEFT);
+                    ?>
+                        <option value="<?= $day ?>" <?= $selectedDay == $day ? 'selected' : '' ?>>
+                            <?= $day ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+                <!-- Month -->
+                <select name="application_month" class="custom-input">
+                    <option value="">माह / Month</option>
+                    <?php
+                    $selectedMonth = old('application_month', $applicant->application_month ?? '');
+                    for ($m = 1; $m <= 12; $m++):
+                        $month = str_pad($m, 2, '0', STR_PAD_LEFT);
+                    ?>
+                        <option value="<?= $month ?>" <?= $selectedMonth == $month ? 'selected' : '' ?>>
+                            <?= $month ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+                <!-- Year -->
+                <select name="application_year" class="custom-input" id="application_year">
+                    <option value="">वर्ष / Year</option>
+                    <?php
+                    $selectedYear = old('application_year', $applicant->application_year ?? '');
+                    $currentYear = date('Y');
+                    for ($y = $currentYear; $y >= 1960; $y--):
+                    ?>
+                        <option value="<?= $y ?>" <?= $selectedYear == $y ? 'selected' : '' ?>>
+                            <?= $y ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
             </div>
-            <div class="field">
-                <label class="field-label">
-                    Application Date <span class="req-star">*</span>
-                </label>
-                <div class="date-group">
-                    <!-- Day -->
-                    <select name="application_day" class="custom-input">
-                        <option value="">दिन / Day</option>
-                        <?php
-                        $selectedDay =  old('application_day', $applicant->application_day ?? '');
-                        for ($d = 1; $d <= 31; $d++):
-                            $day = str_pad($d, 2, '0', STR_PAD_LEFT);
-                        ?>
-                            <option value="<?= $day ?>" <?= $selectedDay == $day ? 'selected' : '' ?>>
-                                <?= $day ?>
-                            </option>
-                        <?php endfor; ?>
-                    </select>
-                    <!-- Month -->
-                    <select name="application_month" class="custom-input">
-                        <option value="">माह / Month</option>
-                        <?php
-                        $selectedMonth = old('application_month', $applicant->application_month ?? '');
-                        for ($m = 1; $m <= 12; $m++):
-                            $month = str_pad($m, 2, '0', STR_PAD_LEFT);
-                        ?>
-                            <option value="<?= $month ?>" <?= $selectedMonth == $month ? 'selected' : '' ?>>
-                                <?= $month ?>
-                            </option>
-                        <?php endfor; ?>
-                    </select>
-                    <!-- Year -->
-                    <select name="application_year" class="custom-input" id="application_year">
-                        <option value="">वर्ष / Year</option>
-                        <?php
-                        $selectedYear = old('application_year', $applicant->application_year ?? '');
-                        $currentYear = date('Y');
-                        for ($y = $currentYear; $y >= 1960; $y--):
-                        ?>
-                            <option value="<?= $y ?>" <?= $selectedYear == $y ? 'selected' : '' ?>>
-                                <?= $y ?>
-                            </option>
-                        <?php endfor; ?>
-                    </select>
-                </div>
+        </div>
+    </div>
+
+    <div class="form-grid3">
+        <div class="field">
+            <label class="field-label">
+                First Name <span class="req-star">*</span>
+            </label>
+            <div class="input-group">
+                @php $prefixes = ['Shri', 'Smt.', 'Miss', 'Dr.', 'Md.', 'Late', 'M/S' , 'Maj.' , 'Capt.']; @endphp
+                <select name="prefix" class="prefix-select">
+                    @foreach ($prefixes as $prefix)
+                    <option value="{{ $prefix }}" {{ ($applicant->prefix ?? '') === $prefix ? 'selected' : '' }}>
+                        {{ $prefix }}
+                    </option>
+                    @endforeach
+                </select>
+                <input type="text" name="allottee_name" class="custom-input only-alphabet"
+                    value="{{ old('allottee_name', $applicant->allottee_name ?? '') }}" placeholder="e.g. Rajesh">
             </div>
         </div>
 
-        <div class="form-grid3">
-            <div class="field">
-                <label class="field-label">
-                    First Name <span class="req-star">*</span>
-                </label>
-                <div class="input-group">
-                    @php $prefixes = ['Shri', 'Smt.', 'Miss', 'Dr.', 'Md.', 'Late', 'M/S' , 'Maj.' , 'Capt.']; @endphp
-                    <select name="prefix" class="prefix-select">
-                        @foreach ($prefixes as $prefix)
-                        <option value="{{ $prefix }}" {{ ($applicant->prefix ?? '') === $prefix ? 'selected' : '' }}>
-                            {{ $prefix }}
-                        </option>
-                        @endforeach
-                    </select>
-                    <input type="text" name="allottee_name" class="custom-input only-alphabet"
-                        value="{{ old('allottee_name', $applicant->allottee_name ?? '') }}" placeholder="e.g. Rajesh">
-                </div>
-            </div>
+        <div class="field">
+            <label class="field-label">Middle Name</label>
+            <input type="text" name="allottee_middle_name" class="custom-input only-alphabet"
+                value="{{ old('allottee_middle_name', $applicant->allottee_middle_name ?? '') }}" placeholder="Optional">
+        </div>
 
-            <div class="field">
-                <label class="field-label">Middle Name</label>
-                <input type="text" name="allottee_middle_name" class="custom-input only-alphabet"
-                    value="{{ old('allottee_middle_name', $applicant->allottee_middle_name ?? '') }}" placeholder="Optional">
-            </div>
+        <div class="field">
+            <label class="field-label">
+                Last Name
+            </label>
+            <input type="text" name="allottee_surname" class="custom-input only-alphabet"
+                value="{{ old('allottee_surname', $applicant->allottee_surname ?? '') }}" placeholder="e.g. Kumar">
+        </div>
 
-            <div class="field">
-                <label class="field-label">
-                    Last Name
-                </label>
-                <input type="text" name="allottee_surname" class="custom-input only-alphabet"
-                    value="{{ old('allottee_surname', $applicant->allottee_surname ?? '') }}" placeholder="e.g. Kumar">
-            </div>
+        <div class="field">
+            <label class="field-label">
+                First Name (Hindi) <span class="req-star">*</span>
+            </label>
+            <div class="input-group">
+                @php
+                $prefixes = [
+                'Jh' => 'श्री',
+                'Jherh' => 'श्रीमती',
+                'lqJh' => 'सुश्री',
+                'MkW-' => 'डॉ.',
+                'eks-' => 'मो.',
+                'Lo0' => 'स्व०',
+                'esllZ' => 'मेसर्स',
+                'estj' => 'मेजर',
+                'dSIVu' => 'कैप्टन',
+                ];
+                @endphp
 
-            <div class="field">
-                <label class="field-label">
-                    First Name (Hindi) <span class="req-star">*</span>
-                </label>
-                <div class="input-group">
-                    @php $prefixes = ['श्री', 'श्रीमती', 'सुश्री', 'डॉ.', 'मो.', 'स्व०', 'मेसर्स' , 'मेजर', 'कैप्टन']; @endphp
-                    <select name="allottee_prefix_hindi" class="prefix-select">
-                        @foreach ($prefixes as $prefix)
-                        <option value="{{ $prefix }}" {{ ($applicant->allottee_prefix_hindi ?? '') === $prefix ? 'selected' : '' }}>
-                            {{ $prefix }}
-                        </option>
-                        @endforeach
-                    </select>
-                    <input type="text" name="allottee_name_hindi" class="krutidev custom-input"
-                        value="{{ old('allottee_name_hindi', $applicant->allottee_name_hindi ?? '') }}" placeholder="e.g. राजेश">
-                </div>
-            </div>
-
-            <div class="field">
-                <label class="field-label">Middle Name (Hindi)</label>
-                <input type="text" name="allottee_middle_hindi" class="krutidev custom-input"
-                    value="{{ old('allottee_middle_hindi', $applicant->allottee_middle_hindi ?? '') }}" placeholder="e.g. कुमार">
-            </div>
-
-            <div class="field">
-                <label class="field-label">
-                    Last Name (Hindi)
-                </label>
-                <input type="text" name="allottee_surname_hindi" class="krutidev custom-input"
-                    value="{{ old('allottee_surname_hindi', $applicant->allottee_surname_hindi ?? '') }}" placeholder="e.g. कुमार">
-            </div>
-
-            <div class="field">
-                <label class="field-label">
-                    Relation of allottee <span class="req-star">*</span>
-                </label>
-                <div class="input-group">
-                    @php $prefixes = ['Father', 'Mother', 'Husband', 'Wife']; @endphp
-                    <select name="relation_prefix" class="prefix-select">
-                        @foreach ($prefixes as $prefix)
-                        <option value="{{ $prefix }}" {{ ($applicant->allottee_relation_type ?? '') === $prefix ? 'selected' : '' }}>
-                            {{ $prefix }}
-                        </option>
-                        @endforeach
-                    </select>
-                    <input type="text" name="relation_name" class="custom-input only-alphabet"
-                        value="{{ old('relation_name', $applicant->relation_name ?? '') }}"
-                        placeholder="e.g. Father, Mother, Husband, Wife">
-                </div>
-            </div>
-
-            <div class="field">
-                <label class="field-label">
-                    Relation of allottee (Hindi) <span class="req-star">*</span>
-                </label>
-                <div class="input-group">
-                    @php $relationPrefixesHindi = ['पिता', 'माता', 'पति', 'पत्नी']; @endphp
-                    <select name="relation_prefix_hindi" class="prefix-select krutidev">
-                        @foreach ($relationPrefixesHindi as $prefix)
-                        <option value="{{ $prefix }}" {{ ($applicant->relation_prefix_hindi ?? '') === $prefix ? 'selected' : '' }}>
-                            {{ $prefix }}
-                        </option>
-                        @endforeach
-                    </select>
-                    <input type="text" name="relation_name_hindi" class="krutidev custom-input"
-                        value="{{ old('relation_name_hindi', $applicant->relation_name_hindi ?? '') }}"
-                        placeholder="e.g. पिता, माता, पति, पत्नी">
-                </div>
-            </div>
-
-            <div class="field">
-                <label class="field-label">
-                    Marital Status <span class="req-star">*</span>
-                </label>
-                <select name="marital_status" class="custom-input">
-                    <option value="Unmarried" {{ old('marital_status', $applicant->marital_status ?? '') === 'Unmarried' ? 'selected' : '' }}>Unmarried</option>
-                    <option value="Married" {{  old('marital_status', $applicant->marital_status ?? '') === 'Married' ? 'selected' : '' }}>Married</option>
-                    <option value="Divorced" {{  old('marital_status', $applicant->marital_status ?? '') === 'Divorced' ? 'selected' : '' }}>Divorced</option>
-                    <option value="Widow" {{  old('marital_status', $applicant->marital_status ?? '') === 'Widow' ? 'selected' : '' }}>Widow</option>
-                    <option value="Widower" {{  old('marital_status', $applicant->marital_status ?? '') === 'Widower' ? 'selected' : '' }}>Widower</option>
-                </select>
-            </div>
-
-            <div class="field">
-                <label class="field-label">
-                    Gender <span class="req-star">*</span>
-                </label>
-                <select name="allottee_gender" class="custom-input">
-                    <option value="Male" {{  old('allottee_gender', $applicant->allottee_gender ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
-                    <option value="Female" {{  old('allottee_gender', $applicant->allottee_gender ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
-                    <option value="Transgender" {{  old('allottee_gender', $applicant->allottee_gender ?? '') === 'Transgender' ? 'selected' : '' }}>Transgender</option>
-                </select>
-            </div>
-
-            <div class="field" id="pan-field">
-                <label class="field-label">
-                    PAN Card Number
-                </label>
-                <input type="text" id="pan_card_number" name="pan_card_number" placeholder="ABCDE1234F"
-                    class="custom-input pan-input" value="{{ old('pan_card_number', $applicant->pan_card_number ?? '') }}" maxlength="10"
-                    style="text-transform:uppercase">
-            </div>
-
-            <div class="field" id="aadhar-field">
-                <label class="field-label">
-                    Aadhar Card Number
-                </label>
-                <input type="text" id="aadhar_card_number" name="aadhar_card_number" class="custom-input"
-                    value="{{ old('aadhar_card_number', $applicant->aadhar_card_number ?? '') }}"
-                    placeholder="12-digit Aadhar number, no spaces" pattern="[0-9]{12}" maxlength="12">
-            </div>
-
-            @php
-            $categories = [
-            'General' => 'General',
-            'General (PwD)' => 'General (PwD)',
-            'Scheduled Caste (SC)' => 'Scheduled Caste (SC)',
-            'Scheduled Caste (SC) (PwD)' => 'Scheduled Caste (SC) (PwD)',
-            'Scheduled Tribe (ST)' => 'Scheduled Tribe (ST)',
-            'Scheduled Tribe (ST) (PwD)' => 'Scheduled Tribe (ST) (PwD)',
-            'Other Backward Class (OBC)' => 'Other Backward Class (OBC)',
-            'Other Backward Class (OBC) (PwD)' => 'Other Backward Class (OBC) (PwD)',
-            'Retired Government Servant' => 'Retired Government Servant',
-            'Govt. Servant retiring within one year' => 'Govt. Servant retiring within one year',
-            'Armed Forces Personnel' => 'Armed Forces Personnel',
-            'Ex-Servicemen' => 'Ex-Servicemen',
-            'Abandoned' => 'Abandoned',
-            'Destitute Widows' => 'Destitute Widows',
-            'Vidhaanmandal' => 'Vidhaanmandal',
-            'Vidhansabha' => 'Vidhansabha',
-            ];
-            $selectedCategory = old('allottee_category', $applicant->allottee_category ?? '');
-            @endphp
-
-            <div class="field">
-                <label class="field-label">
-                    Category <span class="req-star">*</span>
-                </label>
-                <select name="allottee_category" class="custom-input" required>
-                    <option value="">Select Category</option>
-                    @foreach ($categories as $value => $label)
-                    <option value="{{ $value }}" {{ $selectedCategory === $value ? 'selected' : '' }}>
+                <select name="allottee_prefix_hindi" class="prefix-select" required>
+                    @foreach ($prefixes as $value => $label)
+                    <option value="{{ $value }}"
+                        {{ ($applicant->allottee_prefix_hindi ?? '') === $value ? 'selected' : '' }}>
                         {{ $label }}
                     </option>
                     @endforeach
                 </select>
-            </div>
-
-            <div class="field">
-                <label class="field-label">
-                    Religion <span class="req-star">*</span>
-                </label>
-
-                <select name="allottee_religion" class="custom-input">
-                    <option value="">Select Religion</option>
-                    <option value="Hindu"
-                        {{ isset($applicant) && $applicant->allottee_religion == 'Hindu' ? 'selected' : '' }}>
-                        Hindu
-                    </option>
-
-                    <option value="Muslim"
-                        {{ isset($applicant) && $applicant->allottee_religion == 'Muslim' ? 'selected' : '' }}>
-                        Muslim
-                    </option>
-
-                    <option value="Christian"
-                        {{ isset($applicant) && $applicant->allottee_religion == 'Christian' ? 'selected' : '' }}>
-                        Christian
-                    </option>
-
-                    <option value="Sikh"
-                        {{ isset($applicant) && $applicant->allottee_religion == 'Sikh' ? 'selected' : '' }}>
-                        Sikh
-                    </option>
-
-                    <option value="Buddhist"
-                        {{ isset($applicant) && $applicant->allottee_religion == 'Buddhist' ? 'selected' : '' }}>
-                        Buddhist
-                    </option>
-
-                    <option value="Jain"
-                        {{ isset($applicant) && $applicant->allottee_religion == 'Jain' ? 'selected' : '' }}>
-                        Jain
-                    </option>
-
-                    <option value="Parsi"
-                        {{ isset($applicant) && $applicant->allottee_religion == 'Parsi' ? 'selected' : '' }}>
-                        Parsi
-                    </option>
-
-                    <option value="Other"
-                        {{ isset($applicant) && $applicant->allottee_religion == 'Other' ? 'selected' : '' }}>
-                        Other
-                    </option>
-                </select>
-            </div>
-
-            <div class="field">
-                <label class="field-label">Nationality</label>
-                <input type="text" name="allottee_nationality" class="custom-input only-alphabet" value="{{ old('allottee_nationality', $applicant->allottee_nationality ?? 'Indian') }}">
-            </div>
-
-            <div class="field">
-                <label class="field-label">
-                    Date of Birth (जन्म तिथि)
-                </label>
-                <div class="date-group">
-                    <!-- Day -->
-                    <select name="date_of_birth_day" class="custom-input">
-                        <option value="">दिन / Day</option>
-                        <?php
-                        $selectedDay = old('date_of_birth_day', $applicant->date_of_birth_day ?? '');
-                        for ($d = 1; $d <= 31; $d++):
-                            $day = str_pad($d, 2, '0', STR_PAD_LEFT);
-                        ?>
-                            <option value="<?= $day ?>" <?= $selectedDay == $day ? 'selected' : '' ?>>
-                                <?= $day ?>
-                            </option>
-                        <?php endfor; ?>
-                    </select>
-                    <!-- Month -->
-                    <select name="date_of_birth_month" class="custom-input">
-                        <option value="">माह / Month</option>
-                        <?php
-                        $selectedMonth = old('date_of_birth_month', $applicant->date_of_birth_month ?? '');
-                        for ($m = 1; $m <= 12; $m++):
-                            $month = str_pad($m, 2, '0', STR_PAD_LEFT);
-                        ?>
-                            <option value="<?= $month ?>" <?= $selectedMonth == $month ? 'selected' : '' ?>>
-                                <?= $month ?>
-                            </option>
-                        <?php endfor; ?>
-                    </select>
-                    <!-- Year -->
-                    <select name="date_of_birth_year" class="custom-input">
-                        <option value="">वर्ष / Year</option>
-                        <?php
-                        $selectedYear = old('date_of_birth_year', $applicant->date_of_birth_year ?? '');;
-                        $currentYear = date('Y');
-                        for ($y = $currentYear; $y >= 1925; $y--):
-                        ?>
-                            <option value="<?= $y ?>" <?= $selectedYear == $y ? 'selected' : '' ?>>
-                                <?= $y ?>
-                            </option>
-                        <?php endfor; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div class="field">
-                <label class="field-label">Current Age</label>
-                <input type="text" name="current_age" class="custom-input" id="current_age"
-                    value="" placeholder="e.g. 99 year old">
+                <input type="text" name="allottee_name_hindi" class="krutidev custom-input"
+                    value="{{ old('allottee_name_hindi', $applicant->allottee_name_hindi ?? '') }}" placeholder="e.g. राजेश">
             </div>
         </div>
+
+        <div class="field">
+            <label class="field-label">Middle Name (Hindi)</label>
+            <input type="text" name="allottee_middle_hindi" class="krutidev custom-input"
+                value="{{ old('allottee_middle_hindi', $applicant->allottee_middle_hindi ?? '') }}" placeholder="e.g. कुमार">
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Last Name (Hindi)
+            </label>
+            <input type="text" name="allottee_surname_hindi" class="krutidev custom-input"
+                value="{{ old('allottee_surname_hindi', $applicant->allottee_surname_hindi ?? '') }}" placeholder="e.g. कुमार">
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Relation of allottee <span class="req-star">*</span>
+            </label>
+            <div class="input-group">
+                @php $prefixes = ['Father', 'Mother', 'Husband', 'Wife']; @endphp
+                <select name="relation_prefix" class="prefix-select">
+                    @foreach ($prefixes as $prefix)
+                    <option value="{{ $prefix }}" {{ ($applicant->allottee_relation_type ?? '') === $prefix ? 'selected' : '' }}>
+                        {{ $prefix }}
+                    </option>
+                    @endforeach
+                </select>
+                <input type="text" name="relation_name" class="custom-input only-alphabet"
+                    value="{{ old('relation_name', $applicant->relation_name ?? '') }}"
+                    placeholder="e.g. Father, Mother, Husband, Wife">
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Relation of allottee (Hindi) <span class="req-star">*</span>
+            </label>
+            <div class="input-group">
+                @php
+                $relationPrefixesHindi = [
+                'firk' => 'पिता',
+                'ekrk' => 'माता',
+                'ifr' => 'पति',
+                'iRuh' => 'पत्नी',
+                ];
+                @endphp
+
+                <select name="relation_prefix_hindi" class="prefix-select krutidev">
+                    @foreach ($relationPrefixesHindi as $value => $label)
+                    <option value="{{ $value }}"
+                        {{ ($applicant->relation_prefix_hindi ?? '') === $value ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
+                    @endforeach
+                </select>
+                <input type="text" name="relation_name_hindi" class="krutidev custom-input"
+                    value="{{ old('relation_name_hindi', $applicant->relation_name_hindi ?? '') }}"
+                    placeholder="e.g. पिता, माता, पति, पत्नी">
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Marital Status <span class="req-star">*</span>
+            </label>
+            <select name="marital_status" class="custom-input">
+                <option value="Unmarried" {{ old('marital_status', $applicant->marital_status ?? '') === 'Unmarried' ? 'selected' : '' }}>Unmarried</option>
+                <option value="Married" {{  old('marital_status', $applicant->marital_status ?? '') === 'Married' ? 'selected' : '' }}>Married</option>
+                <option value="Divorced" {{  old('marital_status', $applicant->marital_status ?? '') === 'Divorced' ? 'selected' : '' }}>Divorced</option>
+                <option value="Widow" {{  old('marital_status', $applicant->marital_status ?? '') === 'Widow' ? 'selected' : '' }}>Widow</option>
+                <option value="Widower" {{  old('marital_status', $applicant->marital_status ?? '') === 'Widower' ? 'selected' : '' }}>Widower</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Gender <span class="req-star">*</span>
+            </label>
+            <select name="allottee_gender" class="custom-input">
+                <option value="Male" {{  old('allottee_gender', $applicant->allottee_gender ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
+                <option value="Female" {{  old('allottee_gender', $applicant->allottee_gender ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
+                <option value="Transgender" {{  old('allottee_gender', $applicant->allottee_gender ?? '') === 'Transgender' ? 'selected' : '' }}>Transgender</option>
+            </select>
+        </div>
+
+        <div class="field" id="pan-field">
+            <label class="field-label">
+                PAN Card Number
+            </label>
+            <input type="text" id="pan_card_number" name="pan_card_number" placeholder="ABCDE1234F"
+                class="custom-input pan-input" value="{{ old('pan_card_number', $applicant->pan_card_number ?? '') }}" maxlength="10"
+                style="text-transform:uppercase">
+        </div>
+
+        <div class="field" id="aadhar-field">
+            <label class="field-label">
+                Aadhar Card Number
+            </label>
+            <input type="text" id="aadhar_card_number" name="aadhar_card_number" class="custom-input"
+                value="{{ old('aadhar_card_number', $applicant->aadhar_card_number ?? '') }}"
+                placeholder="12-digit Aadhar number, no spaces" pattern="[0-9]{12}" maxlength="12">
+        </div>
+
+        @php
+        $categories = [
+        'General' => 'General',
+        'General (PwD)' => 'General (PwD)',
+        'Scheduled Caste (SC)' => 'Scheduled Caste (SC)',
+        'Scheduled Caste (SC) (PwD)' => 'Scheduled Caste (SC) (PwD)',
+        'Scheduled Tribe (ST)' => 'Scheduled Tribe (ST)',
+        'Scheduled Tribe (ST) (PwD)' => 'Scheduled Tribe (ST) (PwD)',
+        'Other Backward Class (OBC)' => 'Other Backward Class (OBC)',
+        'Other Backward Class (OBC) (PwD)' => 'Other Backward Class (OBC) (PwD)',
+        'Retired Government Servant' => 'Retired Government Servant',
+        'Govt. Servant retiring within one year' => 'Govt. Servant retiring within one year',
+        'Armed Forces Personnel' => 'Armed Forces Personnel',
+        'Ex-Servicemen' => 'Ex-Servicemen',
+        'Abandoned' => 'Abandoned',
+        'Destitute Widows' => 'Destitute Widows',
+        'Vidhaanmandal' => 'Vidhaanmandal',
+        'Vidhansabha' => 'Vidhansabha',
+        ];
+        $selectedCategory = old('allottee_category', $applicant->allottee_category ?? '');
+        @endphp
+
+        <div class="field">
+            <label class="field-label">
+                Category <span class="req-star">*</span>
+            </label>
+            <select name="allottee_category" class="custom-input" required>
+                <option value="">Select Category</option>
+                @foreach ($categories as $value => $label)
+                <option value="{{ $value }}" {{ $selectedCategory === $value ? 'selected' : '' }}>
+                    {{ $label }}
+                </option>
+                @endforeach
+            </select>
+        </div>
+
+        @php
+        $categoriesHindi = [
+        'lkekU;' => 'सामान्य',
+        'lkekU; (ih-Mh)' => 'सामान्य (दिव्यांग)',
+        'vuqlwfpr tkfr (SC)' => 'अनुसूचित जाति (एससी)',
+        'vuqlwfpr tkfr (SC) (ih-Mh)' => 'अनुसूचित जाति (एससी) (दिव्यांग)',
+        'vuqlwfpr tutkfr (ST)' => 'अनुसूचित जनजाति (एसटी)',
+        'vuqlwfpr tutkfr (ST) (ih-Mh)' => 'अनुसूचित जनजाति (एसटी) (दिव्यांग)',
+        'vU; fiNM+k oxZ (OBC)' => 'अन्य पिछड़ा वर्ग (ओबीसी)',
+        'vU; fiNM+k oxZ (OBC) (ih-Mh)' => 'अन्य पिछड़ा वर्ग (ओबीसी) (दिव्यांग)',
+        'lsokfuo`r ljdkjh deZpkjh' => 'सेवानिवृत्त सरकारी कर्मचारी',
+        ',dfn ds vUnj lsokfuo`r gksus okys ljdkjh deZpkjh' => 'एक वर्ष के अंदर सेवानिवृत्त होने वाले सरकारी कर्मचारी',
+        'l\'kL= cy deZpkjh' => 'सशस्त्र बल कर्मी',
+        'HkwriwoZ lSfud' => 'भूतपूर्व सैनिक',
+        'ifjR;Dr' => 'परित्यक्त',
+        'fu/kZu fo/kok' => 'निराश्रित विधवा',
+        'fo/kku eaMy' => 'विधानमंडल',
+        'fo/kku lHkk' => 'विधानसभा',
+        ];
+
+        $selectedCategoryHindi = old(
+        'allottee_category_hindi',
+        $applicant->allottee_category_hindi ?? ''
+        );
+        @endphp
+
+        <div class="field">
+            <label class="field-label">
+                श्रेणी <span class="req-star">*</span>
+            </label>
+
+            <select name="allottee_category_hindi" class="custom-input" required>
+                <option value="">श्रेणी चुनें</option>
+
+                @foreach ($categoriesHindi as $value => $label)
+                <option value="{{ $value }}"
+                    {{ $selectedCategoryHindi === $value ? 'selected' : '' }}>
+                    {{ $label }}
+                </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Religion <span class="req-star">*</span>
+            </label>
+
+            <select name="allottee_religion" class="custom-input">
+                <option value="">Select Religion</option>
+                <option value="Hindu"
+                    {{ isset($applicant) && $applicant->allottee_religion == 'Hindu' ? 'selected' : '' }}>
+                    Hindu / हिंदू
+                </option>
+
+                <option value="Muslim"
+                    {{ isset($applicant) && $applicant->allottee_religion == 'Muslim' ? 'selected' : '' }}>
+                    Muslim / मुस्लिम
+                </option>
+
+                <option value="Christian"
+                    {{ isset($applicant) && $applicant->allottee_religion == 'Christian' ? 'selected' : '' }}>
+                    Christian / ईसाई
+                </option>
+
+                <option value="Sikh"
+                    {{ isset($applicant) && $applicant->allottee_religion == 'Sikh' ? 'selected' : '' }}>
+                    Sikh / सिख
+                </option>
+
+                <option value="Buddhist"
+                    {{ isset($applicant) && $applicant->allottee_religion == 'Buddhist' ? 'selected' : '' }}>
+                    Buddhist / बौद्ध
+                </option>
+
+                <option value="Jain"
+                    {{ isset($applicant) && $applicant->allottee_religion == 'Jain' ? 'selected' : '' }}>
+                    Jain / जैन
+                </option>
+
+                <option value="Parsi"
+                    {{ isset($applicant) && $applicant->allottee_religion == 'Parsi' ? 'selected' : '' }}>
+                    Parsi / पारसी
+                </option>
+
+                <!-- <option value="Other"
+                    {{ isset($applicant) && $applicant->allottee_religion == 'Other' ? 'selected' : '' }}>
+                    Other / अन्य
+                </option> -->
+            </select>
+        </div>
+
+        <div class="field">
+            <label class="field-label">Nationality</label>
+            <input type="text" name="allottee_nationality" class="custom-input only-alphabet" value="{{ old('allottee_nationality', $applicant->allottee_nationality ?? 'Indian') }}">
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Date of Birth (जन्म तिथि)
+            </label>
+            <div class="date-group">
+                <!-- Day -->
+                <select name="date_of_birth_day" class="custom-input">
+                    <option value="">दिन / Day</option>
+                    <?php
+                    $selectedDay = old('date_of_birth_day', $applicant->date_of_birth_day ?? '');
+                    for ($d = 1; $d <= 31; $d++):
+                        $day = str_pad($d, 2, '0', STR_PAD_LEFT);
+                    ?>
+                        <option value="<?= $day ?>" <?= $selectedDay == $day ? 'selected' : '' ?>>
+                            <?= $day ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+                <!-- Month -->
+                <select name="date_of_birth_month" class="custom-input">
+                    <option value="">माह / Month</option>
+                    <?php
+                    $selectedMonth = old('date_of_birth_month', $applicant->date_of_birth_month ?? '');
+                    for ($m = 1; $m <= 12; $m++):
+                        $month = str_pad($m, 2, '0', STR_PAD_LEFT);
+                    ?>
+                        <option value="<?= $month ?>" <?= $selectedMonth == $month ? 'selected' : '' ?>>
+                            <?= $month ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+                <!-- Year -->
+                <select name="date_of_birth_year" class="custom-input">
+                    <option value="">वर्ष / Year</option>
+                    <?php
+                    $selectedYear = old('date_of_birth_year', $applicant->date_of_birth_year ?? '');;
+                    $currentYear = date('Y');
+                    for ($y = $currentYear; $y >= 1925; $y--):
+                    ?>
+                        <option value="<?= $y ?>" <?= $selectedYear == $y ? 'selected' : '' ?>>
+                            <?= $y ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">Current Age</label>
+            <input type="text" name="current_age" class="custom-input" id="current_age"
+                value="" placeholder="e.g. 99 year old">
+        </div>
+    </div>
     </div>
 </form>
