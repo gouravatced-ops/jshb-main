@@ -104,7 +104,7 @@ class NotificationService
                 }
 
                 $mailable = $params['mailable'] ?? new GenericNotificationMail($subject, $message, $link, $fromAddress);
-                
+
                 if (isset($params['mailable']) && property_exists($mailable, 'fromAddress')) {
                     $mailable->fromAddress = $fromAddress;
                 }
@@ -112,8 +112,16 @@ class NotificationService
                 $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
                 $mailPending = Mail::to($emailId);
 
-                // Add CC to system tracking email for internal workflows (if not already the direct recipient)
-                if (!$isAllottee && $emailId !== $systemEmail) {
+                if (!empty($params['cc'])) {
+                    $mailPending->cc($params['cc']);
+                }
+
+                if (!empty($params['bcc'])) {
+                    $mailPending->bcc($params['bcc']);
+                }
+
+                // Add CC to system tracking email for internal workflows (if not already the direct recipient and not already handled by bcc/cc)
+                if (!$isAllottee && $emailId !== $systemEmail && empty($params['bcc']) && empty($params['cc'])) {
                     $mailPending->cc($systemEmail);
                 }
 
