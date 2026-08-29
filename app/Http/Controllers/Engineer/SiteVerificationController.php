@@ -77,7 +77,7 @@ class SiteVerificationController extends Controller
         $messageBody = "You have initiated the Site Verification process for Application ID: {$application->application_no}. Please use this OTP to verify and save the verification details.";
 
         try {
-            $targetEmail = config('jshb.otp_dev_email') ?: $user->email;
+            $targetEmail = $user->email;
             Mail::to($targetEmail)->send(new OtpMail($otp, $messageBody, [], 'site_verification', $user->name));
 
             // Log to communication_tracks
@@ -152,6 +152,11 @@ class SiteVerificationController extends Controller
             }
 
             // Generate PDF
+            $fontDir = storage_path('fonts');
+            if (!file_exists($fontDir)) {
+                mkdir($fontDir, 0775, true);
+            }
+
             $pdf = Pdf::loadView('admin.allottee.pdf.site-verification', compact('verification', 'allottee'));
 
             $pdfFileName =
