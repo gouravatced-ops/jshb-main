@@ -56,15 +56,24 @@ trait DocumentUploadTrait
             $apiPayload = array_merge($apiPayload, $extraData);
         }
 
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $filename = pathinfo($originalName, PATHINFO_FILENAME);
+        // Remove common image/document extensions from the end of the filename to prevent double extensions
+        $filename = preg_replace('/\.(jpg|jpeg|png|pdf|doc|docx)$/i', '', $filename);
+        // Replace spaces with underscores
+        $filename = str_replace(' ', '_', $filename);
+        $cleanFileName = $filename . '.' . $extension;
+
         Log::info('Document API Request', [
             'url'     => config('jshb.doc_upload_api_url'),
             'payload' => $apiPayload,
-            'file'    => $file->getClientOriginalName()
+            'file'    => $cleanFileName
         ]);
 
         $response = Http::withToken(config('jshb.doc_api_token'))
             ->withHeaders(['X-API-KEY' => config('jshb.doc_api_token')])
-            ->attach('file', file_get_contents($file), $file->getClientOriginalName())
+            ->attach('file', file_get_contents($file), $cleanFileName)
             ->post(config('jshb.doc_upload_api_url'), $apiPayload);
 
         Log::info('Document API Response', [
@@ -125,15 +134,21 @@ trait DocumentUploadTrait
             $apiPayload = array_merge($apiPayload, $extraData);
         }
 
+        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+        $nameWithoutExt = pathinfo($fileName, PATHINFO_FILENAME);
+        $nameWithoutExt = preg_replace('/\.(jpg|jpeg|png|pdf|doc|docx)$/i', '', $nameWithoutExt);
+        $nameWithoutExt = str_replace(' ', '_', $nameWithoutExt);
+        $cleanFileName = $nameWithoutExt . ($extension ? '.' . $extension : '');
+
         Log::info('Document API Request (Content)', [
             'url'     => config('jshb.doc_upload_api_url'),
             'payload' => $apiPayload,
-            'file'    => $fileName
+            'file'    => $cleanFileName
         ]);
 
         $response = Http::withToken(config('jshb.doc_api_token'))
             ->withHeaders(['X-API-KEY' => config('jshb.doc_api_token')])
-            ->attach('file', $fileContent, $fileName)
+            ->attach('file', $fileContent, $cleanFileName)
             ->post(config('jshb.doc_upload_api_url'), $apiPayload);
 
         Log::info('Document API Response', [
