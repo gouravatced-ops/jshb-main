@@ -717,6 +717,8 @@ class ApplicationController extends Controller
                     'send_whatsapp'     => true,
                     'link'              => '/login',
                     'mailable'          => $customMailableAllottee,
+                    'cc'                => config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in'),
+                    'bcc'               => $user->email,
                 ]);
             }
 

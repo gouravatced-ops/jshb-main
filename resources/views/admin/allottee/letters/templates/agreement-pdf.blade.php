@@ -49,7 +49,7 @@
                     >kj[k.M ljdkj
                 </div>
 
-                <div style="font-size:28px; font-weight:bold; line-height:1;">
+                <div style="font-size:28px; line-height:1;">
                     >kj[k.M jkT; vkokl cksMZ
                 </div>
 
