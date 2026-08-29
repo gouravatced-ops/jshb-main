@@ -213,6 +213,12 @@
         </div>
     </div>
     <script src="{{ asset('js/login.js') }}"></script>
+    @if(session('token_expired'))
+    <script>
+        alert("{{ session('token_expired') }}");
+        window.location.reload();
+    </script>
+    @endif
 </body>
 
 </html>
