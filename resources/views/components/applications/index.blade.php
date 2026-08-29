@@ -116,10 +116,9 @@
                             <div>
                                 <div class="table-name">{{ trim(($app->prefix ?? '') . ' ' . ($app->allottee_name ?? '') . ' ' . ($app->allottee_middle_name ?? '') . ' ' . ($app->allottee_surname ?? '')) ?: '-' }}</div>
                                 <div class="table-subtitle">
-                                    {{ $app->allottee_prefix_hindi ?? '' }}
-
                                     <span style="font-family: 'KrutiDev', sans-serif, Arial; font-size: 20px;">
                                         {{ trim(
+                                            ($app->allottee_prefix_hindi ?? '') . ' ' .
                                             ($app->allottee_name_hindi ?? '') . ' ' .
                                             ($app->allottee_middle_hindi ?? '') . ' ' .
                                             ($app->allottee_surname_hindi ?? '')

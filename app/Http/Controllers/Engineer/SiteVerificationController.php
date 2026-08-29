@@ -147,8 +147,23 @@ class SiteVerificationController extends Controller
             $verification = $this->saveSiteVerificationData($request, $allottee);
 
             // Dynamically set map_image to base64 so dompdf can render it
+            $localMapImagePath = null;
             if ($request->filled('map_image_data')) {
-                $verification->map_image = $request->map_image_data;
+                $verification->map_image = $request->map_image_data; // Keep this for now just in case
+                $base64Data = $request->map_image_data;
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                    $base64String = substr($base64Data, strpos($base64Data, ',') + 1);
+                    $imageContent = base64_decode($base64String);
+                    if ($imageContent !== false) {
+                        $tempDir = storage_path('app/temp');
+                        if (!file_exists($tempDir)) {
+                            mkdir($tempDir, 0775, true);
+                        }
+                        $tempImagePath = $tempDir . '/' . uniqid('map_') . '.' . $type[1];
+                        file_put_contents($tempImagePath, $imageContent);
+                        $localMapImagePath = $tempImagePath;
+                    }
+                }
             }
 
             // Generate PDF
@@ -157,7 +172,7 @@ class SiteVerificationController extends Controller
                 mkdir($fontDir, 0775, true);
             }
 
-            $pdf = Pdf::loadView('admin.allottee.pdf.site-verification', compact('verification', 'allottee'));
+            $pdf = Pdf::loadView('admin.allottee.pdf.site-verification', compact('verification', 'allottee', 'localMapImagePath'));
 
             $pdfFileName =
                 'site-verification-' .
@@ -296,6 +311,10 @@ class SiteVerificationController extends Controller
                 }
             }
 
+            if (isset($localMapImagePath) && file_exists($localMapImagePath)) {
+                unlink($localMapImagePath);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Site verification details and PDF saved successfully.',
@@ -305,6 +324,9 @@ class SiteVerificationController extends Controller
                 ])
             ]);
         } catch (\Exception $e) {
+            if (isset($localMapImagePath) && file_exists($localMapImagePath)) {
+                unlink($localMapImagePath);
+            }
             Log::error('Error saving site verification: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
