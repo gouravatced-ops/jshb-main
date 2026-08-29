@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Engineer\SiteVerificationController;
 use App\Http\Controllers\Shared\ApplicationController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,9 +25,11 @@ Route::middleware('auth')
         Route::post('/applications/{application}/upload-document', [ApplicationController::class, 'uploadDocument'])->name('applications.upload-document');
         Route::post('/applications/{application}/verify-upload', [ApplicationController::class, 'verifyAndUploadDocument'])->name('applications.verify-upload');
         Route::get('/applications/{application}/notes-pdf', [ApplicationController::class, 'previewNotesPdf'])->name('applications.notes.pdf');
-        Route::get('/applications/{id}/site-verification', [ApplicationController::class, 'siteVerificationForm'])->name('applications.site-verification.form');
-        Route::post('/applications/{id}/site-verification/send-otp', [ApplicationController::class, 'sendSiteVerificationOtp'])->name('applications.site-verification.send-otp');
-        Route::post('/applications/{id}/site-verification', [ApplicationController::class, 'storeSiteVerification'])->name('applications.site-verification.store');
+
+        // Site Verification
+        Route::get('/applications/{id}/site-verification', [SiteVerificationController::class, 'siteVerificationForm'])->name('applications.site-verification.form');
+        Route::post('/applications/{id}/site-verification/send-otp', [SiteVerificationController::class, 'sendSiteVerificationOtp'])->name('applications.site-verification.send-otp');
+        Route::post('/applications/{id}/site-verification', [SiteVerificationController::class, 'storeSiteVerification'])->name('applications.site-verification.store');
 
         Route::post('/document-requests/store', [ApplicationController::class, 'requestDocument'])->name('document-requests.store');
 
