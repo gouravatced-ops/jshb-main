@@ -136,7 +136,7 @@ class AllotteeService
                 now()->second
             );
 
-            AllotteeTransaction::updateOrCreate(
+            $payment = AllotteeTransaction::updateOrCreate(
                 [
                     'allottee_id'      => $applicant->id,
                     'transaction_type' => 'lottery_payment',
@@ -160,7 +160,36 @@ class AllotteeService
                 ]
             );
 
+            // UPDATE ALLOTTEE LEDGER
+            $lastLedger = \App\Models\AllotteeLedger::where('allottee_id', $applicant->id)->orderBy('id', 'desc')->first();
+            $runningBalance = ($lastLedger->running_balance ?? 0) - $amount;
+
+            \App\Models\AllotteeLedger::create([
+                'allottee_id'      => $applicant->id,
+                'payment_id'       => $payment->id,
+                'order_id'         => $payment->id,
+                'transaction_date' => now(),
+                'transaction_type' => 'lottery_payment',
+                'transaction_mode' => 'cheque',
+                'description'      => 'Lottery Payment Received',
+                'debit_amount'     => 0,
+                'credit_amount'    => $amount,
+                'running_principal' => 0,
+                'running_balance'  => $runningBalance,
+                'reference_no'     => $data['payment_utr_no'] ?? null,
+                'remarks'          => 'Initial lottery payment',
+                'created_by'       => Auth::id()
+            ]);
+
             DB::commit();
+
+            \App\Models\AllotteeStageTracker::create([
+                'allottee_id'    => $applicant->id,
+                'application_no' => $applicant->application_no,
+                'stage_type'     => 'lottery_payment',
+                'status'         => 'completed',
+                'action_by'      => Auth::id(),
+            ]);
 
             return [
                 'applicant_id' => $applicant->id,

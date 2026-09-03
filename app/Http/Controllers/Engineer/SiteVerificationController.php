@@ -181,9 +181,9 @@ class SiteVerificationController extends Controller
                 ($allottee->allotment_day ?? date('d')) .
                 now()->format('His') . '-' . rand(1000, 9999) . '.pdf';
 
-            $year  = date('Y');
-            $month = date('m');
-            $day   = date('d');
+            $year  = $allottee->allotment_year;
+            $month = $allottee->allotment_month;
+            $day   = $allottee->allotment_day;
             $scheme = $allottee->scheme ?? null;
 
             $extraData = [
