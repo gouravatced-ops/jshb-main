@@ -17,7 +17,7 @@
     --border: rgba(148, 163, 184, .14);
     --shadow: 0 4px 20px rgba(15, 23, 42, .08);
     --shadow-card: 0 1px 4px rgba(15, 23, 42, .06);
-    --sidebar-width: 300px;
+    --sidebar-width: 250px;
     --header-height: 64px;
     --radius: 14px;
     --radius-sm: 10px;
@@ -1003,28 +1003,28 @@ a {
 .sidebar-section-label {
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     text-transform: uppercase;
     color: #f5c518;
-    padding: 8px 15px 8px;
+    padding: 6px 15px 4px;
     border-bottom: 1px solid #0d2540;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 /* Navigation Items - Professional Government */
 .nav-item-wrap {
-    padding: 2px 12px;
-    margin: 2px 0;
+    padding: 1px 8px;
+    margin: 1px 0;
 }
 
 .nav-link-custom {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 6px 14px;
-    border-radius: 0;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 4px;
     color: #f2f5f8;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all .2s ease;
