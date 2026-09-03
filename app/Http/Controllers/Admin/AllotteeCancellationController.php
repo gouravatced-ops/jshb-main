@@ -24,8 +24,8 @@ class AllotteeCancellationController extends Controller
             ->where('is_cancelled', false)
             ->whereHas('allotteeOrders', function ($query) {
                 $query->where('order_type', 'allotment')
-                      ->where('due_date', '<', now()->format('Y-m-d'))
-                      ->whereNotIn('order_status', ['paid', 'cancelled']);
+                    ->where('due_date', '<', now()->format('Y-m-d'))
+                    ->whereNotIn('order_status', ['paid', 'cancelled']);
             })
             ->get();
 
@@ -46,7 +46,7 @@ class AllotteeCancellationController extends Controller
             DB::beginTransaction();
             try {
                 $allottee = Allottee::findOrFail($allotteeId);
-                
+
                 // 1. Mark as cancelled
                 $allottee->is_cancelled = true;
                 $allottee->cancelled_at = now();
@@ -77,9 +77,9 @@ class AllotteeCancellationController extends Controller
                 $fileName = 'cancellation_order_' . $safeAllotmentNo . '_' . time() . '.pdf';
 
                 $scheme = $allottee->scheme ?? null;
-                $yyyy = date('Y');
-                $mm = date('m');
-                $dd = date('d');
+                $yyyy = $allottee->allotment_year;
+                $mm = $allottee->allotment_month;
+                $dd = $allottee->allotment_day;
 
                 $extraData = [
                     'application_for' => $allottee->application_type ?? '',
