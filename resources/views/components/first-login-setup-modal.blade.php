@@ -48,6 +48,9 @@ $requiresInternalPassword = in_array($roleSlug, [
                     <label for="setupInternalPassword" class="password-form-label">
                         <i class="fa-solid fa-lock"></i> Internal Operation Password
                     </label>
+                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 8px;">
+                        Note: Password must be at least 8 characters, containing at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
+                    </div>
                     <div style="position: relative;">
                         <input
                             type="password"
@@ -215,8 +218,9 @@ $requiresInternalPassword = in_array($roleSlug, [
 
         let hasError = false;
 
-        if (!internalPass || internalPass.length < 8) {
-            document.getElementById('setupInternalPasswordError').textContent = 'Password must be at least 8 characters.';
+        const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/;
+        if (!internalPass || !passRegex.test(internalPass)) {
+            document.getElementById('setupInternalPasswordError').textContent = 'Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.';
             hasError = true;
         }
         if (internalPass !== confirmPass) {

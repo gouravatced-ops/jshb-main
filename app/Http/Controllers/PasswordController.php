@@ -53,11 +53,21 @@ class PasswordController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'old_password' => 'required|string',
-            'new_password' => 'required|string|min:8|confirmed',
+            'new_password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[@$!%*#?&]/',
+                'confirmed'
+            ],
             'captcha' => 'required|string',
             'captcha_answer' => 'required|numeric',
         ], [
             'new_password.min' => 'New password must be at least 8 characters.',
+            'new_password.regex' => 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.',
             'new_password.confirmed' => 'Password confirmation does not match.',
             'captcha_answer.required' => 'Please answer the security question.',
         ]);
@@ -174,8 +184,20 @@ class PasswordController extends Controller
 
         $validator = Validator::make($request->all(), [
             'current_internal_password' => 'required|string',
-            'internal_password' => 'required|string|min:8|confirmed',
+            'internal_password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[@$!%*#?&]/',
+                'confirmed'
+            ],
             'captcha_answer' => 'required|numeric'
+        ], [
+            'internal_password.min' => 'Internal password must be at least 8 characters.',
+            'internal_password.regex' => 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.',
         ]);
 
         if ($validator->fails()) {

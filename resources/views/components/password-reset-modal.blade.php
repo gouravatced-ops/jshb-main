@@ -47,6 +47,9 @@
                     <label for="newPassword" class="password-form-label">
                         <i class="fa-solid fa-lock"></i> New Password
                     </label>
+                    <div style="font-size: 11px; color: #6b7280; margin-bottom: 8px;">
+                        Note: Password must be at least 8 characters, containing at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
+                    </div>
                     <div style="position: relative;">
                         <input 
                             type="password" 

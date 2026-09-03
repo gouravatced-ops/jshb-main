@@ -11,8 +11,19 @@ class FirstLoginSetupController extends Controller
     public function setupInternalPassword(Request $request)
     {
         $request->validate([
-            'internal_password' => 'required|min:8|confirmed',
+            'internal_password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[@$!%*#?&]/',
+                'confirmed'
+            ],
             'captcha_answer' => 'required|numeric',
+        ], [
+            'internal_password.regex' => 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.',
         ]);
 
         $user = Auth::user();

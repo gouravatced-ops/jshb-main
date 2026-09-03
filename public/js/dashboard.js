@@ -542,11 +542,12 @@ function submitPasswordReset() {
         hasError = true;
     }
     
+    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/;
     if (!newPassword) {
         document.getElementById('newPasswordError').textContent = 'New password is required.';
         hasError = true;
-    } else if (newPassword.length < 8) {
-        document.getElementById('newPasswordError').textContent = 'Password must be at least 8 characters.';
+    } else if (!passRegex.test(newPassword)) {
+        document.getElementById('newPasswordError').textContent = 'Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.';
         hasError = true;
     }
     

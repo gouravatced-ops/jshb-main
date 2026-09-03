@@ -4,7 +4,7 @@
         <div class="nav-icon"><i class="fa-solid fa-bell"></i></div>
         <span class="nav-text">My Notifications</span>
         @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
-            <span class="badge bg-danger rounded-pill ms-auto me-2">{{ $unreadNotifCount }}</span>
+        <span class="badge bg-danger rounded-pill ms-auto me-2">{{ $unreadNotifCount }}</span>
         @endif
     </a>
 </div>
@@ -44,14 +44,14 @@
 </div>
 
 <div class="sidebar-footer">
-    <div class="sidebar-user">
+    <!-- <div class="sidebar-user">
         <div class="sidebar-avatar">
-                <img src="{{ route('media.profile', ['filename' => $sidebarUser->photo ?? 'default', 'user_id' => $sidebarUser->id ?? '']) }}" alt="Profile Photo"
-                    style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+            <img src="{{ route('media.profile', ['filename' => $sidebarUser->photo ?? 'default', 'user_id' => $sidebarUser->id ?? '']) }}" alt="Profile Photo"
+                style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
         </div>
         <div class="sidebar-user-info">
             <div class="sidebar-user-name">{{ $sidebarUser->name ?? 'Guest User' }}</div>
             <span class="sidebar-user-name">{{ $sidebarUser->email ?? 'guest@domain.com' }}</span>
         </div>
-    </div>
+    </div> -->
 </div>

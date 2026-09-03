@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AllotteeLedger extends Model
 {
     use HasFactory;
-
+    protected $connection = 'adms_allottees';
     protected $table = 'allottee_ledger';
 
     protected $fillable = [
