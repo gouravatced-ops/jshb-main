@@ -83,7 +83,9 @@ trait DocumentUploadTrait
 
         if ($response->successful() && $response->json('status') === 'success') {
             $responseData = $response->json('data');
-            $receiptPath = ltrim($responseData['file_path'], '/');
+            $filePathData = $responseData['file_path'] ?? '';
+            $filePathStr = is_array($filePathData) ? implode('/', $filePathData) : $filePathData;
+            $receiptPath = ltrim($filePathStr, '/');
             $receiptFile = basename($receiptPath);
 
             return [
@@ -158,7 +160,9 @@ trait DocumentUploadTrait
 
         if ($response->successful() && $response->json('status') === 'success') {
             $responseData = $response->json('data');
-            $receiptPath = ltrim($responseData['file_path'], '/');
+            $filePathData = $responseData['file_path'] ?? '';
+            $filePathStr = is_array($filePathData) ? implode('/', $filePathData) : $filePathData;
+            $receiptPath = ltrim($filePathStr, '/');
             $receiptFile = basename($receiptPath);
 
             return [

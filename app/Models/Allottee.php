@@ -218,6 +218,11 @@ class Allottee extends Model
         return $this->hasMany(Application::class, 'allottee_id');
     }
 
+    public function stageTrackers()
+    {
+        return $this->hasMany(AllotteeStageTracker::class, 'allottee_id');
+    }
+
     public function getFullNameAttribute()
     {
         return trim("{$this->prefix} {$this->allottee_name} {$this->allottee_surname}");

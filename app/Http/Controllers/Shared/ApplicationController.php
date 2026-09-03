@@ -580,9 +580,9 @@ class ApplicationController extends Controller
 
         $schemeCode     = $allottee->scheme->scheme_code ?? 'SCH';
         $propertyNumber = $allottee->property_number ?? 'PROP';
-        $yyyy = date('Y');
-        $mm   = date('m');
-        $dd   = date('d');
+        $yyyy = $allottee->allotment_year;
+        $mm   = $allottee->allotment_month;
+        $dd   = $allottee->allotment_day;
 
         $extraData = [
             'application_for'   => $application->application_type ?? '',

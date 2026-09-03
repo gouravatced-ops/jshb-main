@@ -286,6 +286,14 @@ class ApplicationService
                     // Delete the original row
                     // $doc->delete();
                 }
+
+                \App\Models\AllotteeStageTracker::create([
+                    'allottee_id'    => $allottee->id,
+                    'application_no' => $application->application_no,
+                    'stage_type'     => 'site_verification',
+                    'status'         => 'completed',
+                    'action_by'      => $user->id,
+                ]);
             }
 
             try {
@@ -332,9 +340,9 @@ class ApplicationService
 
                 // 2. Upload to Document API
                 $scheme = $allottee->scheme ?? null;
-                $yyyy = date('Y');
-                $mm = date('m');
-                $dd = date('d');
+                $yyyy = $allottee->allotment_year ?? date('Y');
+                $mm = $allottee->allotment_month ?? date('m');
+                $dd = $allottee->allotment_day ?? date('d');
 
                 $extraData = [
                     'application_for' => $application->application_type ?? '',
@@ -384,6 +392,14 @@ class ApplicationService
                     'generated_at'   => now(),
                     'issue_date'     => now()->format('Y-m-d'),
                     'document_number' => $allottee->allotment_no ?? $application->application_no
+                ]);
+
+                \App\Models\AllotteeStageTracker::create([
+                    'allottee_id'    => $allottee->id,
+                    'application_no' => $application->application_no,
+                    'stage_type'     => $application->application_type,
+                    'status'         => 'completed',
+                    'action_by'      => $user->id,
                 ]);
 
                 if ($isPossession) {
@@ -624,6 +640,16 @@ class ApplicationService
         // Trigger Notification to Allottee on Approve / Reject
         if (in_array($request->action_type, ['approve', 'reject'])) {
             $actionWord = $request->action_type == 'approve' ? 'approved' : 'rejected';
+
+            if ($request->action_type == 'approve') {
+                \App\Models\AllotteeStageTracker::create([
+                    'allottee_id'    => $application->allottee_id,
+                    'application_no' => $application->application_no,
+                    'stage_type'     => 'application_approved',
+                    'status'         => 'completed',
+                    'action_by'      => Auth::id(),
+                ]);
+            }
             $subject = "Application {$actionWord}: {$application->application_no}";
 
             if ($request->action_type == 'approve') {
