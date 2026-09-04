@@ -74,6 +74,8 @@ class MediaController extends Controller
 
         $path = $request->query('path');
         if (!$path) {
+            \Illuminate\Support\Facades\Log::build(['driver' => 'single', 'path' => storage_path('logs/doc_fetch.log')])
+                ->warning("Document path missing in request. User ID: " . \Illuminate\Support\Facades\Auth::id());
             return response()->file(public_path('img/document-not-found.png'));
         }
 
@@ -119,7 +121,7 @@ class MediaController extends Controller
                     }
                 }
             }
-            
+
             // 4. Payment Receipts (Transactions)
             if (!$isAuthorized) {
                 $transactions = \App\Models\AllotteeTransaction::where('allottee_id', $allottee->id)->get();
@@ -199,6 +201,9 @@ class MediaController extends Controller
         // Determine fallback based on extension
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
+        \Illuminate\Support\Facades\Log::build(['driver' => 'single', 'path' => storage_path('logs/doc_fetch.log')])
+            ->warning("Document not found (404 fallback). Path: {$path} | User ID: " . \Illuminate\Support\Facades\Auth::id());
+
         if ($extension === 'pdf') {
             return response()->file(public_path('img/document-pdf-not-found.pdf'));
         }
@@ -222,4 +227,3 @@ class MediaController extends Controller
         return response()->file(public_path('img/image-fake.png'));
     }
 }
-

@@ -72,6 +72,7 @@ trait DocumentUploadTrait
         ]);
 
         $response = Http::withToken(config('jshb.doc_api_token'))
+            ->timeout(60)
             ->withHeaders(['X-API-KEY' => config('jshb.doc_api_token')])
             ->attach('file', file_get_contents($file), $cleanFileName)
             ->post(config('jshb.doc_upload_api_url'), $apiPayload);
@@ -149,6 +150,7 @@ trait DocumentUploadTrait
         ]);
 
         $response = Http::withToken(config('jshb.doc_api_token'))
+            ->timeout(60)
             ->withHeaders(['X-API-KEY' => config('jshb.doc_api_token')])
             ->attach('file', $fileContent, $cleanFileName)
             ->post(config('jshb.doc_upload_api_url'), $apiPayload);
