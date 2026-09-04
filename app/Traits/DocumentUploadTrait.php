@@ -141,7 +141,8 @@ trait DocumentUploadTrait
         if ($isFileContent) {
             File::put($targetDir . '/' . $newFileName, $fileOrContent);
         } else {
-            $fileOrContent->move($targetDir, $newFileName);
+            // Use File::copy instead of move() so that the original temp file remains intact for subsequent getSize() calls
+            File::copy($fileOrContent->getRealPath(), $targetDir . '/' . $newFileName);
         }
 
         // Return without leading slash to match the old logic (ltrim($path, '/'))
@@ -267,3 +268,4 @@ trait DocumentUploadTrait
         );
     }
 }
+
