@@ -115,7 +115,21 @@ trait DocumentUploadTrait
         $subFolderPath = implode('/', $pathSegments);
 
         // HTTP URLs cannot be used for saving files. We MUST use a physical hard drive path.
-        $baseTargetDir = dirname(base_path()) . '/jshb-doc';
+        // Find the physical path on the hard drive
+        $parentDir = dirname(base_path());
+
+        // 1. Try to use .env variable if set
+        $baseTargetDir = config('app.doc_api_local_path');
+
+        if (empty($baseTargetDir)) {
+            // 2. Fallback for production server (Plesk/cPanel folder)
+            if (File::isDirectory($parentDir . '/dossier.adms.jshb.computered.co.in')) {
+                $baseTargetDir = $parentDir . '/dossier.adms.jshb.computered.co.in';
+            } else {
+                // 3. Fallback for local (XAMPP folder)
+                $baseTargetDir = $parentDir . '/jshb-doc';
+            }
+        }
         $targetDir = rtrim($baseTargetDir, '/') . '/documents/' . $subFolderPath;
 
         // Create directory if it does not exist

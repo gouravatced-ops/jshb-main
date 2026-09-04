@@ -163,8 +163,19 @@ class MediaController extends Controller
             // Priority 1: Direct File System Access (Fastest & Most Secure for Local)
             if (str_starts_with($path, $docApiUrl)) {
                 $relativePath = str_replace($docApiUrl, '', $path);
-                // Since jshb and jshb-doc are siblings in C:\xampp\htdocs
-                $jshbDocPath = dirname(base_path()) . '/jshb-doc' . $relativePath;
+                // Smartly determine local path based on environment
+                $parentDir = dirname(base_path());
+                $baseDocPath = config('app.doc_api_local_path');
+
+                if (empty($baseDocPath)) {
+                    if (\Illuminate\Support\Facades\File::isDirectory($parentDir . '/dossier.adms.jshb.computered.co.in')) {
+                        $baseDocPath = $parentDir . '/dossier.adms.jshb.computered.co.in';
+                    } else {
+                        $baseDocPath = $parentDir . '/jshb-doc';
+                    }
+                }
+
+                $jshbDocPath = rtrim($baseDocPath, '/') . $relativePath;
                 if (\Illuminate\Support\Facades\File::exists($jshbDocPath) && is_file($jshbDocPath)) {
                     return response()->file($jshbDocPath);
                 }
