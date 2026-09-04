@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\EncryptedRouteKey;
 
 class Workflow extends Model
 {
-    use HasFactory;
+    use HasFactory, EncryptedRouteKey;
 
     protected $connection = 'adms_jshb';
     protected $table = 'workflows';
@@ -37,3 +38,4 @@ class Workflow extends Model
                     ->withTimestamps();
     }
 }
+

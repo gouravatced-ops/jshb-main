@@ -76,10 +76,10 @@ class SchemeController extends Controller
                     'initiation_year' => $scheme->initiation_year ?? '-',
                     'quarter_code' => $scheme->quarterType?->quarter_code ?? '-',
                     'property_total_cost' => $scheme->financial?->property_total_cost ?? '-',
-                    'down_payment_amount' => $scheme->financial?->down_payment_amount ?? '-',
+                    'allotement_amount' => $scheme->financial?->allotement_amount ?? '-',
                     'emi_without_penalty' => $scheme->financial?->emi_without_penalty ?? '-',
                     'emi_count' => $scheme->financial?->emi_count ?? '-',
-                    'down_payment_percentage' => $scheme->financial?->down_payment_percentage ?? '-',
+                    'allotment_percentage' => $scheme->financial?->allotment_percentage ?? '-',
                     'total_units' => $scheme->total_units,
                     'scheme_start_date' => optional($scheme->scheme_start_date)->format('M d, Y') ?: '-',
                     'scheme_end_date' => optional($scheme->scheme_end_date)->format('M d, Y') ?: '-',
@@ -152,7 +152,7 @@ class SchemeController extends Controller
 
                 // Financial
                 'property_total_cost' => 'required|numeric|min:0',
-                'down_payment_percentage' => 'required|numeric|min:0',
+                'allotment_percentage' => 'required|numeric|min:0',
                 'emi_count' => 'required|integer|min:1',
 
                 // Quarter Fees
@@ -281,7 +281,7 @@ class SchemeController extends Controller
 
                 // Financial
                 'property_total_cost' => 'required|numeric|min:0',
-                'down_payment_percentage' => 'required|numeric|min:0',
+                'allotment_percentage' => 'required|numeric|min:0',
                 'emi_count' => 'required|integer|min:1',
 
                 // Quarter Fees
@@ -690,3 +690,5 @@ class SchemeController extends Controller
         return null;
     }
 }
+
+

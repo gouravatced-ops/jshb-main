@@ -173,6 +173,7 @@
             padding-left: 30px;
             margin: 10px 0;
         }
+
         .audit-timeline::before {
             content: '';
             position: absolute;
@@ -182,10 +183,12 @@
             width: 2px;
             background: #e2e8f0;
         }
+
         .audit-timeline-item {
             position: relative;
             margin-bottom: 20px;
         }
+
         .audit-timeline-marker {
             position: absolute;
             left: -30px;
@@ -202,6 +205,7 @@
             font-size: 10px;
             z-index: 1;
         }
+
         .audit-timeline-content {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -211,23 +215,27 @@
             transition: all 0.2s;
             position: relative;
         }
+
         .audit-timeline-content:hover {
             border-color: #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             transform: translateY(-1px);
         }
+
         .audit-timeline-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 6px;
         }
+
         .audit-timeline-action {
             font-weight: 800;
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
         .audit-timeline-date {
             font-size: 11px;
             color: #64748b;
@@ -236,6 +244,7 @@
             padding: 2px 8px;
             border-radius: 12px;
         }
+
         .audit-timeline-route {
             font-size: 13px;
             color: #334155;
@@ -243,10 +252,12 @@
             align-items: center;
             gap: 8px;
         }
+
         .audit-timeline-route i {
             color: #94a3b8;
             font-size: 10px;
         }
+
         .audit-timeline-notes {
             display: none;
             margin-top: 12px;
@@ -258,12 +269,14 @@
             padding: 12px;
             border-radius: 6px;
             border: 1px solid #e2e8f0;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
         }
+
         .audit-timeline-item.active .audit-timeline-notes {
             display: block;
             animation: fadeIn 0.3s ease;
         }
+
         .click-hint {
             position: absolute;
             right: 15px;
@@ -274,12 +287,21 @@
             opacity: 0;
             transition: opacity 0.2s;
         }
+
         .audit-timeline-content:hover .click-hint {
             opacity: 1;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 
@@ -344,13 +366,13 @@
                                 <i class="fa-solid fa-rotate-left"></i>
                             </a>
 
-                            @if ($allottee->payment_option == 'emi')
+                            <!-- @if ($allottee->payment_option == 'emi')
                             <a class="action-btn delete" style="background:#eab308; color:#fff;"
                                 href="{{ route('admin.allottee.delete.emi.setup', $allottee) }}"
                                 title="Reset EMI Setup">
                                 <i class="fas fa-receipt"></i>
                             </a>
-                            @endif
+                            @endif -->
 
                             @if ($allottee->is_step_completed == 1 && $allottee->current_step == 3)
                             <button type="button" class="action-btn" style="background:#2563eb; color:#fff; cursor: pointer; border: none;"
@@ -404,9 +426,18 @@
                                 <!-- Property & Finance -->
                                 <div class="col-md-4">
                                     <div class="admin-card">
-                                        <div class="admin-card-header">
-                                            <i class="fa-solid fa-building-columns"></i> Asset & Finance
+                                        <div class="admin-card-header" style="justify-content: space-between;">
+                                            <span><i class="fa-solid fa-building-columns"></i> Asset & Finance</span>
+                                            <button type="button" class="btn btn-sm" style="padding: 4px 12px; font-size: 12px; background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; border-radius: 4px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onclick="openPaymentHistoryModal({{ $allottee->id }}, '{{ $allottee->payment_option }}')" onmouseover="this.style.background='#c7d2fe'" onmouseout="this.style.background='#e0e7ff'">
+                                                <i class="fa-solid fa-indian-rupee-sign"></i> Payment History
+                                            </button>
                                         </div>
+                                        <script id="txn-data-{{ $allottee->id }}" type="application/json">
+                                            {!! $allottee->allotteeTransaction ? $allottee->allotteeTransaction->toJson() : '[]' !!}
+                                        </script>
+                                        <script id="emi-data-{{ $allottee->id }}" type="application/json">
+                                            {!! $allottee->emiSchedule ? $allottee->emiSchedule->toJson() : '[]' !!}
+                                        </script>
                                         <div class="detail-grid" style="grid-template-columns: 1fr;">
                                             <div class="detail-item"><span class="detail-label">Property No</span> <strong style="color:#0284c7; font-size: 14px;">{{ $allottee->property_number ?: 'N/A' }}</strong></div>
                                             <div class="detail-item"><span class="detail-label">Payment Option</span> <span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 500; text-transform:uppercase;">{{ str_replace('_', ' ', $allottee->payment_option ?? 'N/A') }}</span></div>
@@ -470,16 +501,24 @@
                                                                 </button>
                                                             </div>
                                                             <script id="audit-data-{{ $app->id }}" type="application/json">
-                                                                {!! $app->movements ? $app->movements->load(['fromUser', 'toUser', 'fromRole', 'toRole', 'fromStep', 'toStep'])->toJson() : '[]' !!}
+                                                                {
+                                                                    !!$app - > movements ? $app - > movements - > load(['fromUser', 'toUser', 'fromRole', 'toRole', 'fromStep', 'toStep']) - > toJson() : '[]'!!
+                                                                }
                                                             </script>
                                                             <script id="comm-data-{{ $app->id }}" type="application/json">
-                                                                {!! $app->communicationTracks ? $app->communicationTracks->toJson() : '[]' !!}
+                                                                {
+                                                                    !!$app - > communicationTracks ? $app - > communicationTracks - > toJson() : '[]'!!
+                                                                }
                                                             </script>
                                                             <script id="corr-data-{{ $app->id }}" type="application/json">
-                                                                {!! $app->correspondences ? $app->correspondences->toJson() : '[]' !!}
+                                                                {
+                                                                    !!$app - > correspondences ? $app - > correspondences - > toJson() : '[]'!!
+                                                                }
                                                             </script>
                                                             <script id="bypass-data-{{ $app->id }}" type="application/json">
-                                                                {!! $app->bypassRequests ? $app->bypassRequests->toJson() : '[]' !!}
+                                                                {
+                                                                    !!$app - > bypassRequests ? $app - > bypassRequests - > toJson() : '[]'!!
+                                                                }
                                                             </script>
                                                         </td>
                                                     </tr>
@@ -554,6 +593,26 @@
         <div id="applicationModalAlert" style="display: none; padding: 12px; margin-bottom: 15px; border-radius: 4px; font-size: 13px; font-weight: 500;"></div>
         <div id="applicationModalBody">
             <p>Loading applications...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Payment History Modal -->
+<div class="modal fade" id="paymentHistoryModal" tabindex="-1" aria-labelledby="paymentHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: #f0fdfa; border-bottom: 1px solid #ccfbf1; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="paymentHistoryModalLabel" style="font-weight: 700; color: #115e59;"><i class="fa-solid fa-indian-rupee-sign" style="color: #0f766e; margin-right: 8px;"></i> Payment History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto; background: #ffffff;">
+                <div id="paymentHistoryContent">
+                    <!-- Payment History will be injected here -->
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; align-items: center;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-weight: 600; padding: 6px 16px; background: #64748b; border: none;">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -842,11 +901,119 @@
     </div>
 </div>
 
+<!-- Payment History Modal -->
+<div class="modal fade" id="paymentHistoryModal" tabindex="-1" aria-labelledby="paymentHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: #f0fdfa; border-bottom: 1px solid #ccfbf1; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="paymentHistoryModalLabel" style="font-weight: 700; color: #115e59;"><i class="fa-solid fa-indian-rupee-sign" style="color: #0f766e; margin-right: 8px;"></i> Payment History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; max-height: 60vh; overflow-y: auto; background: #ffffff;">
+                <div id="paymentHistoryContent">
+                    <!-- Payment History will be injected here -->
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; align-items: center;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-weight: 600; padding: 6px 16px; background: #64748b; border: none;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+        function openPaymentHistoryModal(allotteeId, paymentOption) {
+        var contentDiv = document.getElementById('paymentHistoryContent');
+        var html = '';
+
+        if (paymentOption === 'emi') {
+            var emiDataEl = document.getElementById('emi-data-' + allotteeId);
+            if (!emiDataEl) {
+                contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">EMI data not found.</div>';
+            } else {
+                var emis = JSON.parse(emiDataEl.textContent || emiDataEl.innerText);
+                if (emis.length === 0) {
+                    html = '<div style="text-align:center; padding:30px; color:#94a3b8;"><i class="fa-solid fa-folder-open" style="font-size:32px; margin-bottom:12px;"></i><p style="margin:0; font-weight:500;">No EMI Schedule found</p></div>';
+                } else {
+                    var paidCount = emis.filter(e => e.payment_status === 'paid').length;
+                    html += '<div style="margin-bottom: 15px; padding: 10px; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; font-weight: 600; color: #0369a1;">Total EMIs Paid: ' + paidCount + ' out of ' + emis.length + '</div>';
+                    html += '<div class="audit-timeline">';
+                    emis.forEach(function(e) {
+                        var isPaid = e.payment_status === 'paid';
+                        var statusColor = isPaid ? '#10b981' : (e.payment_status === 'unpaid' ? '#ef4444' : '#f59e0b');
+                        var icon = isPaid ? 'fa-check' : 'fa-clock';
+                        var dateStr = e.paid_at ? new Date(e.paid_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : 'Not Paid';
+                        
+                        html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
+                        html += '<div class="audit-timeline-marker" style="background: ' + statusColor + '"><i class="fa-solid ' + icon + '"></i></div>';
+                        html += '<div class="audit-timeline-content">';
+                        html += '<div class="audit-timeline-header">';
+                        html += '<div class="audit-timeline-action" style="color: ' + statusColor + '">EMI ' + (e.emi_no || '') + ' (' + (e.payment_status || 'Pending').toUpperCase() + ')</div>';
+                        html += '<div class="audit-timeline-date"><i class="fa-regular fa-calendar" style="margin-right:4px;"></i> Due: ' + (e.due_date ? new Date(e.due_date).toLocaleDateString('en-IN') : 'N/A') + '</div>';
+                        html += '</div>';
+                        html += '<div class="audit-timeline-route"><i class="fa-solid fa-indian-rupee-sign"></i> Amount: ?' + (e.emi_amount || 0) + '</div>';
+                        html += '<div class="click-hint"><i class="fa-solid fa-chevron-down"></i></div>';
+                        html += '<div class="audit-timeline-notes">';
+                        html += '<strong>Paid On:</strong> ' + dateStr + '<br>';
+                        html += '<strong>Principal:</strong> ?' + (e.principal_component || 0) + ' | <strong>Interest:</strong> ?' + (e.interest_component || 0) + '<br>';
+                        html += '<strong>Penalty:</strong> ?' + (e.penalty_amount || 0) + ' | <strong>Balance:</strong> ?' + (e.balance_amount || 0);
+                        html += '</div></div></div>';
+                    });
+                    html += '</div>';
+                }
+                contentDiv.innerHTML = html;
+            }
+        } else {
+            // One time payment history
+            var txnDataEl = document.getElementById('txn-data-' + allotteeId);
+            if (!txnDataEl) {
+                contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">Transaction data not found.</div>';
+            } else {
+                var txns = JSON.parse(txnDataEl.textContent || txnDataEl.innerText);
+                if (txns.length === 0) {
+                    html = '<div style="text-align:center; padding:30px; color:#94a3b8;"><i class="fa-solid fa-folder-open" style="font-size:32px; margin-bottom:12px;"></i><p style="margin:0; font-weight:500;">No Payment History found</p></div>';
+                } else {
+                    html += '<div class="audit-timeline">';
+                    txns.forEach(function(t) {
+                        var isPaid = t.payment_status === 'success';
+                        var statusColor = isPaid ? '#10b981' : (t.payment_status === 'failed' ? '#ef4444' : '#f59e0b');
+                        var icon = isPaid ? 'fa-check' : 'fa-info';
+                        var dateStr = t.paid_at ? new Date(t.paid_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'N/A';
+                        
+                        html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
+                        html += '<div class="audit-timeline-marker" style="background: ' + statusColor + '"><i class="fa-solid ' + icon + '"></i></div>';
+                        html += '<div class="audit-timeline-content">';
+                        html += '<div class="audit-timeline-header">';
+                        html += '<div class="audit-timeline-action" style="color: ' + statusColor + '">' + (t.transaction_type || 'Payment').toUpperCase() + ' (' + (t.payment_status || 'Pending').toUpperCase() + ')</div>';
+                        html += '<div class="audit-timeline-date"><i class="fa-regular fa-clock" style="margin-right:4px;"></i> ' + dateStr + '</div>';
+                        html += '</div>';
+                        html += '<div class="audit-timeline-route"><i class="fa-solid fa-indian-rupee-sign"></i> Amount: ?' + (t.amount || 0) + '</div>';
+                        html += '<div class="click-hint"><i class="fa-solid fa-chevron-down"></i></div>';
+                        html += '<div class="audit-timeline-notes">';
+                        html += '<strong>Transaction No:</strong> ' + (t.transaction_no || 'N/A') + '<br>';
+                        html += '<strong>Payment Mode:</strong> ' + (t.payment_mode || 'N/A') + '<br>';
+                        if (t.remarks) {
+                            html += '<strong>Remarks:</strong> ' + t.remarks + '<br>';
+                        }
+                        if (t.receipt_path) {
+                            html += '<a href="/' + t.receipt_path + '" target="_blank" class="btn btn-sm btn-outline-primary mt-2" style="padding: 2px 8px; font-size: 12px;"><i class="fa-solid fa-download"></i> View Receipt</a>';
+                        }
+                        html += '</div></div></div>';
+                    });
+                    html += '</div>';
+                }
+                contentDiv.innerHTML = html;
+            }
+        }
+        
+        var myModal = new bootstrap.Modal(document.getElementById('paymentHistoryModal'));
+        myModal.show();
+    }
+
     function openCommTrackModal(appId) {
         var dataEl = document.getElementById('comm-data-' + appId);
         var contentDiv = document.getElementById('commTrackContent');
-        
+
         if (!dataEl) {
             contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">Communication data not found.</div>';
             var myModal = new bootstrap.Modal(document.getElementById('commTrackModal'));
@@ -864,7 +1031,7 @@
                     var commType = (t.communication_type || 'unknown').toLowerCase();
                     var commColor = '#64748b';
                     var commIcon = 'fa-envelope';
-                    
+
                     if (commType === 'email') {
                         commColor = '#ea4335'; // Google Red
                         commIcon = 'fa-envelope';
@@ -877,7 +1044,14 @@
                     }
 
                     var statusColor = t.status === 'success' ? '#10b981' : '#ef4444';
-                    var dateStr = new Date(t.created_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
+                    var dateStr = new Date(t.created_at).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
 
                     html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
                     html += '<div class="audit-timeline-marker" style="background: ' + commColor + '"><i class="fa-solid ' + commIcon + '"></i></div>';
@@ -917,7 +1091,7 @@
     function openAuditTrailModal(appId) {
         var dataEl = document.getElementById('audit-data-' + appId);
         var contentDiv = document.getElementById('auditTrailContent');
-        
+
         if (!dataEl) {
             contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">Audit data not found.</div>';
             var myModal = new bootstrap.Modal(document.getElementById('auditTrailModal'));
@@ -935,7 +1109,7 @@
                     var actionType = m.action_type || 'forwarded';
                     var actionColor = '#3b82f6';
                     var actionIcon = 'fa-arrow-right';
-                    
+
                     if (actionType === 'send_back' || actionType === 'sent_back') {
                         actionColor = '#f59e0b';
                         actionIcon = 'fa-reply';
@@ -952,7 +1126,14 @@
 
                     var fromName = m.from_user ? m.from_user.name : (m.from_role ? m.from_role.name : 'System/Initiator');
                     var toName = m.to_user ? m.to_user.name : (m.to_role ? m.to_role.name : 'Unassigned/End');
-                    var dateStr = new Date(m.created_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
+                    var dateStr = new Date(m.created_at).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
 
                     var notes = (m.remarks && m.remarks.trim() !== '') ? m.remarks : '<em style="color:#94a3b8;">No remarks provided.</em>';
 
@@ -989,7 +1170,7 @@
     function openCorrespondenceModal(appId) {
         var dataEl = document.getElementById('corr-data-' + appId);
         var contentDiv = document.getElementById('correspondenceContent');
-        
+
         if (!dataEl) {
             contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">Correspondence data not found.</div>';
             var myModal = new bootstrap.Modal(document.getElementById('correspondenceModal'));
@@ -1006,7 +1187,14 @@
                 correspondences.forEach(function(c) {
                     var typeLabel = c.type === 'LT' ? 'LETTER' : (c.type === 'OO' ? 'OFFICE ORDER' : 'OFFICE DRAFT');
                     var statusColor = c.status === 'published' ? '#10b981' : '#f59e0b';
-                    var dateStr = new Date(c.created_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
+                    var dateStr = new Date(c.created_at).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
                     var generatedBy = c.generated_by ? c.generated_by.name : 'Unknown';
 
                     html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
@@ -1043,7 +1231,7 @@
     function openBypassModal(appId) {
         var dataEl = document.getElementById('bypass-data-' + appId);
         var contentDiv = document.getElementById('bypassContent');
-        
+
         if (!dataEl) {
             contentDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;">Bypass data not found.</div>';
             var myModal = new bootstrap.Modal(document.getElementById('bypassModal'));
@@ -1060,8 +1248,15 @@
                 bypassRequests.forEach(function(b) {
                     var statusColor = b.status === 'approved' ? '#10b981' : (b.status === 'rejected' ? '#ef4444' : '#f59e0b');
                     if (b.status === 'used') statusColor = '#8b5cf6'; // Purple for used
-                    var dateStr = new Date(b.created_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
-                    
+                    var dateStr = new Date(b.created_at).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+
                     var reqBy = b.requested_by ? b.requested_by.name : 'Unknown';
                     var target = b.target_user ? b.target_user.name : (b.target_role ? b.target_role.name : 'Unknown');
 
@@ -1099,6 +1294,7 @@
         var myModal = new bootstrap.Modal(document.getElementById('bypassModal'));
         myModal.show();
     }
+
     function sendCredentialMail(allotteeId, btnElement) {
         if (!confirm('Are you sure you want to generate a new password and send the portal credentials email to this allottee?')) {
             return;
@@ -1109,29 +1305,31 @@
         btnElement.disabled = true;
 
         fetch('{{ url("admin/allottees") }}/' + allotteeId + '/send-credentials', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            btnElement.innerHTML = originalHtml;
-            btnElement.disabled = false;
-            
-            if (data.success) {
-                alert(data.message || 'Credentials sent successfully!');
-            } else {
-                alert('Error: ' + (data.message || 'Something went wrong.'));
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            btnElement.innerHTML = originalHtml;
-            btnElement.disabled = false;
-            alert('An error occurred while sending the email.');
-        });
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btnElement.innerHTML = originalHtml;
+                btnElement.disabled = false;
+
+                if (data.success) {
+                    alert(data.message || 'Credentials sent successfully!');
+                } else {
+                    alert('Error: ' + (data.message || 'Something went wrong.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btnElement.innerHTML = originalHtml;
+                btnElement.disabled = false;
+                alert('An error occurred while sending the email.');
+            });
     }
 </script>
 @endsection
+
+
