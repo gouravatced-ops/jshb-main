@@ -68,7 +68,7 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Division</th>
-                    <th>Designation</th>
+                    <th>Sub Division</th>
                     <th>Phone</th>
                     <th>Status</th>
                     <th>OTP Login</th>
@@ -105,18 +105,27 @@
                         </div>
                     </td>
                     <td>
-                        <span
-                            class="badge-status {{ $member->division ? 'active' : '' }}"
-                            title="{{ $member->division?->name ?? 'N/A' }}"
-                            style="
-                                        background: {{ $member->division ? '#114466' : 'transparent' }};
-                                        color: {{ $member->division ? '#e8f5fc' : '#000' }};
-                                        font-size:14px;
-                                    ">
-                            {{ $member->division?->division_code ?: 'N/A' }}
-                        </span>
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <span
+                                class="badge-status {{ $member->division ? 'active' : '' }}"
+                                title="{{ $member->division?->name ?? 'N/A' }}"
+                                style="
+                                            background: {{ $member->division ? '#114466' : 'transparent' }};
+                                            color: {{ $member->division ? '#e8f5fc' : '#000' }};
+                                            font-size:14px;
+                                        ">
+                                {{ $member->division?->division_code ?: 'N/A' }}
+                            </span>
+                        </div>
                     </td>
-                    <td>{{ $member->detail?->designation ?: '-' }}</td>
+                    <td> @if($member->subDivision)
+                        <div style="font-size:13px; color: #09316a !important; font-weight: 800 !important;">
+                            {{ $member->subDivision->name }}
+                        </div>
+                        @else
+                        <span> N/A </span>
+                        @endif
+                    </td>
                     <td>{{ $member->detail?->phone ?: '-' }}</td>
                     <td>
                         <span class="badge-status {{ $member->status ? 'active' : 'inactive' }}">

@@ -51,10 +51,9 @@ class AllotteeController extends Controller
 {
     use DocumentUploadTrait;
 
-    private function processStepBlueprint(): array
+    public function processStepBlueprint(): array
     {
         return [
-
             // OVERVIEW
             [
                 'order_key'   => 1,
@@ -65,11 +64,7 @@ class AllotteeController extends Controller
                 'blade'       => 'overview',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                        'null',
-                    ],
+                    'payment_option' => ['emi', 'one_time', 'null'],
                 ],
             ],
 
@@ -83,11 +78,7 @@ class AllotteeController extends Controller
                 'blade'       => 'allottee-details',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                        'null',
-                    ],
+                    'payment_option' => ['emi', 'one_time', 'null'],
                 ],
             ],
 
@@ -101,11 +92,7 @@ class AllotteeController extends Controller
                 'blade'       => 'letter-order-issued',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                        'null',
-                    ],
+                    'payment_option' => ['emi', 'one_time', 'null'],
                 ],
             ],
 
@@ -118,11 +105,7 @@ class AllotteeController extends Controller
                 'icon'        => 'fa-solid fa-ticket',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                        'null',
-                    ],
+                    'payment_option' => ['emi', 'one_time', 'null'],
                 ],
                 'submenus'    => [
                     [
@@ -138,17 +121,13 @@ class AllotteeController extends Controller
             // ALLOTMENT
             [
                 'order_key'   => 5,
-                'menu_key'    => 'allotment',
-                'title'       => 'Allotment',
-                'description' => 'Allotment related activities',
+                'menu_key'    => 'doucment-process',
+                'title'       => 'Document Process',
+                'description' => 'Document Process related activities',
                 'icon'        => 'fa-solid fa-file-signature',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                        'null',
-                    ],
+                    'payment_option' => ['emi', 'one_time', 'null'],
                 ],
                 'submenus'    => [
                     [
@@ -168,7 +147,7 @@ class AllotteeController extends Controller
                     [
                         'order_key'    => 3,
                         'sub_menu_key' => 'agreement-document-letter',
-                        'title'        => 'Agreement',
+                        'title'        => 'Agreement Letter',
                         'icon'         => 'fa-solid fa-key',
                         'blade'        => 'allotment-agreement-letter',
                     ],
@@ -192,9 +171,7 @@ class AllotteeController extends Controller
                 'blade'       => 'choose-payment-option',
                 'always_show' => false,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'null',
-                    ],
+                    'payment_option' => ['null'],
                 ],
             ],
 
@@ -207,9 +184,7 @@ class AllotteeController extends Controller
                 'icon'        => 'fa-solid fa-building-circle-check',
                 'always_show' => false,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'one_time',
-                    ],
+                    'payment_option' => ['one_time'],
                 ],
                 'submenus'    => [
                     [
@@ -238,9 +213,7 @@ class AllotteeController extends Controller
                 'icon'        => 'fa-solid fa-calendar-days',
                 'always_show' => false,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                    ],
+                    'payment_option' => ['emi'],
                 ],
                 'submenus'    => [
                     [
@@ -274,19 +247,30 @@ class AllotteeController extends Controller
                 ],
             ],
 
-            // NOC
+            // DOCUMENT DOWNLOAD
             [
                 'order_key'   => 9,
+                'menu_key'    => 'name-transfer-download',
+                'title'       => 'Downloads',
+                'description' => 'Download application document',
+                'icon'        => 'fa-solid fa-file-arrow-down',
+                'blade'       => 'download-documents',
+                'always_show' => true,
+                'visible_if'  => [
+                    'payment_option' => ['emi', 'one_time'],
+                ],
+            ],
+
+            // NOC
+            [
+                'order_key'   => 10,
                 'menu_key'    => 'noc',
                 'title'       => 'NOC',
                 'description' => 'NOC related process',
                 'icon'        => 'fa-solid fa-file-circle-check',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                    ],
+                    'payment_option' => ['emi', 'one_time'],
                 ],
                 'submenus'    => [
                     [
@@ -315,55 +299,28 @@ class AllotteeController extends Controller
 
             // FINAL CALCULATION
             [
-                'order_key'   => 10,
+                'order_key'   => 11,
                 'menu_key'    => 'final-calculation',
                 'title'       => 'Final Calculation',
                 'description' => 'Final calculation process',
                 'icon'        => 'fa-solid fa-calculator',
+                'blade'       => 'final-calculation',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                    ],
-                ],
-                'submenus'    => [
-                    [
-                        'order_key'    => 1,
-                        'sub_menu_key' => 'final-calculate-value',
-                        'title'        => 'Calculate Value',
-                        'icon'         => 'fa-solid fa-calculator',
-                        'blade'        => 'final-calculate-value',
-                    ],
-                    [
-                        'order_key'    => 2,
-                        'sub_menu_key' => 'final-payment-demand-note',
-                        'title'        => 'Payment Demand Note',
-                        'icon'         => 'fa-solid fa-file-invoice',
-                        'blade'        => 'final-payment-demand-note',
-                    ],
-                    [
-                        'order_key'    => 3,
-                        'sub_menu_key' => 'final-generate-letter',
-                        'title'        => 'Generate Letter',
-                        'icon'         => 'fa-solid fa-envelope-open-text',
-                        'blade'        => 'final-generate-letter',
-                    ],
+                    'payment_option' => ['emi'],
                 ],
             ],
 
             // REGISTRY
             [
-                'order_key'   => 11,
+                'order_key'   => 12,
                 'menu_key'    => 'registry',
                 'title'       => 'Registry',
                 'description' => 'Registry related process',
-                'icon'        => 'fa-solid fa-book-open',
+                'icon'        => 'fa-solid fa-file-contract',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                    ],
+                    'payment_option' => ['emi', 'one_time'],
                 ],
                 'submenus'    => [
                     [
@@ -392,7 +349,7 @@ class AllotteeController extends Controller
 
             // NAME TRANSFER
             [
-                'order_key'   => 12,
+                'order_key'   => 13,
                 'menu_key'    => 'name-transfer',
                 'title'       => 'Name Transfer',
                 'description' => 'Name transfer process',
@@ -400,16 +357,13 @@ class AllotteeController extends Controller
                 'blade'       => 'name-transfer',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                    ],
+                    'payment_option' => ['emi', 'one_time'],
                 ],
             ],
 
             // LEASE FREE HOLD
             [
-                'order_key'   => 13,
+                'order_key'   => 14,
                 'menu_key'    => 'lease-free-hold',
                 'title'       => 'Lease Free Hold',
                 'description' => 'Lease free hold process',
@@ -417,16 +371,13 @@ class AllotteeController extends Controller
                 'blade'       => 'lease-free-hold',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'emi',
-                        'one_time',
-                    ],
+                    'payment_option' => ['emi', 'one_time'],
                 ],
             ],
 
             // ALLOTMENT CANCELLATION
             [
-                'order_key'   => 14,
+                'order_key'   => 15,
                 'menu_key'    => 'allotment-cancellation',
                 'title'       => 'Allotment Cancellation',
                 'description' => 'Allotment cancellation process',
@@ -434,9 +385,7 @@ class AllotteeController extends Controller
                 'blade'       => 'allotment-cancellation',
                 'always_show' => true,
                 'visible_if'  => [
-                    'payment_option' => [
-                        'null',
-                    ],
+                    'payment_option' => ['null'],
                 ],
             ],
         ];
@@ -486,6 +435,7 @@ class AllotteeController extends Controller
                     // MENU
 
                     'menu_key'      => $menu['menu_key'],
+                    'menu_title'    => $menu['title'],
                     'sub_menu_key'  => $submenu['sub_menu_key'],
 
                     'process_group' => $menu['menu_key'],
@@ -550,6 +500,7 @@ class AllotteeController extends Controller
                 'step_no',
 
                 'title',
+                'menu_title',
                 'description',
                 'blade',
 

@@ -39,6 +39,12 @@ class ApplicationService
     {
         // Validation moved to ProcessActionRequest
 
+        if (in_array($request->action_type, ['forward', 'send_back', 'reject', 'approve'])) {
+            if ($request->input('otp_verified') != '1') {
+                return redirect()->back()->with('error', 'Please verify OTP first before submitting.');
+            }
+        }
+
         if ($request->action_type == 'forward' && $application->currentStep && $application->currentStep->action_type == 'site_verification') {
             $isSiteVerificationCompleted = $application->isSiteVerificationCompleted();
             if (!$isSiteVerificationCompleted) {
@@ -135,6 +141,7 @@ class ApplicationService
                         'user_id' => $user->id,
                         'role_id' => $user->role_id,
                         'remarks' => $request->remarks,
+                        'otp_verified' => $request->input('otp_verified', 0),
                         'font_family' => $request->font_family ?? 'english',
                         'created_at' => now(),
                         'updated_at' => now()
@@ -514,6 +521,7 @@ class ApplicationService
             'user_id' => $targetUserId,
             'role_id' => $targetRoleId,
             'remarks' => $request->remarks,
+            'otp_verified' => $request->input('otp_verified', 0),
             'font_family' => $request->font_family ?? 'english',
             'created_at' => now(),
             'updated_at' => now()
@@ -622,7 +630,7 @@ class ApplicationService
                 $request->remarks
             );
 
-            app(NotificationService::class)->send([
+            $notificationParams = [
                 'user_id' => $targetUser->id,
                 'is_allottee' => false,
                 'application_id' => $application->id,
@@ -634,7 +642,72 @@ class ApplicationService
                 'send_whatsapp' => false,
                 'link' => '/login',
                 'mailable' => $customMailable
-            ]);
+            ];
+
+            // Specific logic for MD forwarding and Co-assistant send back
+            if ($request->action_type == 'forward') {
+                $targetUserRole = Role::find($targetUser->role_id);
+                if ($targetUserRole && $targetUserRole->slug == 'managing-director') {
+                    $coAssistants = User::where('assistant_to_id', $targetUser->id)->get();
+                    $ccEmails = [];
+                    foreach ($coAssistants as $co) {
+                        if ($co->email) {
+                            $ccEmails[] = $co->email;
+                        }
+                    }
+                    if (count($ccEmails) > 0) {
+                        $notificationParams['cc'] = $ccEmails;
+                    }
+                    $notificationParams['bcc'] = ['system@adms.jshb.computered.co.in'];
+                }
+            } elseif ($request->action_type == 'send_back') {
+                // If the user performing the send_back is an assistant (e.g. Co-Assistant acting on behalf of MD)
+                if ($user->assistant_to_id) {
+                    $mdUser = User::find($user->assistant_to_id);
+                    $ccEmails = [];
+                    
+                    if ($user->email) {
+                        $ccEmails[] = $user->email;
+                    }
+                    $ccEmails[] = 'system@adms.jshb.computered.co.in';
+                    
+                    if (count($ccEmails) > 0) {
+                        $notificationParams['cc'] = $ccEmails;
+                    }
+
+                    // Send a completely separate notification explicitly to MD
+                    if ($mdUser) {
+                        $mdSubject = "Application sent back by your Co-Assistant: {$application->application_no}";
+                        $mdMessage = "Application {$application->application_no} was sent back to {$targetUser->name} by your Co-Assistant {$user->name}.";
+                        
+                        $mdMailable = new ApplicationForwardedMail(
+                            $mdUser->name,
+                            $application->application_no,
+                            $user->name,
+                            'send_back',
+                            $dashboardUrl,
+                            $request->remarks,
+                            $mdMessage
+                        );
+
+                        app(NotificationService::class)->send([
+                            'user_id' => $mdUser->id,
+                            'is_allottee' => false,
+                            'application_id' => $application->id,
+                            'notification_type' => 'application_movement',
+                            'subject' => $mdSubject,
+                            'message' => $mdMessage,
+                            'send_email' => true,
+                            'send_sms' => false,
+                            'send_whatsapp' => false,
+                            'link' => '/login',
+                            'mailable' => $mdMailable
+                        ]);
+                    }
+                }
+            }
+
+            app(NotificationService::class)->send($notificationParams);
         }
 
         // Trigger Notification to Allottee on Approve / Reject

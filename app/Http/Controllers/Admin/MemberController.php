@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\UserDetail;
 use App\Models\Division;
+use App\Models\SubDivision;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -41,7 +42,7 @@ class MemberController extends Controller
         $type = $request->get('type', 'all');
 
         $members = User::query()
-            ->with(['roleRelation', 'detail', 'division'])
+            ->with(['roleRelation', 'detail', 'division', 'subDivision'])
             ->whereDoesntHave('roleRelation', function ($query) {
                 $query->where('slug', 'allottee');
             })
@@ -83,11 +84,12 @@ class MemberController extends Controller
             ->values();
 
         $divisions = Division::where('status', true)->orderBy('name')->get();
+        $subDivisions = SubDivision::where('status', true)->orderBy('name')->get();
 
         $mdRole = Role::where('slug', 'managing-director')->first();
         $mdUsers = $mdRole ? User::where('role_id', $mdRole->id)->get() : collect();
 
-        return view('admin.members.create', compact('roles', 'divisions', 'mdUsers'));
+        return view('admin.members.create', compact('roles', 'divisions', 'subDivisions', 'mdUsers'));
     }
 
     public function store(Request $request)
@@ -102,6 +104,7 @@ class MemberController extends Controller
             'password' => 'required|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'division_id' => 'nullable|exists:divisions,id',
+            'sub_division_id' => 'nullable|exists:sub_divisions,id',
             'assistant_to_id' => 'nullable|exists:users,id',
             'login_with_otp' => 'required|boolean',
             'is_default' => 'nullable|boolean',
@@ -126,6 +129,7 @@ class MemberController extends Controller
 
         $isDefault = $request->boolean('is_default');
         $divisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id;
+        $subDivisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->sub_division_id;
 
         if (!$isDefault) {
             $existingCount = User::where('role_id', $request->role_id)
@@ -143,6 +147,7 @@ class MemberController extends Controller
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
             'division_id' => $divisionId,
+            'sub_division_id' => $subDivisionId,
             'assistant_to_id' => $request->assistant_to_id,
             'login_with_otp' => $request->boolean('login_with_otp'),
             'password_created_at' => now(),
@@ -189,11 +194,12 @@ class MemberController extends Controller
             ->values();
 
         $divisions = Division::where('status', true)->orderBy('name')->get();
+        $subDivisions = SubDivision::where('status', true)->orderBy('name')->get();
 
         $mdRole = Role::where('slug', 'managing-director')->first();
         $mdUsers = $mdRole ? User::where('role_id', $mdRole->id)->get() : collect();
 
-        return view('admin.members.edit', compact('member', 'roles', 'divisions', 'mdUsers'));
+        return view('admin.members.edit', compact('member', 'roles', 'divisions', 'subDivisions', 'mdUsers'));
     }
 
     public function update(Request $request, $id)
@@ -210,6 +216,7 @@ class MemberController extends Controller
             'password' => 'nullable|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
             'division_id' => 'nullable|exists:divisions,id',
+            'sub_division_id' => 'nullable|exists:sub_divisions,id',
             'assistant_to_id' => 'nullable|exists:users,id',
             'login_with_otp' => 'required|boolean',
             'is_default' => 'nullable|boolean',
@@ -238,12 +245,14 @@ class MemberController extends Controller
 
         $isDefault = $request->boolean('is_default');
         $divisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id;
+        $subDivisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->sub_division_id;
 
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $request->role_id,
             'division_id' => $divisionId,
+            'sub_division_id' => $subDivisionId,
             'assistant_to_id' => $request->assistant_to_id,
             'login_with_otp' => $request->boolean('login_with_otp'),
             'is_default' => $isDefault,

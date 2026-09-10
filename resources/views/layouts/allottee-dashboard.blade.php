@@ -106,165 +106,165 @@
             {{-- <div class="sidebar-title">JSHB Menu</div> --}}
 
             @php
-                $paymentOption = $allottee->payment_option;
+            $paymentOption = $allottee->payment_option;
             @endphp
 
             {{-- PROCESS MENUS --}}
             @foreach ($steps->groupBy('menu_key') as $menuKey => $menuSteps)
-                @php
-                    $menu = $menuSteps->first();
+            @php
+            $menu = $menuSteps->first();
 
-                    // MENU VISIBILITY CONDITIONS
+            // MENU VISIBILITY CONDITIONS
 
-                    // Hide Choose Payment Option if payment option already selected
-                    if ($menuKey === 'choose-payment-option' && !is_null($paymentOption)) {
-                        continue;
-                    }
+            // Hide Choose Payment Option if payment option already selected
+            if ($menuKey === 'choose-payment-option' && !is_null($paymentOption)) {
+            continue;
+            }
 
-                    // Hide Allotment Cancellation if payment option selected
-                    if ($menuKey === 'allotment-cancellation' && !is_null($paymentOption)) {
-                        continue;
-                    }
+            // Hide Allotment Cancellation if payment option selected
+            if ($menuKey === 'allotment-cancellation' && !is_null($paymentOption)) {
+            continue;
+            }
 
-                    // Show Property Payment only for one_time
-                    if ($menuKey === 'property-payment' && $paymentOption !== 'one_time') {
-                        continue;
-                    }
+            // Show Property Payment only for one_time
+            if ($menuKey === 'property-payment' && $paymentOption !== 'one_time') {
+            continue;
+            }
 
-                    // Show EMI Management only for emi
-                    if ($menuKey === 'emi-management' && $paymentOption !== 'emi') {
-                        continue;
-                    }
+            // Show EMI Management only for emi
+            if ($menuKey === 'emi-management' && $paymentOption !== 'emi') {
+            continue;
+            }
 
-                    // show Final Calculation only for emi
-                    if ($menuKey === 'final-calculation' && $paymentOption !== 'emi') {
-                        continue;
-                    }
+            // show Final Calculation only for emi
+            if ($menuKey === 'final-calculation' && $paymentOption !== 'emi') {
+            continue;
+            }
 
-                    // SIDEBAR STATES
+            // SIDEBAR STATES
 
-                    $hasSubmenus = $menuSteps->whereNotNull('sub_menu_key')->count() > 0;
+            $hasSubmenus = $menuSteps->whereNotNull('sub_menu_key')->count() > 0;
 
-                    $collapseId = 'menu-' . Str::slug($menuKey);
+            $collapseId = 'menu-' . Str::slug($menuKey);
 
-                    $menuCompleted = $menuSteps->every(fn($step) => $step->status === 'completed');
+            $menuCompleted = $menuSteps->every(fn($step) => $step->status === 'completed');
 
-                    $menuPending = $menuSteps->contains(fn($step) => $step->status === 'pending');
+            $menuPending = $menuSteps->contains(fn($step) => $step->status === 'pending');
 
-                    $menuLocked = $menuSteps->every(fn($step) => $step->status === 'locked');
-                @endphp
+            $menuLocked = $menuSteps->every(fn($step) => $step->status === 'locked');
+            @endphp
 
-                {{-- ============================= --}}
-                {{-- MENU WITH SUBMENUS --}}
-                {{-- ============================= --}}
-                @if ($hasSubmenus)
-                    <div class="sidebar-menu">
+            {{-- ============================= --}}
+            {{-- MENU WITH SUBMENUS --}}
+            {{-- ============================= --}}
+            @if ($hasSubmenus)
+            <div class="sidebar-menu">
 
-                        <button type="button" class="sidebar-menu-btn" data-bs-toggle="collapse"
-                            data-bs-target="#{{ $collapseId }}">
+                <button type="button" class="sidebar-menu-btn" data-bs-toggle="collapse"
+                    data-bs-target="#{{ $collapseId }}">
 
-                            <span class="menu-left">
-                                <i class="{{ $menu->icons }}"></i>
+                    <span class="menu-left">
+                        <i class="{{ $menu->icons }}"></i>
 
-                                <span>
-                                    {{ str($menu->menu_key)->replace('-', ' ')->title() }}
-                                </span>
-                            </span>
+                        <span>
+                            {{ $menu->menu_title }}
+                        </span>
+                    </span>
 
-                            <span class="d-flex align-items-center gap-2">
+                    <span class="d-flex align-items-center gap-2">
 
-                                @if ($menuCompleted)
-                                    <i class="fa-solid fa-circle-check text-success"></i>
-                                @elseif($menuPending)
-                                    <i class="fa-solid fa-clock text-warning"></i>
-                                @elseif($menuLocked)
-                                    <i class="fa-solid fa-lock"></i>
-                                @endif
+                        @if ($menuCompleted)
+                        <i class="fa-solid fa-circle-check text-success"></i>
+                        @elseif($menuPending)
+                        <i class="fa-solid fa-clock text-warning"></i>
+                        @elseif($menuLocked)
+                        <i class="fa-solid fa-lock"></i>
+                        @endif
 
-                                {{-- <i class="fa-solid fa-chevron-down menu-arrow"></i> --}}
-                            </span>
+                        {{-- <i class="fa-solid fa-chevron-down menu-arrow"></i> --}}
+                    </span>
 
-                        </button>
+                </button>
 
-                        <div id="{{ $collapseId }}" class="collapse show">
+                <div id="{{ $collapseId }}" class="collapse show">
 
-                            <div class="sidebar-submenu">
+                    <div class="sidebar-submenu">
 
-                                @foreach ($menuSteps as $step)
-                                    @php
-                                        $isActive = $currentStepNo == $step->step_no;
-                                        $isLocked = $step->status === 'locked';
-                                        $isCompleted = $step->status === 'completed';
-                                        $isPending = $step->status === 'pending';
-                                    @endphp
-
-                                    <button type="button" class="sidebar-submenu-link {{ $isActive ? 'active' : '' }}"
-                                        onclick="App.loadStep({{ $step->step_no }}, this)"
-                                        {{ $isLocked ? 'disabled' : '' }}>
-
-                                        <span class="submenu-icon">
-
-                                            @if ($isCompleted)
-                                                <i class="fa-solid fa-circle-check text-success"></i>
-                                            @elseif($isPending)
-                                                <i class="fa-solid fa-clock text-warning"></i>
-                                            @elseif($isLocked)
-                                                <i class="fa-solid fa-lock"></i>
-                                            @endif
-
-                                        </span>
-
-                                        <span>{{ $step->title }}</span>
-
-                                    </button>
-                                @endforeach
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    {{-- ============================= --}}
-                    {{-- SINGLE MENU --}}
-                    {{-- ============================= --}}
-                @else
-                    @php
-                        $step = $menuSteps->first();
-
+                        @foreach ($menuSteps as $step)
+                        @php
                         $isActive = $currentStepNo == $step->step_no;
                         $isLocked = $step->status === 'locked';
                         $isCompleted = $step->status === 'completed';
                         $isPending = $step->status === 'pending';
-                    @endphp
+                        @endphp
 
-                    <button type="button" class="sidebar-link {{ $isActive ? 'active' : '' }}"
-                        onclick="App.loadStep({{ $step->step_no }}, this)" {{ $isLocked ? 'disabled' : '' }}>
+                        <button type="button" class="sidebar-submenu-link {{ $isActive ? 'active' : '' }}"
+                            onclick="App.loadStep({{ $step->step_no }}, this)"
+                            {{ $isLocked ? 'disabled' : '' }}>
 
-                        <span class="menu-left">
+                            <span class="submenu-icon">
 
-                            <i class="{{ $menu->icons }}"></i>
+                                @if ($isCompleted)
+                                <i class="fa-solid fa-circle-check text-success"></i>
+                                @elseif($isPending)
+                                <i class="fa-solid fa-clock text-warning"></i>
+                                @elseif($isLocked)
+                                <i class="fa-solid fa-lock"></i>
+                                @endif
 
-                            <span>
-                                {{ str($menu->menu_key)->replace('-', ' ')->title() }}
                             </span>
 
-                        </span>
+                            <span>{{ $step->title }}</span>
 
-                        <span>
+                        </button>
+                        @endforeach
 
-                            @if ($isCompleted)
-                                <i class="fa-solid fa-circle-check text-success"></i>
-                            @elseif($isPending)
-                                <i class="fa-solid fa-clock text-warning"></i>
-                            @elseif($isLocked)
-                                <i class="fa-solid fa-lock"></i>
-                            @endif
+                    </div>
 
-                        </span>
+                </div>
 
-                    </button>
-                @endif
+            </div>
+
+            {{-- ============================= --}}
+            {{-- SINGLE MENU --}}
+            {{-- ============================= --}}
+            @else
+            @php
+            $step = $menuSteps->first();
+
+            $isActive = $currentStepNo == $step->step_no;
+            $isLocked = $step->status === 'locked';
+            $isCompleted = $step->status === 'completed';
+            $isPending = $step->status === 'pending';
+            @endphp
+
+            <button type="button" class="sidebar-link {{ $isActive ? 'active' : '' }}"
+                onclick="App.loadStep({{ $step->step_no }}, this)" {{ $isLocked ? 'disabled' : '' }}>
+
+                <span class="menu-left">
+
+                    <i class="{{ $menu->icons }}"></i>
+
+                    <span>
+                        {{ str($menu->menu_key)->replace('-', ' ')->title() }}
+                    </span>
+
+                </span>
+
+                <span>
+
+                    @if ($isCompleted)
+                    <i class="fa-solid fa-circle-check text-success"></i>
+                    @elseif($isPending)
+                    <i class="fa-solid fa-clock text-warning"></i>
+                    @elseif($isLocked)
+                    <i class="fa-solid fa-lock"></i>
+                    @endif
+
+                </span>
+
+            </button>
+            @endif
             @endforeach
         </aside>
 

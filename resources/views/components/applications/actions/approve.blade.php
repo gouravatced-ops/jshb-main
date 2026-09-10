@@ -51,13 +51,13 @@
                 @endif
 
                 @if(empty(auth()->user()->internal_password))
-                    <div class="alert alert-danger" style="display: flex; align-items: center; justify-content: space-between; padding: 15px;">
+                    <div class="alert1 alert-danger" style="display: flex; align-items: center; justify-content: space-between; padding: 15px;">
                         <div>
-                            <i class="fa-solid fa-triangle-exclamation"></i> <strong>Please set an internal password for your profile!</strong> 
+                            <i class="fa-solid fa-triangle-exclamation"></i> <strong>Please set an internal password for your profile!</strong>
                             <br><small>You cannot approve this application without it.</small>
                         </div>
-                        @php 
-                            $profileRoute = auth()->user()->role === 'user' ? route('profile') : route(auth()->user()->role . '.profile'); 
+                        @php
+                            $profileRoute = auth()->user()->role === 'user' ? route('profile') : route(auth()->user()->role . '.profile');
                         @endphp
                         <a href="{{ $profileRoute }}" class="btn btn-sm btn-danger">Set Internal Password</a>
                     </div>
@@ -71,9 +71,23 @@
                         @enderror
                     </div>
 
-                    <div style="text-align: right;">
-                        <button type="submit" class="btn btn-success" style="font-size: 15px; padding: 8px 20px; font-weight: 600;"><i class="fa-solid fa-check-circle"></i> Submit Noting & Approve</button>
+                    <x-global-otp-verify purpose="approve_application" buttonText="Send OTP to Approve" />
+                    <div style="text-align: right; margin-top: 15px;">
+                        <input type="hidden" name="otp_verified" id="otp_verified_input_approve" value="0">
+                        <button type="submit" id="approveSubmitBtn" class="btn btn-success" style="font-size: 15px; padding: 8px 20px; font-weight: 600; opacity: 0.6; cursor: not-allowed;" disabled><i class="fa-solid fa-check-circle"></i> Submit Noting & Approve</button>
                     </div>
+                    <script>
+                        document.addEventListener('otpVerified:approve_application', function() {
+                            const btn = document.getElementById('approveSubmitBtn');
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+                                btn.style.cursor = 'pointer';
+                            }
+                            const hiddenInput = document.getElementById('otp_verified_input_approve');
+                            if(hiddenInput) hiddenInput.value = '1';
+                        });
+                    </script>
                 @endif
             </form>
         </div>

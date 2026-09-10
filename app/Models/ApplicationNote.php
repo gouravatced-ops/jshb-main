@@ -28,6 +28,7 @@ class ApplicationNote extends Model
         'signature_type',
         'signature_date',
         'is_confidential',
+        'otp_verified',
         'is_public',
     ];
 

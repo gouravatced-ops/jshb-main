@@ -39,12 +39,28 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer upload-modal-footer">
+                <div class="modal-footer upload-modal-footer" style="flex-wrap: wrap; justify-content: flex-end;">
+                    <div style="width: 100%; text-align: right; margin-bottom: 10px;">
+                        <x-global-otp-verify purpose="verify_upload_application" buttonText="Send OTP to Verify & Upload" />
+                    </div>
+                    <input type="hidden" name="otp_verified" id="otp_verified_input_verify_upload" value="0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border: 1px solid #dce1e6; font-weight: 500;">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="background: #17a2b8; border: none; font-weight: 500; padding: 8px 20px;">
+                    <button type="submit" id="verifyUploadSubmitBtn" class="btn btn-primary" style="background: #17a2b8; border: none; font-weight: 500; padding: 8px 20px; opacity: 0.6; cursor: not-allowed;" disabled>
                         <i class="fa-solid fa-check"></i> Verify & Upload
                     </button>
                 </div>
+                <script>
+                    document.addEventListener('otpVerified:verify_upload_application', function() {
+                        const btn = document.getElementById('verifyUploadSubmitBtn');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'pointer';
+                        }
+                        const hiddenInput = document.getElementById('otp_verified_input_verify_upload');
+                        if(hiddenInput) hiddenInput.value = '1';
+                    });
+                </script>
             </form>
         </div>
     </div>

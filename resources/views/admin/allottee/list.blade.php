@@ -350,10 +350,10 @@
                     <td>
                         <div class="action-btns">
 
-                            <a class="action-btn view" href="{{ route('admin.allottees.show', $allottee) }}"
+                            <!-- <a class="action-btn view" href="{{ route('admin.allottees.show', $allottee) }}"
                                 target="_blank" title="View Full Allottee Record">
                                 <i class="fa-solid fa-file-lines"></i>
-                            </a>
+                            </a> -->
 
                             <a class="action-btn edit" href="{{ route('admin.edit.apply.index', $allottee) }}"
                                 title="Edit Core Info">
@@ -433,10 +433,14 @@
                                             </button>
                                         </div>
                                         <script id="txn-data-{{ $allottee->id }}" type="application/json">
-                                            {!! $allottee->allotteeTransaction ? $allottee->allotteeTransaction->toJson() : '[]' !!}
+                                            {
+                                                !!$allottee - > allotteeTransaction ? $allottee - > allotteeTransaction - > toJson() : '[]'!!
+                                            }
                                         </script>
                                         <script id="emi-data-{{ $allottee->id }}" type="application/json">
-                                            {!! $allottee->emiSchedule ? $allottee->emiSchedule->toJson() : '[]' !!}
+                                            {
+                                                !!$allottee - > emiSchedule ? $allottee - > emiSchedule - > toJson() : '[]'!!
+                                            }
                                         </script>
                                         <div class="detail-grid" style="grid-template-columns: 1fr;">
                                             <div class="detail-item"><span class="detail-label">Property No</span> <strong style="color:#0284c7; font-size: 14px;">{{ $allottee->property_number ?: 'N/A' }}</strong></div>
@@ -922,7 +926,7 @@
 </div>
 
 <script>
-        function openPaymentHistoryModal(allotteeId, paymentOption) {
+    function openPaymentHistoryModal(allotteeId, paymentOption) {
         var contentDiv = document.getElementById('paymentHistoryContent');
         var html = '';
 
@@ -942,8 +946,12 @@
                         var isPaid = e.payment_status === 'paid';
                         var statusColor = isPaid ? '#10b981' : (e.payment_status === 'unpaid' ? '#ef4444' : '#f59e0b');
                         var icon = isPaid ? 'fa-check' : 'fa-clock';
-                        var dateStr = e.paid_at ? new Date(e.paid_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : 'Not Paid';
-                        
+                        var dateStr = e.paid_at ? new Date(e.paid_at).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                        }) : 'Not Paid';
+
                         html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
                         html += '<div class="audit-timeline-marker" style="background: ' + statusColor + '"><i class="fa-solid ' + icon + '"></i></div>';
                         html += '<div class="audit-timeline-content">';
@@ -978,8 +986,14 @@
                         var isPaid = t.payment_status === 'success';
                         var statusColor = isPaid ? '#10b981' : (t.payment_status === 'failed' ? '#ef4444' : '#f59e0b');
                         var icon = isPaid ? 'fa-check' : 'fa-info';
-                        var dateStr = t.paid_at ? new Date(t.paid_at).toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'N/A';
-                        
+                        var dateStr = t.paid_at ? new Date(t.paid_at).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : 'N/A';
+
                         html += '<div class="audit-timeline-item" onclick="this.classList.toggle(\'active\')">';
                         html += '<div class="audit-timeline-marker" style="background: ' + statusColor + '"><i class="fa-solid ' + icon + '"></i></div>';
                         html += '<div class="audit-timeline-content">';
@@ -1005,7 +1019,7 @@
                 contentDiv.innerHTML = html;
             }
         }
-        
+
         var myModal = new bootstrap.Modal(document.getElementById('paymentHistoryModal'));
         myModal.show();
     }
@@ -1331,5 +1345,3 @@
     }
 </script>
 @endsection
-
-

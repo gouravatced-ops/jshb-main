@@ -61,6 +61,7 @@ class User extends Authenticatable
         'role',
         'role_id',
         'division_id',
+        'sub_division_id',
         'user_type',
         'login_with_otp',
         'otp_login_valid_until',
@@ -214,6 +215,11 @@ class User extends Authenticatable
     public function division()
     {
         return $this->belongsTo(Division::class, 'division_id');
+    }
+
+    public function subDivision()
+    {
+        return $this->belongsTo(SubDivision::class, 'sub_division_id');
     }
 
     public function getRoleDisplayNameAttribute()

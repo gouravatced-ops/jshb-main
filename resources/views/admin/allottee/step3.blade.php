@@ -238,12 +238,12 @@
                 <td class="label-cell">Property Type</td>
                 <td class="value-cell">{{ $applicant->propertyType->name ?? '' }}</td>
             </tr>
-            <!-- <tr>
+            <tr>
                 <td class="label-cell">Property Number</td>
-                <td class="value-cell mono">{{ $applicant->property_number ?? '' }}</td>
-                <td class="label-cell">Allotment No.</td>
-                <td class="value-cell mono">{{ $applicant->allotment_no ?? '' }}</td>
-            </tr> -->
+                <td class="value-cell mono">{{ $applicant->property_number ?? '' }} / {{ $applicant->property_number_hindi ?? '' }}</td>
+                <!-- <td class="label-cell">Allotment No.</td>
+                <td class="value-cell mono">{{ $applicant->allotment_no ?? '' }}</td> -->
+            </tr>
             <tr>
                 <td class="label-cell">Application No.</td>
                 <td class="value-cell mono">{{ $applicant->application_no ?? '' }}</td>

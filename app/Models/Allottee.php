@@ -203,14 +203,66 @@ class Allottee extends Model
     public static function generateUniquePropertyNumber(): string
     {
         do {
-            $propertyNumber = chr(rand(65, 72))
-                . '-'
-                . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            $prefix = chr(rand(65, 90)); // A-Z
+            $number = rand(1, 9999);
+
+            $propertyNumber = $prefix . '-' . $number;
         } while (
             self::where('property_number', $propertyNumber)->exists()
         );
 
         return $propertyNumber;
+    }
+
+    public static function convertPropertyNumberToHindi(string $propertyNumber): string
+    {
+        $hindiDigits = [
+            '0' => '०',
+            '1' => '१',
+            '2' => '२',
+            '3' => '३',
+            '4' => '४',
+            '5' => '५',
+            '6' => '६',
+            '7' => '७',
+            '8' => '८',
+            '9' => '९',
+        ];
+
+        $hindiLetters = [
+            'A' => 'ए',
+            'B' => 'बी',
+            'C' => 'सी',
+            'D' => 'डी',
+            'E' => 'ई',
+            'F' => 'एफ',
+            'G' => 'जी',
+            'H' => 'एच',
+            'I' => 'आई',
+            'J' => 'जे',
+            'K' => 'के',
+            'L' => 'एल',
+            'M' => 'एम',
+            'N' => 'एन',
+            'O' => 'ओ',
+            'P' => 'पी',
+            'Q' => 'क्यू',
+            'R' => 'आर',
+            'S' => 'एस',
+            'T' => 'टी',
+            'U' => 'यू',
+            'V' => 'वी',
+            'W' => 'डब्ल्यू',
+            'X' => 'एक्स',
+            'Y' => 'वाई',
+            'Z' => 'जेड',
+        ];
+
+        // पहले digits convert
+        $propertyNumberHindi = strtr($propertyNumber, $hindiDigits);
+
+        // फिर English prefix convert
+        return strtr($propertyNumberHindi, $hindiLetters);
     }
 
     public function applications()

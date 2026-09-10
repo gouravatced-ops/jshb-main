@@ -19,6 +19,7 @@ class ApplicationCorrespondence extends Model
         'content',
         'font_family',
         'status',
+        'otp_verified'
     ];
 
     public function application()
@@ -38,12 +39,12 @@ class ApplicationCorrespondence extends Model
     public static function generateReferenceNumber($type, $divisionCode = 'HQ')
     {
         $dateStr = now()->format('dmY');
-        
+
         do {
             $randomStr = strtoupper(Str::random(5));
             $referenceNumber = "{$type}-{$divisionCode}-{$dateStr}-{$randomStr}";
         } while (self::where('reference_number', $referenceNumber)->exists());
-        
+
         return $referenceNumber;
     }
 }

@@ -51,7 +51,10 @@ class AllotteeService
             }
 
             if (empty($applicant->property_number)) {
-                $applicant->property_number = Allottee::generateUniquePropertyNumber();
+                $generatedNumber = Allottee::generateUniquePropertyNumber();
+
+                $applicant->property_number = $generatedNumber;
+                $applicant->property_number_hindi = Allottee::convertPropertyNumberToHindi($generatedNumber);
             }
 
             $applicant->fill([

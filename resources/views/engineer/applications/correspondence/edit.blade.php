@@ -91,14 +91,30 @@
                     <i class="fa-solid fa-triangle-exclamation" style="margin-right: 5px;"></i> <strong>Note:</strong> Once you click "Publish", the correspondence becomes official and cannot be edited. "Save as Draft" allows you to edit it later.
                 </div>
 
+                <div style="text-align: right; display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 15px;">
+                    <x-global-otp-verify purpose="publish_correspondence" buttonText="Send OTP to Publish" />
+                </div>
                 <div style="text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                    <input type="hidden" name="otp_verified" id="otp_verified_input" value="0">
                     <button type="submit" name="status" value="draft" class="btn btn-secondary" style="font-size: 15px; padding: 8px 20px;">
                         <i class="fa-solid fa-floppy-disk me-1"></i> Update Draft
                     </button>
-                    <button type="submit" name="status" value="published" class="btn btn-success" style="font-size: 15px; padding: 8px 20px; background-color: #4caf50; border-color: #4caf50;" onclick="return confirm('Are you sure you want to Publish? No changes can be made after publishing.')">
+                    <button type="submit" id="publishSubmitBtn" name="status" value="published" class="btn btn-success" style="font-size: 15px; padding: 8px 20px; background-color: #4caf50; border-color: #4caf50; opacity: 0.6; cursor: not-allowed;" disabled onclick="return confirm('Are you sure you want to Publish? No changes can be made after publishing.')">
                         <i class="fa-solid fa-paper-plane me-1"></i> Publish
                     </button>
                 </div>
+                <script>
+                    document.addEventListener('otpVerified:publish_correspondence', function() {
+                        const btn = document.getElementById('publishSubmitBtn');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'pointer';
+                        }
+                        const hiddenInput = document.getElementById('otp_verified_input');
+                        if(hiddenInput) hiddenInput.value = '1';
+                    });
+                </script>
             </form>
         </div>
     </div>
