@@ -200,18 +200,22 @@ class Allottee extends Model
         return $this->hasOne(AllotteeSiteVerification::class, 'allottee_id', 'id');
     }
 
-    public static function generateUniquePropertyNumber(): array
+    public static function generateUniquePropertyNumber(): string
     {
         do {
             $prefix = chr(rand(65, 90)); // A-Z
             $number = rand(1, 9999);
 
             $propertyNumber = $prefix . '-' . $number;
-
         } while (
             self::where('property_number', $propertyNumber)->exists()
         );
 
+        return $propertyNumber;
+    }
+
+    public static function convertPropertyNumberToHindi(string $propertyNumber): string
+    {
         $hindiDigits = [
             '0' => '०',
             '1' => '१',
@@ -225,12 +229,6 @@ class Allottee extends Model
             '9' => '९',
         ];
 
-        $propertyNumberHindi = strtr(
-            $propertyNumber,
-            $hindiDigits
-        );
-
-        // English prefix को Hindi में convert करने के लिए
         $hindiLetters = [
             'A' => 'ए',
             'B' => 'बी',
@@ -260,15 +258,11 @@ class Allottee extends Model
             'Z' => 'जेड',
         ];
 
-        $propertyNumberHindi = strtr(
-            $propertyNumberHindi,
-            $hindiLetters
-        );
+        // पहले digits convert
+        $propertyNumberHindi = strtr($propertyNumber, $hindiDigits);
 
-        return [
-            'property_number'      => $propertyNumber,
-            'property_number_hindi' => $propertyNumberHindi,
-        ];
+        // फिर English prefix convert
+        return strtr($propertyNumberHindi, $hindiLetters);
     }
 
     public function applications()
