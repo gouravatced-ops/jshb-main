@@ -288,6 +288,13 @@ $hasAllotmentLetter = \App\Models\AllotteeGeneratedDocument::where('allottee_id'
                             @endif
                         </span>
                         <span class="note-date"><i class="fa-regular fa-clock"></i> {{ $note->created_at ? $note->created_at->format('d-M-Y h:i A') : '' }}</span>
+
+                        @if ($note->otp_verified == 1)
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"  title="OTP Verified" fill="none" stroke="#28a745" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        @endif
                     </div>
                     @php
                     $noteFontFamily = "";
@@ -339,7 +346,18 @@ $hasAllotmentLetter = \App\Models\AllotteeGeneratedDocument::where('allottee_id'
                     <tbody>
                         @foreach($application->correspondences->sortByDesc('id') as $corr)
                         <tr>
-                            <td style="font-weight: 500; color: #2c3e50;">{{ $corr->reference_number }}</td>
+                            <td style="font-weight: 500; color: #2c3e50; white-space: nowrap;">
+                                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                    {{ $corr->reference_number }}
+
+                                    @if ($corr->otp_verified == 1)
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"  title="OTP Verified" fill="none" stroke="#28a745" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    @endif
+                                </span>
+                            </td>
                             <td>
                                 @if($corr->type == 'LT')
                                 <span class="badge bg-primary" style="font-size: 11px;">Letter</span>
@@ -360,7 +378,7 @@ $hasAllotmentLetter = \App\Models\AllotteeGeneratedDocument::where('allottee_id'
                                 @endif
                             </td>
                             <td style="text-align: right; white-space: nowrap;">
-                                @if($corr->status !== 'published' && Route::has($routePrefix . '.applications.correspondence.edit'))
+                                @if($corr->status !== 'published' && Route::has($routePrefix . '.applications.correspondence.edit') && $corr->generated_by_user_id === auth()->id())
                                 <a href="{{ route($routePrefix . '.applications.correspondence.edit', [$application, $corr]) }}" class="btn-compact" style="background: #f59e0b; color: #fff; text-decoration: none; margin-right: 5px;">
                                     <i class="fa-solid fa-pen-to-square" style="font-size: 10px;"></i> Edit
                                 </a>

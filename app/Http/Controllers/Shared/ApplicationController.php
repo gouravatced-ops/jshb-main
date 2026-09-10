@@ -305,26 +305,45 @@ class ApplicationController extends Controller
             }
 
             $divisionId = $application->allottee->division_id ?? null;
+            $subDivisionId = $application->allottee->subdivision_id ?? null;
 
             foreach ($eligibleSteps as $step) {
-                // Get engineers with this role_id and division_id
                 $engineersQuery = User::on('adms_jshb')->where('role_id', $step->role_id)->where('status', 1);
+                
                 if ($divisionId) {
-                    $engineersQuery->where(function ($q) use ($divisionId) {
-                        $q->where('user_type', 'administration')
-                            ->orWhere('division_id', $divisionId);
+                    $engineersQuery->where(function ($q) use ($divisionId, $subDivisionId) {
+                        // Administration can see applications regardless of division matching (or according to previous logic)
+                        $q->where('user_type', 'administration');
+
+                        // Engineers must match both division and sub-division
+                        $q->orWhere(function ($qEng) use ($divisionId, $subDivisionId) {
+                            $qEng->where('user_type', 'engineer')
+                                 ->where('division_id', $divisionId);
+                            
+                            if ($subDivisionId) {
+                                $qEng->where('sub_division_id', $subDivisionId);
+                            }
+                        });
+
+                        // Other users must match division
+                        $q->orWhere(function ($qOther) use ($divisionId) {
+                            $qOther->whereNotIn('user_type', ['administration', 'engineer'])
+                                   ->where('division_id', $divisionId);
+                        });
                     });
                 }
+                
                 $engineers = $engineersQuery->get();
 
-                if ($engineers->count() > 0) {
-                    $forwardOptions[] = [
-                        'step' => $step,
-                        'engineers' => $engineers
-                    ];
-                }
+                $forwardOptions[] = [
+                    'step' => $step,
+                    'engineers' => $engineers
+                ];
             }
         } elseif ($action_type == 'send_back' && $application->currentStep) {
+            $divisionId = $application->allottee->division_id ?? null;
+            $subDivisionId = $application->allottee->subdivision_id ?? null;
+
             $previousMovements = ApplicationMovement::with(['fromUser', 'fromStep', 'fromRole'])
                 ->where('application_id', $application->id)
                 ->where('action_type', 'forwarded')
@@ -338,6 +357,12 @@ class ApplicationController extends Controller
                 if ($movement->fromStep && $movement->fromUser) {
                     $stepId = $movement->from_step_id;
                     $userId = $movement->from_user_id;
+                    $user = $movement->fromUser;
+
+                    if ($user->user_type == 'engineer') {
+                        if ($divisionId && $user->division_id != $divisionId) continue;
+                        if ($subDivisionId && $user->sub_division_id != $subDivisionId) continue;
+                    }
 
                     if (!isset($processedSteps[$stepId])) {
                         $processedSteps[$stepId] = [
@@ -347,10 +372,15 @@ class ApplicationController extends Controller
                     }
 
                     if (!$processedSteps[$stepId]['engineers']->contains('id', $userId)) {
-                        $processedSteps[$stepId]['engineers']->push($movement->fromUser);
+                        $processedSteps[$stepId]['engineers']->push($user);
                     }
                 }
             }
+
+            // Remove any steps that have no engineers left after filtering
+            $processedSteps = array_filter($processedSteps, function($stepData) {
+                return $stepData['engineers']->count() > 0;
+            });
 
             $sendBackOptions = array_values($processedSteps);
 
@@ -574,6 +604,9 @@ class ApplicationController extends Controller
 
     public function verifyAndUploadDocument(VerifyAndUploadRequest $request, Application $application)
     {
+        if ($request->input('otp_verified') != '1') {
+            return redirect()->back()->with('error', 'Please verify OTP first before uploading.');
+        }
 
         $file     = $request->file('document_file');
         $allottee = $application->allottee;

@@ -25,6 +25,10 @@ class CorrespondenceController extends Controller
             'status' => 'required|in:draft,published'
         ]);
 
+        if ($request->status === 'published' && $request->input('otp_verified') != '1') {
+            return redirect()->back()->with('error', 'Please verify OTP first before publishing.');
+        }
+
         $divisionCode = $application->allottee->division->division_code ?? 'HQ';
         
         $referenceNumber = ApplicationCorrespondence::generateReferenceNumber($request->type, $divisionCode);
@@ -38,6 +42,7 @@ class CorrespondenceController extends Controller
             'font_family' => $request->font_family ?? 'english',
             'content' => $request->content,
             'status' => $request->status,
+            'otp_verified' => $request->input('otp_verified', 0),
         ]);
 
         return redirect()->route('engineer.applications.show', $application)
@@ -48,6 +53,10 @@ class CorrespondenceController extends Controller
     {
         if ($correspondence->application_id !== $application->id) {
             abort(404);
+        }
+
+        if ($correspondence->generated_by_user_id !== Auth::id()) {
+            abort(403, 'Unauthorized. Only the creator can edit this correspondence.');
         }
 
         if ($correspondence->status === 'published') {
@@ -64,6 +73,10 @@ class CorrespondenceController extends Controller
             abort(404);
         }
 
+        if ($correspondence->generated_by_user_id !== Auth::id()) {
+            abort(403, 'Unauthorized. Only the creator can edit this correspondence.');
+        }
+
         if ($correspondence->status === 'published') {
             return redirect()->route('engineer.applications.show', $application)
                 ->with('error', 'Published correspondence cannot be edited.');
@@ -77,12 +90,17 @@ class CorrespondenceController extends Controller
             'status' => 'required|in:draft,published'
         ]);
 
+        if ($request->status === 'published' && $request->input('otp_verified') != '1') {
+            return redirect()->back()->with('error', 'Please verify OTP first before publishing.');
+        }
+
         $correspondence->update([
             'type' => $request->type,
             'subject' => $request->subject,
             'font_family' => $request->font_family ?? 'english',
             'content' => $request->content,
             'status' => $request->status,
+            'otp_verified' => $request->input('otp_verified', 0),
         ]);
 
         $message = $request->status === 'published' ? 'Correspondence published successfully.' : 'Draft updated successfully.';

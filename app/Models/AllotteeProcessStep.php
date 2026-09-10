@@ -1,19 +1,22 @@
 <?php
+
 namespace App\Models;
+
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class AllotteeProcessStep extends Model
 {
     use HasFactory;
     protected $connection = 'adms_allottees';
     protected $table = 'allottee_process_steps';
-    
+
     // STATUS
     public const STATUS_LOCKED    = 'locked';
     public const STATUS_PENDING   = 'pending';
     public const STATUS_COMPLETED = 'completed';
-    
+
     // FILLABLE
     protected $fillable = [
         'allottee_id',
@@ -21,6 +24,7 @@ class AllotteeProcessStep extends Model
         'step_order',
         'icons',
         'menu_key',
+        'menu_title',
         'sub_menu_key',
         'process_group',
         'step_no',
@@ -38,7 +42,7 @@ class AllotteeProcessStep extends Model
         'created_by',
         'updated_by',
     ];
-    
+
     // CASTS
     protected $casts = [
         'meta'          => 'array',
@@ -54,14 +58,14 @@ class AllotteeProcessStep extends Model
         'created_by'    => 'integer',
         'updated_by'    => 'integer',
     ];
-    
+
     // APPENDS
     protected $appends = [
         'is_completed',
         'is_locked',
         'is_pending',
     ];
-    
+
     // RELATIONSHIPS
     public function allottee()
     {
@@ -86,7 +90,7 @@ class AllotteeProcessStep extends Model
             'created_by'
         );
     }
-    
+
     public function updatedBy()
     {
         return $this->belongsTo(
@@ -94,7 +98,7 @@ class AllotteeProcessStep extends Model
             'updated_by'
         );
     }
-    
+
     // SCOPES
     public function scopeActive($query)
     {
@@ -143,7 +147,7 @@ class AllotteeProcessStep extends Model
             $subMenuKey
         );
     }
-    
+
     // ACCESSORS
     public function getIsCompletedAttribute(): bool
     {
@@ -159,7 +163,7 @@ class AllotteeProcessStep extends Model
     {
         return $this->status === self::STATUS_PENDING;
     }
-    
+
     // HELPERS
     public function markAsCompleted(
         ?int $userId = null,
@@ -200,7 +204,7 @@ class AllotteeProcessStep extends Model
             'is_active' => false,
         ]);
     }
-    
+
     // STATIC HELPERS
     public static function unlockNextStep(
         int $allotteeId,
@@ -210,15 +214,15 @@ class AllotteeProcessStep extends Model
             'allottee_id',
             $allotteeId
         )
-        ->where(
-            'step_no',
-            $currentStepNo + 1
-        )
-        ->update([
-            'status' => self::STATUS_PENDING
-        ]);
+            ->where(
+                'step_no',
+                $currentStepNo + 1
+            )
+            ->update([
+                'status' => self::STATUS_PENDING
+            ]);
     }
-    
+
     public static function completeStep(
         int $allotteeId,
         string $menuKey,
@@ -228,7 +232,7 @@ class AllotteeProcessStep extends Model
         self::where([
             'allottee_id' => $allotteeId,
             'menu_key'    => $menuKey,
-            'sub_menu_key'=> $subMenuKey,
+            'sub_menu_key' => $subMenuKey,
         ])->update([
             'status'       => self::STATUS_COMPLETED,
             'completed_at' => now(),

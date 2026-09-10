@@ -88,6 +88,18 @@
                                 </select>
                             </div>
 
+                            <div class="form-group" id="subDivisionGroup" style="display:none;">
+                                <label>Sub Division</label>
+                                <select name="sub_division_id" id="subDivisionSelect" class="form-select">
+                                    <option value="" selected>Select Sub Division</option>
+                                    @foreach($subDivisions as $subDivision)
+                                        <option value="{{ $subDivision->id }}" data-division="{{ $subDivision->division_id }}" {{ old('sub_division_id') == $subDivision->id ? 'selected' : '' }} style="display:none;">
+                                            {{ $subDivision->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                             <div class="form-group" id="assistantToGroup" style="display:none;">
                                 <label>Assist Managing Director <span class="required">*</span></label>
                                 <select name="assistant_to_id" id="assistantToSelect" class="form-select">
@@ -145,6 +157,8 @@
         const roleSelect = document.getElementById('roleSelect');
         const divisionGroup = document.getElementById('divisionGroup');
         const divisionSelect = document.getElementById('divisionSelect');
+        const subDivisionGroup = document.getElementById('subDivisionGroup');
+        const subDivisionSelect = document.getElementById('subDivisionSelect');
         const assistantToGroup = document.getElementById('assistantToGroup');
         const assistantToSelect = document.getElementById('assistantToSelect');
 
@@ -163,16 +177,44 @@
 
             if (slug === 'operator' || slug === 'managing-director' || slug === 'co-assistant' || slug === 'revenue-officer' || slug === 'chief-accounts-officer' || slug === 'chief-financial-officer' || slug === 'secretary-chief-engineer') {
                 divisionGroup.style.display = 'none';
+                subDivisionGroup.style.display = 'none';
                 divisionSelect.removeAttribute('required');
                 divisionSelect.value = '';
+                subDivisionSelect.value = '';
             } else {
                 divisionGroup.style.display = 'block';
+                subDivisionGroup.style.display = 'block';
                 divisionSelect.setAttribute('required', 'required');
             }
         }
 
+        function filterSubDivisions() {
+            const divisionId = divisionSelect.value;
+            let hasOptions = false;
+            
+            Array.from(subDivisionSelect.options).forEach(option => {
+                if (option.value === "") return; // Skip placeholder
+                
+                if (option.getAttribute('data-division') === divisionId) {
+                    option.style.display = '';
+                    hasOptions = true;
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+
+            // Reset sub division selection if the current selected option is now hidden
+            const selectedSub = subDivisionSelect.options[subDivisionSelect.selectedIndex];
+            if (selectedSub && selectedSub.value !== "" && selectedSub.style.display === 'none') {
+                subDivisionSelect.value = "";
+            }
+        }
+
         roleSelect.addEventListener('change', toggleFields);
+        divisionSelect.addEventListener('change', filterSubDivisions);
+        
         toggleFields(); // Run on initial load in case of validation errors
+        filterSubDivisions(); // Run on initial load to set correct sub divisions
     });
 </script>
 @endsection

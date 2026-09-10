@@ -159,6 +159,10 @@
                         @if(!empty($forwardOptions))
                         <div class="forward-cards-container" style="max-height: 280px; overflow-y: auto; padding-right: 5px;">
                             @foreach($forwardOptions as $index => $option)
+                            @if($index > 0 && count($forwardOptions[0]['engineers']) == 0)
+                                @break
+                            @endif
+
                             @if($index == 0)
                             @if(isset($approvedBypass) && $approvedBypass)
                             <div class="forward-group-title" style="margin-top: 0;">
@@ -196,6 +200,7 @@
                                     </div>
                                     @endif
                                     <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                                        @if(count($option['engineers']) > 0)
                                         @foreach($option['engineers'] as $engineer)
                                         <div class="forward-card-wrapper" style="flex: 0 1 320px; max-width: 100%;">
                                             <input type="radio" name="forward_to_user" id="fwd_{{ $engineer->id }}_{{ $option['step']->id }}" value="{{ $engineer->id }}|{{ $option['step']->id }}" class="forward-card-radio" required>
@@ -210,10 +215,16 @@
                                             </label>
                                         </div>
                                         @endforeach
+                                        @else
+                                        <div class="alert1 alert-danger" style="width: 100%; border-left: 5px solid #dc3545; background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin: 0;">
+                                            <i class="fa-solid fa-user-xmark me-2"></i> <strong>No Member Assigned!</strong><br>
+                                            <span style="font-size: 13px;">The next workflow role (<strong>{{ $option['step']->role->name ?? 'Role' }}</strong>) does not have an active member assigned for this division and sub-division. Please create a member from the Administration tab to proceed.</span>
+                                        </div>
+                                        @endif
                                     </div>
                                     @endforeach
 
-                                    @if(count($forwardOptions) > 1)
+                                    @if(count($forwardOptions) > 1 && count($forwardOptions[0]['engineers']) > 0)
                                 </div> <!-- End bypassOptionsContainer -->
 
                                 <!-- Bypass Reason (Hidden initially) -->
@@ -301,11 +312,29 @@
 
                     <hr style="margin: 20px 0; border-top: 1px solid #eaeaea;">
 
-                    <div style="text-align: right;">
-                        <button type="submit" id="forwardSubmitBtn" class="btn btn-success" style="font-size: 15px; padding: 8px 20px;" {{ (isset($isSiteVerificationStep) && $isSiteVerificationStep && !$isSiteVerificationCompleted) ? 'disabled' : '' }}>
+                    <x-global-otp-verify purpose="forward_application" buttonText="Send OTP to Forward" />
+
+                    <div style="text-align: right; margin-top: 20px;">
+                        <input type="hidden" name="otp_verified" id="otp_verified_input" value="0">
+                        @php
+                            $isForwardDisabled = (isset($isSiteVerificationStep) && $isSiteVerificationStep && !$isSiteVerificationCompleted) || (!empty($forwardOptions) && count($forwardOptions[0]['engineers']) == 0);
+                        @endphp
+                        <button type="submit" id="forwardSubmitBtn" class="btn btn-success" style="font-size: 15px; padding: 8px 20px; opacity: 0.6; cursor: not-allowed;" disabled data-originally-disabled="{{ $isForwardDisabled ? 'true' : 'false' }}">
                             <i class="fa-solid fa-paper-plane me-1"></i> Submit Noting & Forward
                         </button>
                     </div>
+                    <script>
+                        document.addEventListener('otpVerified:forward_application', function() {
+                            const btn = document.getElementById('forwardSubmitBtn');
+                            if (btn && btn.getAttribute('data-originally-disabled') !== 'true') {
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+                                btn.style.cursor = 'pointer';
+                            }
+                            const hiddenInput = document.getElementById('otp_verified_input');
+                            if(hiddenInput) hiddenInput.value = '1';
+                        });
+                    </script>
             </form>
         </div>
     </div>

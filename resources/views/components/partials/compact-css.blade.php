@@ -18,6 +18,11 @@
         src: url("{{ asset('font/NotoSansDevanagari.ttf') }}") format('truetype');
     }
 
+    .krutidev {
+        font-family: 'KrutiDev011', Arial, sans-serif !important;
+        font-size: 20px !important;
+    }
+
     .compact-card {
         background: #fff;
         border-radius: 8px;
@@ -43,7 +48,7 @@
         align-items: center;
         letter-spacing: 0.3px;
     }
-    
+
     /* Distinct Header Colors with Subtle Gradients */
     .header-blue { background: linear-gradient(135deg, #e3f2fd, #bbdefb); color: #0d47a1; border-bottom-color: #90caf9; }
     .header-green { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #1b5e20; border-bottom-color: #a5d6a7; }
@@ -156,7 +161,7 @@
     .col-span-8 { grid-column: span 8; }
     .col-span-6 { grid-column: span 6; }
     .col-span-12 { grid-column: span 12; }
-    
+
     @media (max-width: 992px) {
         .col-span-4, .col-span-8, .col-span-6 { grid-column: span 12; }
     }

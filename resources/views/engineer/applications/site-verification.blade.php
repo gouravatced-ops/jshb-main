@@ -5,6 +5,7 @@
 @php
     $verification = $allottee->siteVerification ?? null;
     $mapParams = $verification ? json_decode($verification->map_parameters ?? '{}', true) : [];
+    $maphindiParams = $verification ? json_decode($verification->map_parameters_hindi ?? '{}', true) : [];
     $propertyCategory = getPropertyCategory();
 @endphp
 
@@ -41,7 +42,7 @@
                         <label class="form-label fw-semibold text-dark">2. आवंटी का नाम (Name of allottee)</label>
                         <input type="text" class="form-control" name="allottee_name" value="{{ $verification->allottee_name ?? trim(($allottee->prefix ?? '') . ' ' . ($allottee->allottee_name ?? '') . ' ' . ($allottee->allottee_middle_name ?? '') . ' ' . ($allottee->allottee_surname ?? '')) }}">
                     </div>
-                    
+
                     <div class="col-md-6">
                         <label class="form-label fw-semibold text-dark">3. आवंटित इकाई की संख्या (Number of allotted unit)</label>
                         <input type="text" class="form-control" name="unit_number" value="{{ $verification->unit_number ?? $allottee->property_number ?? '' }}">
@@ -225,57 +226,145 @@
         <div class="compact-card-body p-4 bg-light">
             <div class="row">
                 <!-- Parameters Input -->
-                <div class="col-md-5 border-end pe-4">
+                <div class="col-md-6 border-end pe-4">
                     <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2"><i class="fa-solid fa-sliders me-2"></i> Map Parameters</h6>
                     <div class="mb-3">
                         <label class="form-label fw-semibold text-muted small">Plot Number / Asset No</label>
                         <input type="text" class="form-control map-input" id="mapPlotNo" value="{{ $allottee->property_number }}">
                     </div>
-                    
+
+                    {{-- North --}}
                     <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold text-muted small"><i class="fa-solid fa-arrow-left text-primary"></i> North Dim (m)</label>
-                            <input type="number" class="form-control map-input" id="mapNorth" value="{{ $mapParams['north'] ?? '' }}">
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                <i class="fa-solid fa-arrow-left text-primary"></i> North Dim (m)
+                            </label>
+                            <input type="number"
+                                class="form-control map-input"
+                                id="mapNorth"
+                                value="{{ $mapParams['north'] ?? '' }}">
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold text-muted small">North Label</label>
-                            <input type="text" class="form-control map-input" id="mapNorthLabel" value="{{ $mapParams['northLabel'] ?? '' }}">
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                North Label
+                            </label>
+                            <input type="text"
+                                class="form-control map-input"
+                                id="mapNorthLabel"
+                                value="{{ $mapParams['northLabel'] ?? '' }}">
+                        </div>
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                उत्तर दिशा का नाम
+                            </label>
+                            <input type="text"
+                                class="form-control map-input krutidev"
+                                id="mapHindiNorthLabel"
+                                value="{{ $maphindiParams['northLabel'] ?? '' }}">
                         </div>
                     </div>
-                    
+
+                    {{-- South --}}
                     <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold text-muted small"><i class="fa-solid fa-arrow-right text-danger"></i> South Dim (m)</label>
-                            <input type="number" class="form-control map-input" id="mapSouth" value="{{ $mapParams['south'] ?? '' }}">
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                <i class="fa-solid fa-arrow-right text-danger"></i> South Dim (m)
+                            </label>
+                            <input type="number"
+                                class="form-control map-input"
+                                id="mapSouth"
+                                value="{{ $mapParams['south'] ?? '' }}">
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold text-muted small">South Label</label>
-                            <input type="text" class="form-control map-input" id="mapSouthLabel" value="{{ $mapParams['southLabel'] ?? '' }}">
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                South Label
+                            </label>
+                            <input type="text"
+                                class="form-control map-input"
+                                id="mapSouthLabel"
+                                value="{{ $mapParams['southLabel'] ?? '' }}">
+                        </div>
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                दक्षिण दिशा का नाम
+                            </label>
+                            <input type="text"
+                                class="form-control map-input krutidev"
+                                id="mapHindiSouthLabel"
+                                value="{{ $maphindiParams['southLabel'] ?? '' }}">
                         </div>
                     </div>
-                    
+
+                    {{-- East --}}
                     <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold text-muted small"><i class="fa-solid fa-arrow-up text-success"></i> East Dim (m)</label>
-                            <input type="number" class="form-control map-input" id="mapEast" value="{{ $mapParams['east'] ?? '' }}">
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                <i class="fa-solid fa-arrow-up text-success"></i> East Dim (m)
+                            </label>
+                            <input type="number"
+                                class="form-control map-input"
+                                id="mapEast"
+                                value="{{ $mapParams['east'] ?? '' }}">
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold text-muted small">East Label</label>
-                            <input type="text" class="form-control map-input" id="mapEastLabel" value="{{ $mapParams['eastLabel'] ?? '' }}">
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                East Label
+                            </label>
+                            <input type="text"
+                                class="form-control map-input"
+                                id="mapEastLabel"
+                                value="{{ $mapParams['eastLabel'] ?? '' }}">
+                        </div>
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                पूर्व दिशा का नाम
+                            </label>
+                            <input type="text"
+                                class="form-control map-input krutidev"
+                                id="mapHindiEastLabel"
+                                value="{{ $maphindiParams['eastLabel'] ?? '' }}">
                         </div>
                     </div>
-                    
+
+                    {{-- West --}}
                     <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold text-muted small"><i class="fa-solid fa-arrow-down text-warning"></i> West Dim (m)</label>
-                            <input type="number" class="form-control map-input" id="mapWest" value="{{ $mapParams['west'] ?? '' }}">
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                <i class="fa-solid fa-arrow-down text-warning"></i> West Dim (m)
+                            </label>
+                            <input type="number"
+                                class="form-control map-input"
+                                id="mapWest"
+                                value="{{ $mapParams['west'] ?? '' }}">
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold text-muted small">West Label</label>
-                            <input type="text" class="form-control map-input" id="mapWestLabel" value="{{ $mapParams['westLabel'] ?? '' }}">
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                West Label
+                            </label>
+                            <input type="text"
+                                class="form-control map-input"
+                                id="mapWestLabel"
+                                value="{{ $mapParams['westLabel'] ?? '' }}">
+                        </div>
+
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-muted small">
+                                पश्चिम दिशा का नाम
+                            </label>
+                            <input type="text"
+                                class="form-control map-input krutidev"
+                                id="mapHindiWestLabel"
+                                value="{{ $maphindiParams['westLabel'] ?? '' }}">
                         </div>
                     </div>
-                    
+
                     <button type="button" class="btn btn-outline-primary w-100 mt-2" onclick="generateSiteMap()">
                         <i class="fa-solid fa-arrows-rotate me-2"></i> Refresh Map Preview
                     </button>
@@ -284,13 +373,13 @@
                     </button>
                 </div>
                 <!-- Map Preview -->
-                <div class="col-md-7 ps-4 d-flex justify-content-center align-items-center bg-light rounded-3" style="min-height: 450px; position: relative;">
+                <div class="col-md-6 ps-4 d-flex justify-content-center align-items-center bg-light rounded-3" style="min-height: 450px; position: relative;">
                     <canvas id="siteMapCanvas" width="600" height="450" style="background: white; border: 2px dashed #cbd5e1; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);"></canvas>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div class="d-flex justify-content-end mb-5">
         @if(isset($isSiteVerificationCompleted) && $isSiteVerificationCompleted)
             <div class="d-flex align-items-center gap-3">
@@ -543,6 +632,11 @@
             formData.append('mapWest', document.getElementById('mapWest')?.value || '');
             formData.append('mapWestLabel', document.getElementById('mapWestLabel')?.value || '');
 
+            formData.append('mapHindiNorthLabel', document.getElementById('mapHindiNorthLabel')?.value || '');
+            formData.append('mapHindiSouthLabel', document.getElementById('mapHindiSouthLabel')?.value || '');
+            formData.append('mapHindiEastLabel', document.getElementById('mapHindiEastLabel')?.value || '');
+            formData.append('mapHindiWestLabel', document.getElementById('mapHindiWestLabel')?.value || '');
+
             const canvas = document.getElementById('siteMapCanvas');
             if (canvas) {
                 formData.append('map_image_data', canvas.toDataURL('image/png'));
@@ -585,13 +679,13 @@
         const timerText = document.getElementById('resendTimerText');
         const countSpan = document.getElementById('resendTimerCount');
         const resendBtn = document.getElementById('resendOtpBtn');
-        
+
         timerText.classList.remove('d-none');
         resendBtn.classList.add('d-none');
-        
+
         let timeLeft = 30;
         countSpan.innerText = timeLeft;
-        
+
         resendInterval = setInterval(() => {
             timeLeft--;
             countSpan.innerText = timeLeft;
@@ -631,6 +725,11 @@
             formData.append('mapWest', document.getElementById('mapWest')?.value || '');
             formData.append('mapWestLabel', document.getElementById('mapWestLabel')?.value || '');
 
+            formData.append('mapHindiNorthLabel', document.getElementById('mapHindiNorthLabel')?.value || '');
+            formData.append('mapHindiSouthLabel', document.getElementById('mapHindiSouthLabel')?.value || '');
+            formData.append('mapHindiEastLabel', document.getElementById('mapHindiEastLabel')?.value || '');
+            formData.append('mapHindiWestLabel', document.getElementById('mapHindiWestLabel')?.value || '');
+
             const canvas = document.getElementById('siteMapCanvas');
             if (canvas) {
                 formData.append('map_image_data', canvas.toDataURL('image/png'));
@@ -669,7 +768,7 @@
     window.submitSiteVerification = async function() {
         const otpValue = document.getElementById('otpInput').value;
         const errorMsg = document.getElementById('otpErrorMsg');
-        
+
         if (!otpValue || otpValue.length !== 6) {
             errorMsg.innerText = 'Please enter a valid 6-digit OTP.';
             errorMsg.classList.remove('d-none');
@@ -696,6 +795,11 @@
         formData.append('mapWest', document.getElementById('mapWest')?.value || '');
         formData.append('mapWestLabel', document.getElementById('mapWestLabel')?.value || '');
 
+        formData.append('mapHindiNorthLabel', document.getElementById('mapHindiNorthLabel')?.value || '');
+        formData.append('mapHindiSouthLabel', document.getElementById('mapHindiSouthLabel')?.value || '');
+        formData.append('mapHindiEastLabel', document.getElementById('mapHindiEastLabel')?.value || '');
+        formData.append('mapHindiWestLabel', document.getElementById('mapHindiWestLabel')?.value || '');
+
         const canvas = document.getElementById('siteMapCanvas');
         if (canvas) {
             formData.append('map_image_data', canvas.toDataURL('image/png'));
@@ -721,7 +825,7 @@
                 const modalEl = document.getElementById('otpModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
-                
+
                 // Automatically redirect to the forward page, no alert needed
                 window.location.href = result.redirect_url;
             } else {
@@ -737,7 +841,7 @@
             btn.innerHTML = originalText;
         }
     };
-    
+
     // Initial map generation
     setTimeout(() => {
         if(typeof generateSiteMap === 'function') generateSiteMap();

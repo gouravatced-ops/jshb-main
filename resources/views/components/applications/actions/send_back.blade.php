@@ -184,9 +184,26 @@
 
                 <hr style="margin: 20px 0; border-top: 1px solid #eaeaea;">
 
-                <div style="text-align: right;">
-                    <button type="submit" class="btn btn-warning text-dark" style="font-size: 15px; padding: 8px 20px; font-weight: 600;"><i class="fa-solid fa-reply"></i> Submit Noting & Send Back</button>
+                <x-global-otp-verify purpose="send_back_application" buttonText="Send OTP to Send Back" />
+
+                <div style="text-align: right; margin-top: 20px;">
+                    <input type="hidden" name="otp_verified" id="otp_verified_input" value="0">
+                    <button type="submit" id="sendBackSubmitBtn" class="btn btn-warning text-dark" style="font-size: 15px; padding: 8px 20px; font-weight: 600; opacity: 0.6; cursor: not-allowed;" disabled>
+                        <i class="fa-solid fa-reply"></i> Submit Noting & Send Back
+                    </button>
                 </div>
+                <script>
+                    document.addEventListener('otpVerified:send_back_application', function() {
+                        const btn = document.getElementById('sendBackSubmitBtn');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'pointer';
+                        }
+                        const hiddenInput = document.getElementById('otp_verified_input');
+                        if(hiddenInput) hiddenInput.value = '1';
+                    });
+                </script>
             </form>
         </div>
     </div>

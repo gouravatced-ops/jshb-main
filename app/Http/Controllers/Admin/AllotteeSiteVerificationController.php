@@ -37,7 +37,7 @@ class AllotteeSiteVerificationController extends Controller
             }
 
             $data = $request->except([
-                '_token', 
+                '_token',
                 'map_image_data',
                 'mapPlotNo',
                 'mapNorth',
@@ -47,9 +47,15 @@ class AllotteeSiteVerificationController extends Controller
                 'mapEast',
                 'mapEastLabel',
                 'mapWest',
-                'mapWestLabel'
+                'mapWestLabel',
+
+                // Hindi Map Parameters
+                'mapHindiNorthLabel',
+                'mapHindiSouthLabel',
+                'mapHindiEastLabel',
+                'mapHindiWestLabel',
             ]);
-            
+
             // Collect map parameters as JSON
             $mapParameters = [
                 'plotNo' => $request->mapPlotNo,
@@ -64,7 +70,18 @@ class AllotteeSiteVerificationController extends Controller
             ];
 
             $data['map_parameters'] = json_encode($mapParameters);
-            
+
+            // Hindi Map Parameters
+            $mapHindiParameters = [
+                'plotNo'     => $request->mapPlotNo,
+                'northLabel' => $request->mapHindiNorthLabel,
+                'southLabel' => $request->mapHindiSouthLabel,
+                'eastLabel'  => $request->mapHindiEastLabel,
+                'westLabel'  => $request->mapHindiWestLabel,
+            ];
+
+            $data['map_parameters_hindi'] = json_encode($mapHindiParameters);
+
             // Fix empty dates
             if (empty($data['approved_map_date'])) {
                 $data['approved_map_date'] = null;
@@ -72,7 +89,7 @@ class AllotteeSiteVerificationController extends Controller
             if (empty($data['alteration_map_date'])) {
                 $data['alteration_map_date'] = null;
             }
-            
+
             $year  = date('Y');
             $month = date('m');
             $day   = date('d');
@@ -102,7 +119,7 @@ class AllotteeSiteVerificationController extends Controller
                     }
 
                     File::put(public_path($photoPath), base64_decode($base64Image));
-                    
+
                     $data['map_image'] = $photoPath;
                 } else {
                     $data['map_image'] = $request->map_image_data;
@@ -116,7 +133,7 @@ class AllotteeSiteVerificationController extends Controller
 
             // Generate PDF
             $pdf = Pdf::loadView('admin.allottee.pdf.site-verification', compact('verification', 'allottee'));
-            
+
             $generatedDoc = AllotteeGeneratedDocument::where('allottee_id', $allottee_id)
                 ->where('document_type', 'Site Verification')
                 ->first();
@@ -156,15 +173,15 @@ class AllotteeSiteVerificationController extends Controller
             $step16 = AllotteeProcessStep::where('allottee_id', $allottee_id)
                 ->where('step_no', 16)
                 ->first();
-                
+
             if ($step16 && !$step16->is_completed) {
                 $step16->markAsCompleted(Auth::id() ?? 1, 'Site Verification completed');
             }
-            
+
             $step17 = AllotteeProcessStep::where('allottee_id', $allottee_id)
                 ->where('step_no', 17)
                 ->first();
-                
+
             if ($step17 && $step17->is_locked) {
                 $step17->markAsPending();
                 $step17->activate();
