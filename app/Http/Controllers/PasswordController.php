@@ -85,6 +85,14 @@ class PasswordController extends Controller
 
         $user = Auth::user();
 
+        if ($user->password_created_at) {
+            $daysSinceLastChange = \Carbon\Carbon::parse($user->password_created_at)->diffInDays(now());
+            if ($daysSinceLastChange < 30) {
+                $daysLeft = 30 - $daysSinceLastChange;
+                return response()->json(['success' => false, 'message' => "Password can only be updated once every 30 days. Please try again after {$daysLeft} days."]);
+            }
+        }
+
         // Verify old password
         if (!Hash::check($request->old_password, $user->password)) {
             return response()->json(['success' => false, 'message' => 'Current password is incorrect.']);

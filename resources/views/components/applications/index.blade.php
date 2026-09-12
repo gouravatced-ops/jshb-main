@@ -150,7 +150,17 @@
                         @endif
                     </td>
                     <td>
-                        <a href="{{ route($routePrefix . '.applications.show', $app) }}" class="btn-primary" style="padding: 6px 12px; font-size: 13px; text-decoration: none;">Review Application</a>
+                        @php
+                            $isEngineer = $routePrefix === 'engineer';
+                            $currentMovement = $app->movements()->where('to_user_id', auth()->id())->where('status', 'pending')->latest()->first();
+                            $isOverdue = $currentMovement && $currentMovement->due_date && $currentMovement->due_date < now();
+                        @endphp
+                        
+                        @if($isEngineer && $isOverdue)
+                            <a href="{{ route($routePrefix . '.extensions.create', $app->id) }}" class="btn-danger" style="padding: 6px 12px; font-size: 13px; text-decoration: none; background-color: #dc3545; color: white;">Request Send for Extension</a>
+                        @else
+                            <a href="{{ route($routePrefix . '.applications.show', $app) }}" class="btn-primary" style="padding: 6px 12px; font-size: 13px; text-decoration: none;">Review Application</a>
+                        @endif
                     </td>
                 </tr>
                 @empty

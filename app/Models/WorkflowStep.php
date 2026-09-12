@@ -27,6 +27,7 @@ class WorkflowStep extends Model
         'requires_signature',
         'auto_forward',
         'auto_forward_days',
+        'allowed_days',
         'next_step_id',
         'previous_step_id',
         'is_final_step',

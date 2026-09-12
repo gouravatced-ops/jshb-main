@@ -562,6 +562,7 @@ class ApplicationService
             'action_type' => $dbActionType,
             'remarks' => $systemRemark,
             'movement_date' => now(),
+            'due_date' => ($nextStep && $nextStep->allowed_days) ? now()->addDays($nextStep->allowed_days) : null,
             'status' => 'completed',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent()
@@ -906,6 +907,7 @@ class ApplicationService
                     'status' => 'completed',
                     'remarks' => 'Application created by system',
                     'movement_date' => now(),
+                    'due_date' => ($startingStep && $startingStep->allowed_days) ? now()->addDays($startingStep->allowed_days) : null,
                 ]);
 
                 // Insert Document from step0 lottery payment
@@ -976,6 +978,7 @@ class ApplicationService
                         'status' => 'in_progress',
                         'remarks' => 'Application automatically forwarded to ' . $nextStep->step_name,
                         'movement_date' => now(),
+                        'due_date' => ($nextStep && $nextStep->allowed_days) ? now()->addDays($nextStep->allowed_days) : null,
                     ]);
 
                     // Send Notification to Allottee

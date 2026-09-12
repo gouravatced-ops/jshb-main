@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\Application;
 use App\Models\ApplicationCorrespondence;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\GenericNotificationMail;
+use Illuminate\Support\Facades\Log;
 
 class CorrespondenceController extends Controller
 {
@@ -30,7 +33,7 @@ class CorrespondenceController extends Controller
         }
 
         $divisionCode = $application->allottee->division->division_code ?? 'HQ';
-        
+
         $referenceNumber = ApplicationCorrespondence::generateReferenceNumber($request->type, $divisionCode);
 
         $correspondence = ApplicationCorrespondence::create([
@@ -44,6 +47,10 @@ class CorrespondenceController extends Controller
             'status' => $request->status,
             'otp_verified' => $request->input('otp_verified', 0),
         ]);
+
+        if ($correspondence->status === 'published') {
+            $this->sendPublishedEmail($correspondence, $application);
+        }
 
         return redirect()->route('engineer.applications.show', $application)
             ->with('success', 'Correspondence generated successfully. Reference No: ' . $referenceNumber);
@@ -103,6 +110,10 @@ class CorrespondenceController extends Controller
             'otp_verified' => $request->input('otp_verified', 0),
         ]);
 
+        if ($request->status === 'published') {
+            $this->sendPublishedEmail($correspondence, $application);
+        }
+
         $message = $request->status === 'published' ? 'Correspondence published successfully.' : 'Draft updated successfully.';
 
         return redirect()->route('engineer.applications.show', $application)
@@ -116,5 +127,30 @@ class CorrespondenceController extends Controller
         }
 
         return view('engineer.applications.correspondence.show', compact('application', 'correspondence'));
+    }
+
+    private function sendPublishedEmail($correspondence, $application)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->email) return;
+
+        $systemEmail = config('mail.from.address', 'admin@jshb.in');
+        $subject = "Correspondence Published - Reference # {$correspondence->reference_number}";
+
+        $mailBody = "<p>Dear {$user->name},</p>";
+        $mailBody .= "<p>A new correspondence letter has been successfully generated and published.</p>";
+        $mailBody .= "<ul>";
+        $mailBody .= "<li><strong>Application No:</strong> {$application->application_no}</li>";
+        $mailBody .= "<li><strong>Reference Number:</strong> {$correspondence->reference_number}</li>";
+        $mailBody .= "<li><strong>Letter Type:</strong> {$correspondence->type}</li>";
+        $mailBody .= "<li><strong>Subject:</strong> {$correspondence->subject}</li>";
+        $mailBody .= "</ul>";
+        $mailBody .= "<p>This order letter is now officially attached to the application.</p>";
+
+        try {
+            Mail::to($user->email)->cc($systemEmail)->send(new GenericNotificationMail($subject, $mailBody, null));
+        } catch (\Exception $e) {
+            Log::error("Failed to send correspondence email: " . $e->getMessage());
+        }
     }
 }

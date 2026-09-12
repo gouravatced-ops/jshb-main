@@ -1,0 +1,23 @@
+Ran command: `php artisan migrate:refresh --path=database/migrations/2026_09_11_123418_add_allowed_days_to_workflow_steps_table.php`
+
+Aapke abhi tak ke `due_date` aur `extension request` wale flow mein **Cron Jobs**, **Queues**, aur **Events/Listeners** ka use karke hum is feature ko bahut powerful aur optimized bana sakte hain.
+
+Yahan kuch bahut important aur real-world features hain jo hum in tools ka use karke add kar sakte hain:
+
+### 1. Cron Jobs (Scheduled Commands)
+Cron Jobs background mein schedule ke hisaab se run hote hain. Isme hum 2 nayi commands bana sakte hain:
+* **Overdue Reminder Job (`NotifyOverdueApplications`)**: Ek command jo daily raat ko 12 baje run hogi. Yeh check karegi ki kitni applications ka `due_date` miss ho gaya hai. Jinka due date miss hua hai, un Engineers ko ek consolidated reminder email/notification bhej degi: *"Aapki 5 applications overdue hain, kripya extension request karein ya process karein."*
+* **Auto-Escalation Job (`AutoEscalateStalledApplications`)**: Agar koi application due date se 3 din baad bhi pending hai (aur koi extension nahi manga gaya), toh system automatically Admin ko notify kar dega ki *"Yeh engineer kaam nahi kar raha hai, application ruki hui hai."*
+
+### 2. Events & Listeners (with Queues)
+Abhi jo notifications aur emails jayenge (jaise jab engineer extension mangega ya admin approve karega), unhe synchronously bhejte waqt UI load hone mein thoda time lagta hai. Isko fast karne ke liye hum Queues aur Events use kar sakte hain:
+* **`ExtensionRequestedEvent`**: Jaise hi Engineer extension request karega, yeh Event fire hoga. Iska Listener (`SendExtensionRequestNotificationToAdmin`) background mein Queue ke through Admin ko email bhej dega. Jisse engineer ka page turant load ho jayega (no waiting time).
+* **`ExtensionRespondedEvent`**: Jab Admin approve ya reject karega, toh ye Event fire hoke Engineer ko background mein notify karega.
+
+### 3. Background Job for Timeline Maintenance
+* **`UpdateExtensionStatusJob`**: Ek job banayenge jo ensure karegi ki agar admin ne 24 hours (1 day) ki extension di hai, toh exactly 24 hours complete hone ke baad system automatically check kare ki application aage forward hui hai ya nahi. Agar nahi hui toh wapas se uska status "overdue" show hone lag jayega.
+
+---
+
+**Aapko inme se kaunse features sabse pehle implement karne hain?**
+Main suggest karunga ki hum **Overdue Reminder (Cron Job)** aur **Extension Request/Approval via Events (Queues)** se start karein. Aap confirm karein toh main inki commands aur events banana shuru karun?

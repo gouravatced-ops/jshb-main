@@ -29,6 +29,7 @@ class ApplicationMovement extends Model
         'remarks',
         'movement_date',
         'received_date',
+        'due_date',
         'is_read',
         'read_at',
         'ip_address',
