@@ -41,7 +41,7 @@ class AutoEscalateStalledApplications extends Command
         $thresholdDate = now()->subDays($daysThreshold);
 
         $stalledMovements = ApplicationMovement::with(['application', 'toUser'])
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending','in_progress'])
             ->whereNotNull('due_date')
             ->where('due_date', '<', $thresholdDate)
             ->get();
