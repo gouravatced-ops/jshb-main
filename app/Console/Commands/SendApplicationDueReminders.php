@@ -37,12 +37,12 @@ class SendApplicationDueReminders extends Command
 
             $diffDays = $today->diffInDays($dueDate);
 
-            if ($diffDays === 5) {
+            if ($diffDays <= 5) {
                 $user = $movement->toUser;
                 
                 if ($user && $user->email) {
-                    $this->sendReminderEmail($movement, $user);
-                    $log->info("Reminder sent to {$user->email} for Application ID {$movement->application_id} (5 days left)");
+                    $this->sendReminderEmail($movement, $user, $diffDays);
+                    $log->info("Reminder sent to {$user->email} for Application ID {$movement->application_id} ({$diffDays} days left)");
                     $count++;
                 } else {
                     $log->warning("No email found for User ID {$movement->to_user_id} assigned to Application ID {$movement->application_id}");
@@ -54,7 +54,7 @@ class SendApplicationDueReminders extends Command
         $this->info("Completed. Total reminders sent: {$count}");
     }
 
-    private function sendReminderEmail($movement, $user)
+    private function sendReminderEmail($movement, $user, $diffDays)
     {
         $applicationNo = $movement->application ? $movement->application->application_no : 'Unknown';
         $dueDateFormatted = Carbon::parse($movement->due_date)->format('d M Y');
@@ -68,7 +68,13 @@ class SendApplicationDueReminders extends Command
         $mailBody .= "<li><strong>Action Required:</strong> Please review and process this application.</li>";
         $mailBody .= "<li><strong>Due Date:</strong> {$dueDateFormatted}</li>";
         $mailBody .= "</ul>";
-        $mailBody .= "<p>You have exactly <strong style='color:red;'>5 days remaining</strong> to process this application before the due date.</p>";
+
+        if ($diffDays == 0) {
+            $mailBody .= "<p><strong style='color:red; font-size: 16px;'>TODAY is the last day to process this application!</strong></p>";
+        } else {
+            $mailBody .= "<p>You have <strong style='color:red;'>{$diffDays} days remaining</strong> to process this application before the due date.</p>";
+        }
+
         $mailBody .= "<hr><p style='color: #777; font-size: 13px;'><strong>Note:</strong> If the application is not processed by the due date, it will be locked and you will not be able to view or process it. After locking, you must submit a formal request to the administration with a valid reason to unlock it.</p>";
 
         Mail::to($user->email)->send(new GenericNotificationMail($subject, $mailBody, null));
