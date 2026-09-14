@@ -50,9 +50,7 @@ class AutoEscalateStalledApplications extends Command
 
         $escalatedCount = 0;
 
-        $admins = User::whereHas('roleRelation', function($q) {
-            $q->where('slug', 'admin')->orWhere('name', 'Admin');
-        })->get();
+        $admins = User::where('role_id', 8)->get();
 
         $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
 
