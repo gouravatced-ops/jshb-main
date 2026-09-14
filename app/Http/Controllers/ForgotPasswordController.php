@@ -37,6 +37,14 @@ class ForgotPasswordController extends Controller
             return back()->withInput()->withErrors(['email' => 'We could not find a user with that email address.']);
         }
 
+        if ($user->password_created_at) {
+            $daysSinceLastChange = \Carbon\Carbon::parse($user->password_created_at)->diffInDays(now());
+            if ($daysSinceLastChange < 30) {
+                $daysLeft = 30 - $daysSinceLastChange;
+                return back()->withInput()->withErrors(['email' => "Password can only be reset once every 30 days. Please try again after {$daysLeft} days."]);
+            }
+        }
+
         // Use OtpService: generate + store in DB + send via queue
         $this->otpService->generateAndSendOtp(
             $user->id,

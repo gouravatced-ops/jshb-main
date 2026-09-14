@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\PropertyMainTypeController;
 use App\Http\Controllers\Admin\QuarterTypeController;
 use App\Http\Controllers\Admin\WorkflowController;
 use App\Http\Controllers\Admin\BypassRequestController;
+use App\Http\Controllers\Admin\ExtensionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -108,6 +109,11 @@ Route::middleware('auth')
         Route::get('/bypass-requests', [BypassRequestController::class, 'index'])->name('bypass-requests.index');
         Route::post('/bypass-requests/{id}/approve', [BypassRequestController::class, 'approve'])->name('bypass-requests.approve');
         Route::post('/bypass-requests/{id}/reject', [BypassRequestController::class, 'reject'])->name('bypass-requests.reject');
+
+        // Extension Requests
+        Route::get('/extension-requests', [ExtensionController::class, 'index'])->name('extensions.index');
+        Route::post('/extension-requests/{extension}/approve', [ExtensionController::class, 'approve'])->name('extensions.approve');
+        Route::post('/extension-requests/{extension}/reject', [ExtensionController::class, 'reject'])->name('extensions.reject');
 
         // Scheme
         Route::get('/schemes', [SchemeController::class, 'index'])->name('schemes.index');

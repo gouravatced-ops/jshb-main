@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Engineer\SiteVerificationController;
 use App\Http\Controllers\Shared\ApplicationController;
+use App\Http\Controllers\ApplicationExtensionRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -25,6 +26,11 @@ Route::middleware('auth')
         Route::post('/applications/{application}/upload-document', [ApplicationController::class, 'uploadDocument'])->name('applications.upload-document');
         Route::post('/applications/{application}/verify-upload', [ApplicationController::class, 'verifyAndUploadDocument'])->name('applications.verify-upload');
         Route::get('/applications/{application}/notes-pdf', [ApplicationController::class, 'previewNotesPdf'])->name('applications.notes.pdf');
+
+        // Extensions
+        Route::get('/extensions', [ApplicationExtensionRequestController::class, 'index'])->name('extensions.index');
+        Route::get('/applications/{application}/extensions/create', [ApplicationExtensionRequestController::class, 'create'])->name('extensions.create');
+        Route::post('/applications/{application}/extensions', [ApplicationExtensionRequestController::class, 'store'])->name('extensions.store');
 
         // Site Verification
         Route::get('/applications/{id}/site-verification', [SiteVerificationController::class, 'siteVerificationForm'])->name('applications.site-verification.form');
