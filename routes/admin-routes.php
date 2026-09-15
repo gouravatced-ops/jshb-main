@@ -236,6 +236,26 @@ Route::middleware('auth')
 
         // Members Management (Only accessible to super-admin)
         Route::middleware('can:super-admin')->group(function () {
+            Route::get('/clear-cache', function () {
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+                    \Illuminate\Support\Facades\Artisan::call('config:clear');
+                    \Illuminate\Support\Facades\Artisan::call('route:clear');
+                    \Illuminate\Support\Facades\Artisan::call('view:clear');
+                    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+                    
+                    if (request()->ajax()) {
+                        return response()->json(['success' => true, 'message' => 'All caches have been cleared successfully!']);
+                    }
+                    return redirect()->back()->with('success', 'All caches have been cleared successfully!');
+                } catch (\Exception $e) {
+                    if (request()->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Error clearing cache: ' . $e->getMessage()], 500);
+                    }
+                    return redirect()->back()->with('error', 'Error clearing cache: ' . $e->getMessage());
+                }
+            })->name('clear-cache');
+            
             Route::get('/members', [\App\Http\Controllers\Admin\MemberController::class, 'index'])->name('members.index');
             Route::get('/members/create', [\App\Http\Controllers\Admin\MemberController::class, 'create'])->name('members.create');
             Route::post('/members', [\App\Http\Controllers\Admin\MemberController::class, 'store'])->name('members.store');

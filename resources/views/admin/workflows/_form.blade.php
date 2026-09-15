@@ -160,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const stepCode = stepData?.step_code || '';
         const roleId = stepData?.role_id || '';
         const actionType = stepData?.action_type || 'view';
+        const allowedDays = stepData?.allowed_days ?? 15;
 
         const canForward = stepData?.can_forward == 1 ? 'checked' : '';
         const canReject = stepData?.can_reject == 1 ? 'checked' : '';
@@ -214,11 +215,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         </select>
                     </div>
 
-                    <div class="form-group full-width">
+                    <div class="form-group">
                         <label>Action Type <span class="required">*</span></label>
                         <select name="steps[${i}][action_type]" class="form-select" required>
                             ${actionOptions}
                         </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Allowed Days</label>
+                        <input type="number" name="steps[${i}][allowed_days]" class="form-control" value="${allowedDays}" placeholder="e.g. 15" min="0" max="15">
                     </div>
                 </div>
 

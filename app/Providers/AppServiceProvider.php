@@ -32,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Gate::define('super-admin', function (User $user) {
+            return $user->roleRelation?->slug === 'super-admin';
+        });
         // Inject notifications into header and sidebar components
         View::composer(['components.header', 'components.partials.common-sidebar-elements'], function ($view) {
             if (auth()->check()) {
