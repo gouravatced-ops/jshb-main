@@ -1,0 +1,40 @@
+========================================================================
+LOCAL VERIFICATION CHECKLIST (UNPUSHED WORK)
+========================================================================
+Yeh un sabhi nayi chizon ki list hai jo kal se lekar abhi tak banayi gayi hain, jinhe aap push karne se pehle local server par verify kar sakte hain:
+
+1. DATABASE MIGRATIONS (Verify in phpMyAdmin/TablePlus)
+------------------------------------------------------------------------
+[ ] `batch_programs` table (Master tracking table)
+[ ] `batch_program_details` table (Individual email/task tracker)
+[ ] `document_generation_queues` table (PDF generation tracking)
+[ ] `application_movements` table mein do naye columns: `is_escalated` aur `escalated_at`
+
+2. SUPER ADMIN UI (Verify in Browser)
+------------------------------------------------------------------------
+[ ] Login as Admin/Super Admin.
+[ ] Sidebar mein naya menu check karein: "Batch Programs".
+[ ] "Email Queues" par click karein aur Accordion style UI verify karein.
+[ ] "Document Queues" par click karein aur Date-wise Accordion UI verify karein.
+
+3. BACKGROUND TASKS & QUEUES (Verify in Code / Command Line)
+------------------------------------------------------------------------
+[ ] `ApplicationService.php`: Verify karein ki direct PDF generation wala code hata diya gaya hai, aur uski jagah `DocumentGenerationQueue::create(...)` line aa gayi hai.
+[ ] `app/Console/Commands/ProcessDocumentGenerationQueue.php`: Check karein ki queue process karne wali nayi command ban chuki hai (try-catch aur 50/100 portion logic ke sath).
+[ ] `app/Console/Commands/SendApplicationDueReminders.php`: Check karein ki ab sirf 5, 3, 1, 0 days par email jayega aur `BatchProgram` ke through logs create honge.
+[ ] `app/Console/Commands/AutoEscalateStalledApplications.php`: Check karein ki ab `is_escalated = false` wala check aur update lag chuka hai.
+[ ] `app/Jobs/ProcessBatchEmailJob.php`: Naya job class jo emails bhejta hai aur detail table ka status `completed` karta hai.
+
+4. AUTOMATION FILES (Verify in your local folder)
+------------------------------------------------------------------------
+[ ] `local_tasks` folder: Check karein ki isme `.bat` aur `.xml` files rakhi hui hain (Midnight 50% aur Morning 100% processing ke liye).
+
+5. ROUTES (Verify in routes folder)
+------------------------------------------------------------------------
+[ ] `routes/admin-routes.php`: Naye `/batch-emails` aur `/batch-documents` routes add huye hain.
+[ ] `routes/console.php`: Cron schedules add huye hain.
+
+========================================================================
+TIP FOR VERIFICATION:
+XAMPP start karein aur `php artisan migrate` zarur run karein taaki kal aur aaj ki saari nayi tables ban jayein. Uske baad Admin UI check karein.
+========================================================================

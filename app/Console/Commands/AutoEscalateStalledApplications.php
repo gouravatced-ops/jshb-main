@@ -44,6 +44,7 @@ class AutoEscalateStalledApplications extends Command
             ->whereIn('status', ['pending','in_progress'])
             ->whereNotNull('due_date')
             ->where('due_date', '<', $thresholdDate)
+            ->where('is_escalated', false)
             ->get();
 
         $log->info("Found " . $stalledMovements->count() . " potentially stalled movements (Threshold: $daysThreshold days).");
@@ -97,6 +98,13 @@ class AutoEscalateStalledApplications extends Command
             ]);
 
             $escalatedCount++;
+            
+            // Mark as escalated so we don't notify again tomorrow for the same movement
+            $movement->update([
+                'is_escalated' => true,
+                'escalated_at' => now(),
+            ]);
+
             $log->info("Escalated Application #$appNo stalled with $engineerName.");
             $this->info("Escalated Application #$appNo stalled with $engineerName.");
         }

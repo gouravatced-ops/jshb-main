@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\QuarterTypeController;
 use App\Http\Controllers\Admin\WorkflowController;
 use App\Http\Controllers\Admin\BypassRequestController;
 use App\Http\Controllers\Admin\ExtensionController;
+use App\Http\Controllers\Admin\BatchProgramController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -252,4 +253,6 @@ Route::middleware('auth')
         // System Reset (accessible to admin and superadmin per controller logic)
         Route::get('/system-reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'index'])->name('system-reset.index');
         Route::post('/system-reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'reset'])->name('system-reset.process');
+        Route::get('/batch-emails', [BatchProgramController::class, 'emails'])->name('batch-emails');
+        Route::get('/batch-documents', [BatchProgramController::class, 'documents'])->name('batch-documents');
     });

@@ -33,12 +33,12 @@
                 <a href="{{ route('elottery') }}" class="nav-link">E-Lottery</a>
                 <a href="{{ route('tenders') }}" class="nav-link">Tenders & Notices</a>
                 <a href="{{ route('contact') }}" class="nav-link">Contact</a>
-                
+
                 <a href="https://portal.adms.jshb.computered.co.in/" target="_blank" class="btn-maroon">
                     <i class="fa-solid fa-house-user"></i> Allottee Portal
                 </a>
-                
-                <a href="{{ route('login') }}" class="btn-primary">
+
+                <a href="{{ route('login') }}" class="btn-primary" target="_blank">
                     <i class="fa-solid fa-user-shield"></i> Official Login
                 </a>
             </div>
