@@ -1,0 +1,67 @@
+SECURITY BREACH REPORT
+======================
+
+Project: JSHB / ADMS JSHB
+Date: 2026-09-12
+
+Summary:
+This project has multiple security weaknesses that create active breach risk. The most critical issue is a public route that executes shell commands, along with plaintext secrets stored in the environment file.
+
+1) APP_DEBUG is enabled
+- File: .env
+- Value: APP_DEBUG=true
+- Risk: exposes stack traces, debug output, database details, file paths, and internal errors to attackers.
+
+2) Sensitive credentials are stored in plain text
+- File: .env
+- Found secrets include:
+  - MAIL_PASSWORD
+  - MAIL_NOREPLY_PASSWORD
+  - MAIL_SYSTEM_PASSWORD
+  - MAIL_SECURITY_PASSWORD
+  - DOC_API_TOKEN
+  - PUSHER_APP_SECRET
+  - REVERB_APP_SECRET
+- Risk: compromise of this file exposes email accounts, API tokens, messaging secrets, and application internals.
+
+3) Public route executes shell commands
+- File: routes/web.php
+- Route: /run-python
+- Code executes: shell_exec($command)
+- Risk: remote command execution vector if the route is reachable. This is a direct security breach surface.
+
+4) Cache-clearing route is publicly exposed
+- File: routes/web.php
+- Route: /clear-cache
+- It calls Artisan cache/config/route/view clearing commands.
+- Risk: can disrupt app stability and leak operational information; should be restricted to admins only.
+
+5) Session security is weak
+- File: config/session.php
+- SESSION_SECURE_COOKIE is not enforced in .env
+- Risk: session cookies may be sent over insecure HTTP, making session hijacking easier.
+
+6) App is configured as local environment
+- File: .env
+- Values: APP_ENV=local and APP_URL=http://localhost
+- Risk: indicates production hardening has not been completed. This is unsafe for live deployment.
+
+7) Mail secrets are configured for live mail host
+- File: .env
+- Mail is configured with real addresses and passwords
+- Risk: if exfiltrated, attackers can send spam, phishing email, or impersonate internal mail accounts.
+
+8) Secrets are likely committed to a project environment file
+- File: .env is present in the workspace and not ignored for this repo snapshot
+- Risk: secret exposure risk increases if the project is copied, backed up, shared, or exposed in version control.
+
+Critical Priority Actions:
+1. Turn off APP_DEBUG in production.
+2. Rotate and remove all exposed credentials.
+3. Remove or restrict /run-python immediately.
+4. Protect /clear-cache with admin authentication.
+5. Force HTTPS and set secure cookie settings.
+6. Use a secret manager or server environment protections instead of storing secrets in .env.
+
+Conclusion:
+This project currently contains multiple active security vulnerabilities and should be treated as having a real breach risk until these issues are fixed.

@@ -1,0 +1,25 @@
+========================================================
+JSHB - SERVER SCHEDULER (CRON) COMMANDS
+========================================================
+Plesk ya Ubuntu server me in commands ko set karna hoga:
+
+1. Application Due Reminders (Engineers ko 5 days bache hone par mail)
+   Run Time: 06:00 AM (Daily)
+   Command:  php artisan app:send-application-due-reminders
+
+2. Auto Escalate Stalled Applications (Grievance system escalation)
+   Run Time: 06:05 AM (Daily)
+   Command:  php artisan app:auto-escalate-stalled-applications --days=3
+
+3. Document Generation Batch (Raat ka Batch - 50% load)
+   Run Time: 12:00 AM / 00:00 (Midnight, Daily)
+   Command:  php artisan app:process-document-generation-queue --portion=half
+
+4. Document Generation Batch (Subah ka Batch - Remaining 100%)
+   Run Time: 06:00 AM (Daily)
+   Command:  php artisan app:process-document-generation-queue --portion=all
+
+--------------------------------------------------------
+Tip: Agar in sabko alag alag cron me nahi lagana hai, toh aap sirf Laravel ka master scheduler cron chala sakte hain har minute (Cpanel/Plesk mein):
+Command: * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+(Isse Laravel upar diye gaye time ke hisaab se commands apne aap chala lega)

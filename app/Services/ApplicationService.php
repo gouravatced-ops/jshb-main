@@ -304,211 +304,19 @@ class ApplicationService
             }
 
             try {
-                Log::info("Starting document generation for Application ID: {$application->id}, Type: {$application->application_type}");
-                $allottee = $application->allottee;
-
-                // Determine template and document info based on application type
-                $isAgreement = ($application->application_type === 'agreement');
-                $isPossession = ($application->application_type === 'possession');
-
-                if ($isAgreement) {
-                    $pdfTemplate = 'admin.allottee.letters.templates.agreement-pdf';
-                    $documentType = 'agreement-letter';
-                    $documentName = 'Agreement Letter';
-                    $dbDocType = 'AGREEMENT_LETTER';
-                    $docPrefix = 'agreement_letter_';
-                } elseif ($isPossession) {
-                    $pdfTemplate = 'admin.allottee.letters.templates.possession-pdf';
-                    $documentType = 'possession-letter';
-                    $documentName = 'Possession Letter';
-                    $dbDocType = 'POSSESSION_LETTER';
-                    $docPrefix = 'possession_letter_';
-                } else {
-                    $pdfTemplate = 'admin.allottee.letters.templates.allotment-pdf';
-                    $documentType = 'allotment-letter';
-                    $documentName = 'Allotment Letter';
-                    $dbDocType = 'ALLOTMENT_LETTER';
-                    $docPrefix = 'allotment_letter_';
-                }
-
-                // 1. Generate PDF
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($pdfTemplate, compact('allottee'))
-                    ->setOptions([
-                        'isRemoteEnabled' => false,
-                        'isHtml5ParserEnabled' => true,
-                        'chroot' => [public_path(), storage_path(), base_path()]
-                    ])
-                    ->setPaper('a4', 'portrait');
-
-                $pdfContent = $pdf->output();
-                $allotmentNo = $allottee->allotment_no ?? $application->application_no;
-                $safeAllotmentNo = str_replace(['/', '\\'], '-', $allotmentNo);
-                $fileName = $docPrefix . $safeAllotmentNo . '_' . time() . '.pdf';
-
-                // 2. Upload to Document API
-                $scheme = $allottee->scheme ?? null;
-                $yyyy = $allottee->allotment_year ?? date('Y');
-                $mm = $allottee->allotment_month ?? date('m');
-                $dd = $allottee->allotment_day ?? date('d');
-
-                $extraData = [
-                    'application_for' => $application->application_type ?? '',
-                    'division_code' => $allottee->division->division_code ?? '',
-                    'subdivision_code' => $allottee->subDivision->subdivision_code ?? '',
-                    'property_category' => $allottee->propertyCategory->category_code ?? '',
-                    'property_type' => $allottee->propertyType->type_code ?? '',
-                    'property_income' => $allottee->quarterType->quarter_code ?? '',
-                    'username' => $allottee->username ?? ''
-                ];
-
-                $uploadResult = $this->uploadContentToDocumentApi(
-                    $pdfContent,
-                    $fileName,
-                    'FINAL',
-                    $scheme->scheme_code ?? 'SCH',
-                    $allottee->property_number ?? 'PROP',
-                    $yyyy,
-                    $mm,
-                    $dd,
-                    $extraData
-                );
-
-                // 3. Save to application_documents
-                ApplicationDocument::create([
+                Log::info("Queuing document generation for Application ID: {$application->id}, Type: {$application->application_type}");
+                
+                \App\Models\DocumentGenerationQueue::create([
                     'application_id' => $application->id,
-                    'movement_id'    => null,
-                    'document_type'  => $dbDocType,
-                    'document_name'  => $documentName . ' (Auto Generated)',
-                    'file_name'      => $uploadResult['file_name'],
-                    'file_path'      => $uploadResult['file_path'],
-                    'file_size'      => strlen($pdfContent),
-                    'file_mime_type' => 'application/pdf',
-                    'uploaded_by'    => $user->id,
-                    'uploader_type'  => 'System',
-                    'uploaded_at'    => now(),
+                    'allottee_id' => $allottee->id ?? null,
+                    'action_by_user_id' => $user->id,
+                    'document_type' => $application->application_type,
+                    'status' => 'pending',
+                    'queued_at' => now()
                 ]);
-
-                // 4. Save to allottee_generated_documents
-                AllotteeGeneratedDocument::create([
-                    'allottee_id'    => $allottee->id,
-                    'document_name'  => $documentName,
-                    'document_type'  => $documentType,
-                    'file_name'      => $uploadResult['file_name'],
-                    'file_path'      => $uploadResult['file_path'],
-                    'generated_by'   => $user->id,
-                    'generated_at'   => now(),
-                    'issue_date'     => now()->format('Y-m-d'),
-                    'document_number' => $allottee->allotment_no ?? $application->application_no
-                ]);
-
-                \App\Models\AllotteeStageTracker::create([
-                    'allottee_id'    => $allottee->id,
-                    'application_no' => $application->application_no,
-                    'stage_type'     => $application->application_type,
-                    'status'         => 'completed',
-                    'action_by'      => $user->id,
-                ]);
-
-                if ($isPossession) {
-                    Log::info("Document generation complete for Possession. Completing step and unlocking next.");
-
-                    // Complete the step in allottee process steps if required
-                    // For possession, usually menu_key is allotment-possession-letter, but wait, from the earlier code it seems to be allotment/site-verification or allotment/possession-letter
-                    $currentStep = AllotteeProcessStep::where([
-                        'allottee_id' => $allottee->id,
-                        'menu_key' => 'allotment',
-                        'sub_menu_key' => 'allotment-possession-letter'
-                    ])->first();
-
-                    if ($currentStep) {
-                        AllotteeProcessStep::completeStep(
-                            $allottee->id,
-                            'allotment',
-                            $currentStep->sub_menu_key,
-                            $user->id
-                        );
-                        AllotteeProcessStep::unlockNextStep($allottee->id, $currentStep->step_no);
-                    }
-                } elseif ($isAgreement) {
-                    Log::info("Document generation complete for Agreement. Completing step and unlocking next.");
-
-                    // Mark Agreement step as completed
-                    AllotteeProcessStep::completeStep(
-                        $allottee->id,
-                        'allotment',
-                        'agreement-document-letter',
-                        $user->id
-                    );
-
-                    // Unlock the next step
-                    $currentStep = AllotteeProcessStep::where([
-                        'allottee_id' => $allottee->id,
-                        'menu_key' => 'allotment',
-                        'sub_menu_key' => 'agreement-document-letter'
-                    ])->first();
-
-                    if ($currentStep) {
-                        AllotteeProcessStep::unlockNextStep($allottee->id, $currentStep->step_no);
-                    }
-                } else {
-                    Log::info("Document generation complete. Next step unlocked for allotment (Payment Order).");
-
-                    // 5. Mark Allottee Process Step as completed
-                    AllotteeProcessStep::completeStep(
-                        $allottee->id,
-                        'allotment',
-                        'generate-allotment',
-                        $user->id
-                    );
-
-                    // 6. Generate 15% Allotment Payment Order
-                    $finance = $allottee->scheme->schemeFinance ?? null;
-                    $propertyAmount = $finance ? (float) ($finance->property_total_cost ?? 0) : 0;
-                    $allotmentPercentage = $finance ? (float) ($finance->allotment_percentage ?? 15) : 15;
-                    $baseAmount = $finance ? (float) ($finance->allotment_amount ?? 0) : 0;
-
-                    if ($baseAmount == 0 && $propertyAmount > 0) {
-                        $baseAmount = ($propertyAmount * $allotmentPercentage) / 100;
-                    }
-
-                    AllotteePaymentOrder::updateOrCreate(
-                        [
-                            'allottee_id' => $allottee->id,
-                            'order_type'  => 'allotment',
-                        ],
-                        [
-                            'order_no'         => AllotteePaymentOrder::generateOrderNo('ODR-ALT'),
-                            'title'            => "{$allotmentPercentage}% Allotment Payment Order",
-                            'property_amount'  => $propertyAmount,
-                            'percentage'       => $allotmentPercentage,
-                            'base_amount'      => $baseAmount,
-                            'penalty_amount'   => 0,
-                            'admin_charge'     => 0,
-                            'total_payable'    => $baseAmount,
-                            'paid_amount'      => 0,
-                            'remaining_amount' => $baseAmount,
-                            'due_date'         => now()->addDays(30)->format('Y-m-d'),
-                            'issued_at'        => now(),
-                            'order_status'     => 'issued',
-                            'remarks'          => 'Auto generated ' . $allotmentPercentage . '% allotment payment order',
-                            'created_by'       => $user->id,
-                        ]
-                    );
-
-                    // Unlock the next step (15% Demand Note) assuming it's the next logical step
-                    // Find the step number for 'generate-allotment' to unlock the next one
-                    $currentStep = AllotteeProcessStep::where([
-                        'allottee_id' => $allottee->id,
-                        'menu_key' => 'allotment',
-                        'sub_menu_key' => 'generate-allotment'
-                    ])->first();
-
-                    if ($currentStep) {
-                        AllotteeProcessStep::unlockNextStep($allottee->id, $currentStep->step_no);
-                    }
-                }
+                
             } catch (\Exception $e) {
-                Log::error("Failed to auto-generate allotment PDF: " . $e->getMessage());
+                Log::error("Failed to queue document generation: " . $e->getMessage());
             }
         }
 
@@ -733,7 +541,7 @@ class ApplicationService
                     'agreement' => 'Agreement',
                     default => ucfirst(str_replace('_', ' ', $application->application_type))
                 };
-                $message = "Your application ({$application->application_no}) has been approved and your {$documentName} has been generated. Please log in to download your " . strtolower($documentName) . ".";
+                $message = "Your application ({$application->application_no}) has been approved. Your generated {$documentName} will appear on your dashboard after 24 hrs.";
             } else {
                 $message = "Your application ({$application->application_no}) has been rejected.";
             }
