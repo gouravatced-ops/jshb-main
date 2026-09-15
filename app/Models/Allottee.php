@@ -217,16 +217,16 @@ class Allottee extends Model
     public static function convertPropertyNumberToHindi(string $propertyNumber): string
     {
         $hindiDigits = [
-            '0' => '०',
-            '1' => '१',
-            '2' => '२',
-            '3' => '३',
-            '4' => '४',
-            '5' => '५',
-            '6' => '६',
-            '7' => '७',
-            '8' => '८',
-            '9' => '९',
+            '0' => '0',
+            '1' => '1',
+            '2' => '2',
+            '3' => '3',
+            '4' => '4',
+            '5' => '5',
+            '6' => '6',
+            '7' => '7',
+            '8' => '8',
+            '9' => '9',
         ];
 
         $hindiLetters = [
@@ -263,6 +263,40 @@ class Allottee extends Model
 
         // फिर English prefix convert
         return strtr($propertyNumberHindi, $hindiLetters);
+    }
+
+    public static function convertPropertyNumberToKrutiDev(string $propertyNumber): string
+    {
+        $krutiLetters = [
+            'A' => ',',
+            'B' => 'ch',
+            'C' => 'lh',
+            'D' => 'Mh',
+            'E' => 'bZ',
+            'F' => ',Q',
+            'G' => 'th',
+            'H' => ',p',
+            'I' => 'vkbZ',
+            'J' => 'ts',
+            'K' => 'ds',
+            'L' => ',y',
+            'M' => ',e',
+            'N' => ',u',
+            'O' => 'vks',
+            'P' => 'ih',
+            'Q' => 'D;w',
+            'R' => 'vkj',
+            'S' => ',l',
+            'T' => 'Vh',
+            'U' => ';w',
+            'V' => 'oh',
+            'W' => 'MCY;w',
+            'X' => ',Dl',
+            'Y' => 'okbZ',
+            'Z' => 'tsM',
+        ];
+
+        return strtr($propertyNumber, $krutiLetters);
     }
 
     public function applications()

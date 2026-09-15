@@ -81,13 +81,12 @@ $rejectMovement = $application->movements->where('action_type', 'rejected')->las
             @if($application->currentStep->action_type == 'approve' && strtolower($application->status) !== 'completed')
             <a href="{{ route($routePrefix . '.applications.action.form', ['application' => $application, 'action_type' => 'approve']) }}" class="btn-compact" style="background: #17a2b8; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-check"></i> Approve</a>
             @endif
-            @if($hasSiteVerificationRoute && (strtolower($application->currentStep->action_type) == 'site_verification' || strtolower($application->currentStep->action_type) == 'site verification'))
-            @if(isset($isSiteVerificationCompleted) && $isSiteVerificationCompleted)
+            <!-- @if($hasSiteVerificationRoute && (strtolower($application->currentStep->action_type) == 'site_verification' || strtolower($application->currentStep->action_type) == 'site verification'))
+            @if(isset($isSiteVerificationCompleted) && $isSiteVerificationCompleted) -->
             <a href="{{ route($routePrefix . '.applications.site-verification.form', \Illuminate\Support\Facades\Crypt::encryptString($application->id)) }}" class="btn-compact" style="background: #28a745; color: #fff; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-circle-check"></i> Site Verified (View)</a>
-            @else
-            <a href="{{ route($routePrefix . '.applications.site-verification.form', \Illuminate\Support\Facades\Crypt::encryptString($application->id)) }}" class="btn-compact" style="background: #e67e22; color: #fff; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-map-location-dot"></i> Site Verification</a>
-            @endif
-            @endif
+            <!-- @else -->
+            <!-- @endif -->
+            <!-- @endif -->
             @if($application->currentStep->can_upload_document)
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#uploadDocModal" style="background: #34495e;"><i class="fa-solid fa-upload"></i> Upload Doc</button>
             @php
@@ -97,6 +96,7 @@ $rejectMovement = $application->movements->where('action_type', 'rejected')->las
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#verifyUploadDocModal" style="background: #17a2b8;"><i class="fa-solid fa-file-signature"></i> Verify & Upload</button>
             @endif
             @endif
+            <a href="{{ route($routePrefix . '.applications.site-verification.form', \Illuminate\Support\Facades\Crypt::encryptString($application->id)) }}" class="btn-compact" style="background: #e67e22; color: #fff; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-map-location-dot"></i> Site Verification</a>
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#workflowModal" style="background: #6f42c1; color: white; border: none; cursor: pointer;"><i class="fa-solid fa-code-branch"></i> View Workflow</button>
         </div>
     </div>

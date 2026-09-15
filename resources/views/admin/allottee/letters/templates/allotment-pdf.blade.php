@@ -221,31 +221,31 @@
                     <tr>
                         <td valign="top" style="width:30px;">¼d½</td>
                         <td>¶ySV dh varfje <br>dher dk 25¼iPphl½ izfr’kr</td>
-                        <td valign="bottom">:0-</td>
+                        <td valign="bottom">%&</td>
                         <td valign="bottom" style="font-family: Arial, sans-serif; font-size: 13px;">{{ number_format($lotteryAmount + $allotmentAmount, 2) }}</td>
                     </tr>
                     <tr>
                         <td valign="top">¼[k½</td>
                         <td>vkoaVh }kjk vkosnu i=k ds <br>lkFk tek dh x;h jkf’k ¼&½</td>
-                        <td valign="bottom">:0-</td>
+                        <td valign="bottom">%&</td>
                         <td valign="bottom" style="font-family: Arial, sans-serif; font-size: 13px;">{{ number_format($lotteryAmount, 2) }}</td>
                     </tr>
                     <tr>
                         <td></td>
                         <td></td>
-                        <td style="border-top:1px solid #000; border-bottom:1px solid #000;">:0-</td>
+                        <td style="border-top:1px solid #000; border-bottom:1px solid #000;">%&</td>
                         <td style="border-top:1px solid #000; border-bottom:1px solid #000; font-family: Arial, sans-serif; font-size: 13px;">{{ number_format($allotmentAmount, 2) }}</td>
                     </tr>
                     <tr>
                         <td valign="top">¼x½</td>
                         <td>fof/k ,oa vfHkys[ku ’kqYd ¼$½</td>
-                        <td valign="bottom">:0-</td>
+                        <td valign="bottom">%&</td>
                         <td valign="bottom" style="font-family: Arial, sans-serif; font-size: 13px;">300.00</td>
                     </tr>
                     <tr>
                         <td valign="top">¼?k½</td>
                         <td>dqy Hkqxrs; jkf’k</td>
-                        <td valign="bottom">:0-</td>
+                        <td valign="bottom">%&</td>
                         <td valign="bottom" style="font-family: Arial, sans-serif; font-size: 13px; font-weight:bold;">{{ number_format($allotmentAmount + 300, 2) }}</td>
                     </tr>
                 </table>

@@ -174,3 +174,34 @@ require __DIR__ . '/accountant-routes.php';
 require __DIR__ . '/managing-routes.php';
 require __DIR__ . '/operator-routes.php';
 require __DIR__ . '/coassistant-routes.php';
+
+// Test PDF Preview Routes  /// http://localhost/jshb/public/test-pdf/allotment/2
+Route::get('/test-pdf/allotment/{id}', function ($id) {
+    $allottee = \App\Models\Allottee::with(['division:id,name', 'subDivision:id,name', 'propertyCategory:id,name', 'alloteeAdresses', 'siteVerification'])->findOrFail($id);
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.allottee.letters.templates.allotment-pdf', compact('allottee'))
+        ->setPaper('a4', 'portrait')
+        ->setOptions([
+            'defaultFont' => 'KrutiDev',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'chroot' => public_path(),
+        ]);
+
+    return $pdf->stream('allotment-letter-' . $id . '.pdf');
+});
+
+Route::get('/test-pdf/possession/{id}', function ($id) {
+    $allottee = \App\Models\Allottee::with(['division:id,name', 'subDivision:id,name', 'propertyCategory:id,name', 'alloteeAdresses', 'siteVerification'])->findOrFail($id);
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.allottee.letters.templates.possession-pdf', compact('allottee'))
+        ->setPaper('a4', 'portrait')
+        ->setOptions([
+            'defaultFont' => 'KrutiDev',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'chroot' => public_path(),
+        ]);
+
+    return $pdf->stream('possession-letter-' . $id . '.pdf');
+});

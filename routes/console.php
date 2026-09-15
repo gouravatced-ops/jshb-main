@@ -13,4 +13,7 @@ Schedule::command('app:auto-escalate-stalled-applications --days=3')->dailyAt('0
 
 // Document Generation Batch Process
 Schedule::command('app:process-document-generation-queue --portion=half')->dailyAt('00:00');
-Schedule::command('app:process-document-generation-queue --portion=all')->dailyAt('06:00');
+Schedule::command('app:process-document-generation-queue --portion=all')->dailyAt('03:00');
+
+// Daily Management Report
+Schedule::command('app:send-daily-activity-report')->dailyAt('01:00');
