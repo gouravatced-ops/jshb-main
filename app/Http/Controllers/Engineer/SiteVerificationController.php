@@ -351,7 +351,12 @@ class SiteVerificationController extends Controller
             'mapEast',
             'mapEastLabel',
             'mapWest',
-            'mapWestLabel'
+            'mapWestLabel',
+            // Hindi Map Parameters
+            'mapHindiNorthLabel',
+            'mapHindiSouthLabel',
+            'mapHindiEastLabel',
+            'mapHindiWestLabel'
         ]);
 
         // Collect map parameters as JSON
@@ -368,6 +373,17 @@ class SiteVerificationController extends Controller
         ];
 
         $data['map_parameters'] = json_encode($mapParameters);
+
+        // Hindi Map Parameters
+        $mapHindiParameters = [
+            'plotNo'     => $request->mapPlotNo,
+            'northLabel' => $request->mapHindiNorthLabel,
+            'southLabel' => $request->mapHindiSouthLabel,
+            'eastLabel'  => $request->mapHindiEastLabel,
+            'westLabel'  => $request->mapHindiWestLabel,
+        ];
+
+        $data['map_parameters_hindi'] = json_encode($mapHindiParameters);
 
         // Fix empty dates
         if (empty($data['approved_map_date'])) {

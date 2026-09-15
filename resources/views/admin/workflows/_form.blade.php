@@ -50,7 +50,7 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
-            
+
             <div class="form-group full-width">
                 <label>Status <span class="required">*</span></label>
                 <select name="is_active" class="form-select" required>
@@ -75,7 +75,7 @@
                 @endphp
                 @foreach($documents as $doc)
                     <label class="custom-checkbox" style="display: flex; align-items: center; background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0; cursor: pointer;">
-                        <input type="checkbox" name="required_documents[]" value="{{ $doc->id }}" 
+                        <input type="checkbox" name="required_documents[]" value="{{ $doc->id }}"
                             {{ in_array($doc->id, $selectedDocs) ? 'checked' : '' }}
                             style="margin-right: 10px; width: 16px; height: 16px;">
                         <span>{{ $doc->document_name }}</span>
@@ -141,12 +141,17 @@
     }
 </style>
 <script>
+window.WorkflowData = {
+    roles: {!! json_encode($roles ?? []) !!},
+    existingSteps: {!! json_encode(isset($workflow) ? $workflow->steps : []) !!}
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     const roles = window.WorkflowData.roles || [];
     const existingSteps = window.WorkflowData.existingSteps || [];
     let stepIndex = 0;
     const stepsContainer = document.getElementById('stepsContainer');
-    
+
     function addStep(stepData = null) {
         const i = stepIndex++;
         const id = stepData?.id || '';
@@ -155,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const stepCode = stepData?.step_code || '';
         const roleId = stepData?.role_id || '';
         const actionType = stepData?.action_type || 'view';
-        
+
         const canForward = stepData?.can_forward == 1 ? 'checked' : '';
         const canReject = stepData?.can_reject == 1 ? 'checked' : '';
         const canSendBack = stepData?.can_send_back == 1 ? 'checked' : '';
@@ -164,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const requiresSignature = stepData?.requires_signature == 1 ? 'checked' : '';
         const isStartingStep = stepData?.is_starting_step == 1 ? 'checked' : '';
         const isFinalStep = stepData?.is_final_step == 1 ? 'checked' : '';
-        
+
         let roleOptions = '<option value="">Select Role</option>';
         roles.forEach(role => {
             const selected = role.id == roleId ? 'selected' : '';
@@ -185,13 +190,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 </button>
                 <h5 class="section-title" style="margin-bottom: 20px;">Step Detail</h5>
                 <input type="hidden" name="steps[${i}][id]" value="${id}">
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Order <span class="required">*</span></label>
                         <input type="number" name="steps[${i}][step_order]" class="form-control" value="${stepOrder}" placeholder="e.g. 1" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label>Step Name <span class="required">*</span></label>
                         <input type="text" name="steps[${i}][step_name]" class="form-control" value="${stepName}" placeholder="Enter step name" required>
@@ -201,14 +206,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label>Step Code <span class="required">*</span></label>
                         <input type="text" name="steps[${i}][step_code]" class="form-control" value="${stepCode}" placeholder="Enter step code" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label>Role <span class="required">*</span></label>
                         <select name="steps[${i}][role_id]" class="form-select" required>
                             ${roleOptions}
                         </select>
                     </div>
-                    
+
                     <div class="form-group full-width">
                         <label>Action Type <span class="required">*</span></label>
                         <select name="steps[${i}][action_type]" class="form-select" required>
@@ -216,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="step-checkboxes">
                     <div class="step-checkbox-item">
                         <input type="checkbox" id="is_starting_${i}" name="steps[${i}][is_starting_step]" value="1" ${isStartingStep}>
@@ -253,22 +258,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
-        
+
         stepsContainer.insertAdjacentHTML('beforeend', html);
     }
-    
+
     document.getElementById('addStepBtn').addEventListener('click', () => addStep());
-    
+
     if (existingSteps && existingSteps.length > 0) {
         existingSteps.forEach(step => addStep(step));
     } else {
         addStep(); // Add one empty step by default
     }
-    
+
     // Auto-generate slug from workflow name
     const nameInput = document.getElementById('name');
     const slugInput = document.getElementById('slug');
-    
+
     if (nameInput && slugInput) {
         nameInput.addEventListener('input', function() {
             // Convert to lowercase, replace spaces and special characters with hyphens

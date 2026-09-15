@@ -433,14 +433,10 @@
                                             </button>
                                         </div>
                                         <script id="txn-data-{{ $allottee->id }}" type="application/json">
-                                            {
-                                                !!$allottee - > allotteeTransaction ? $allottee - > allotteeTransaction - > toJson() : '[]'!!
-                                            }
+                                            {!! $allottee->allotteeTransaction ? $allottee->allotteeTransaction->toJson() : '[]' !!}
                                         </script>
                                         <script id="emi-data-{{ $allottee->id }}" type="application/json">
-                                            {
-                                                !!$allottee - > emiSchedule ? $allottee - > emiSchedule - > toJson() : '[]'!!
-                                            }
+                                            {!! $allottee->emiSchedule ? $allottee->emiSchedule->toJson() : '[]' !!}
                                         </script>
                                         <div class="detail-grid" style="grid-template-columns: 1fr;">
                                             <div class="detail-item"><span class="detail-label">Property No</span> <strong style="color:#0284c7; font-size: 14px;">{{ $allottee->property_number ?: 'N/A' }}</strong></div>
@@ -505,24 +501,16 @@
                                                                 </button>
                                                             </div>
                                                             <script id="audit-data-{{ $app->id }}" type="application/json">
-                                                                {
-                                                                    !!$app - > movements ? $app - > movements - > load(['fromUser', 'toUser', 'fromRole', 'toRole', 'fromStep', 'toStep']) - > toJson() : '[]'!!
-                                                                }
+                                                                {!! $app->movements ? $app->movements->load(['fromUser', 'toUser', 'fromRole', 'toRole', 'fromStep', 'toStep'])->toJson() : '[]' !!}
                                                             </script>
                                                             <script id="comm-data-{{ $app->id }}" type="application/json">
-                                                                {
-                                                                    !!$app - > communicationTracks ? $app - > communicationTracks - > toJson() : '[]'!!
-                                                                }
+                                                                {!! $app->communicationTracks ? $app->communicationTracks->toJson() : '[]' !!}
                                                             </script>
                                                             <script id="corr-data-{{ $app->id }}" type="application/json">
-                                                                {
-                                                                    !!$app - > correspondences ? $app - > correspondences - > toJson() : '[]'!!
-                                                                }
+                                                                {!! $app->correspondences ? $app->correspondences->toJson() : '[]' !!}
                                                             </script>
                                                             <script id="bypass-data-{{ $app->id }}" type="application/json">
-                                                                {
-                                                                    !!$app - > bypassRequests ? $app - > bypassRequests - > toJson() : '[]'!!
-                                                                }
+                                                                {!! $app->bypassRequests ? $app->bypassRequests->toJson() : '[]' !!}
                                                             </script>
                                                         </td>
                                                     </tr>
@@ -1001,7 +989,7 @@
                         html += '<div class="audit-timeline-action" style="color: ' + statusColor + '">' + (t.transaction_type || 'Payment').toUpperCase() + ' (' + (t.payment_status || 'Pending').toUpperCase() + ')</div>';
                         html += '<div class="audit-timeline-date"><i class="fa-regular fa-clock" style="margin-right:4px;"></i> ' + dateStr + '</div>';
                         html += '</div>';
-                        html += '<div class="audit-timeline-route"><i class="fa-solid fa-indian-rupee-sign"></i> Amount: ?' + (t.amount || 0) + '</div>';
+                        html += '<div class="audit-timeline-route"> Amount: <i class="fa-solid fa-indian-rupee-sign"></i>'+ (t.amount || 0) + '</div>';
                         html += '<div class="click-hint"><i class="fa-solid fa-chevron-down"></i></div>';
                         html += '<div class="audit-timeline-notes">';
                         html += '<strong>Transaction No:</strong> ' + (t.transaction_no || 'N/A') + '<br>';

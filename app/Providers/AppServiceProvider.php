@@ -13,12 +13,18 @@ use Illuminate\Queue\Events\JobFailed;
 use App\Models\User;
 use App\Models\Notification;
 use App\Models\AllotteeNotification;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Failed;
+use App\Listeners\LogSuccessfulLogin;
+use App\Listeners\LogFailedLogin;
+use Illuminate\Support\Facades\Event;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
      */
+
     public function register(): void
     {
         //
