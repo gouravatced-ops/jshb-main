@@ -27,7 +27,7 @@ Route::middleware('auth')
         Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
         Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
         Route::post('/profile/update', [AdminController::class, 'updateProfile'])->name('profile.update');
-        
+
 
         // Frontend Webhook/Log Receiver
         Route::post('/log-notification-event', function (\Illuminate\Http\Request $request) {
@@ -232,10 +232,30 @@ Route::middleware('auth')
 
         // Notices and Announcements
         Route::resource('notices', \App\Http\Controllers\Admin\NoticeController::class)->except(['show']);
-        
+
 
         // Members Management (Only accessible to super-admin)
         Route::middleware('can:super-admin')->group(function () {
+            Route::get('/clear-cache', function () {
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+                    \Illuminate\Support\Facades\Artisan::call('config:clear');
+                    \Illuminate\Support\Facades\Artisan::call('route:clear');
+                    \Illuminate\Support\Facades\Artisan::call('view:clear');
+                    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+
+                    if (request()->ajax()) {
+                        return response()->json(['success' => true, 'message' => 'All caches have been cleared successfully!']);
+                    }
+                    return redirect()->back()->with('success', 'All caches have been cleared successfully!');
+                } catch (\Exception $e) {
+                    if (request()->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Error clearing cache: ' . $e->getMessage()], 500);
+                    }
+                    return redirect()->back()->with('error', 'Error clearing cache: ' . $e->getMessage());
+                }
+            })->name('clear-cache');
+
             Route::get('/members', [\App\Http\Controllers\Admin\MemberController::class, 'index'])->name('members.index');
             Route::get('/members/create', [\App\Http\Controllers\Admin\MemberController::class, 'create'])->name('members.create');
             Route::post('/members', [\App\Http\Controllers\Admin\MemberController::class, 'store'])->name('members.store');
@@ -251,8 +271,6 @@ Route::middleware('auth')
         });
 
         // System Reset (accessible to admin and superadmin per controller logic)
-        Route::get('/system-reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'index'])->name('system-reset.index');
-        Route::post('/system-reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'reset'])->name('system-reset.process');
         Route::get('/batch-emails', [BatchProgramController::class, 'emails'])->name('batch-emails');
         Route::get('/batch-documents', [BatchProgramController::class, 'documents'])->name('batch-documents');
     });

@@ -124,6 +124,7 @@ class WorkflowController extends Controller
                         'requires_signature' => $step['requires_signature'] ?? 0,
                         'is_starting_step' => $step['is_starting_step'] ?? 0,
                         'is_final_step' => $step['is_final_step'] ?? 0,
+                        'allowed_days' => $step['allowed_days'] ?? null,
                         'notification_template' => $step['notification_template'] ?? null,
                     ]);
                 }
@@ -191,6 +192,7 @@ class WorkflowController extends Controller
                                 'requires_signature' => $step['requires_signature'] ?? 0,
                                 'is_starting_step' => $step['is_starting_step'] ?? 0,
                                 'is_final_step' => $step['is_final_step'] ?? 0,
+                                'allowed_days' => $step['allowed_days'] ?? null,
                                 'notification_template' => $step['notification_template'] ?? null,
                             ]);
                             $existingStepIds[] = $workflowStep->id;
@@ -211,6 +213,7 @@ class WorkflowController extends Controller
                             'requires_signature' => $step['requires_signature'] ?? 0,
                             'is_starting_step' => $step['is_starting_step'] ?? 0,
                             'is_final_step' => $step['is_final_step'] ?? 0,
+                            'allowed_days' => $step['allowed_days'] ?? null,
                             'notification_template' => $step['notification_template'] ?? null,
                         ]);
                         $existingStepIds[] = $newStep->id;
@@ -220,7 +223,7 @@ class WorkflowController extends Controller
 
             // Delete removed steps
             $workflow->steps()->whereNotIn('id', $existingStepIds)->delete();
-            
+
             if (isset($data['required_documents']) && is_array($data['required_documents'])) {
                 $workflow->requiredDocuments()->sync($data['required_documents']);
             } else {
@@ -300,6 +303,7 @@ class WorkflowController extends Controller
             'steps.*.requires_signature' => ['nullable', 'boolean'],
             'steps.*.is_starting_step' => ['nullable', 'boolean'],
             'steps.*.is_final_step' => ['nullable', 'boolean'],
+            'steps.*.allowed_days' => ['nullable', 'integer', 'min:0', 'max:15'],
             'steps.*.notification_template' => ['nullable', 'string'],
             'required_documents' => ['nullable', 'array'],
             'required_documents.*' => ['integer'],

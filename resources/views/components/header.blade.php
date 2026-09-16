@@ -29,6 +29,12 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
     @endif
 
     <div class="header-actions">
+        @if ($authUser->roleRelation?->slug === 'super-admin')
+            <a href="{{ route('admin.clear-cache') }}" id="clearCacheBtn" onclick="handleClearCache(event, this)" class="header-icon-btn" title="Clear Cache" style="color: var(--pink-color); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 4px; padding: 4px 10px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 13px; margin-right: 15px; font-weight: 600; white-space: nowrap; width: auto; height: auto; background: transparent;">
+                <i class="fa-solid fa-broom" style="margin-right: 5px;"></i> <span>Clear Cache</span>
+            </a>
+        @endif
+        
         <!-- Search -->
         <!-- <button class="header-icon-btn" title="Search">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -143,3 +149,44 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
         </div>
     </div>
 </header>
+
+<script>
+function handleClearCache(event, element) {
+    event.preventDefault();
+    const originalHtml = element.innerHTML;
+    element.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> <span>Clearing...</span>';
+    element.style.pointerEvents = 'none';
+
+    fetch(element.href, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            if (typeof toastr !== 'undefined') {
+                toastr.success('Cache cleared successfully!');
+            } else if (typeof Swal !== 'undefined') {
+                Swal.fire('Success', 'Cache cleared successfully!', 'success');
+            } else {
+                alert('Cache cleared successfully!');
+            }
+        } else {
+            throw new Error('Failed to clear cache');
+        }
+    })
+    .catch(error => {
+        console.error(error);
+        if (typeof toastr !== 'undefined') {
+            toastr.error('Error clearing cache.');
+        } else {
+            alert('Error clearing cache.');
+        }
+    })
+    .finally(() => {
+        element.innerHTML = originalHtml;
+        element.style.pointerEvents = 'auto';
+    });
+}
+</script>
