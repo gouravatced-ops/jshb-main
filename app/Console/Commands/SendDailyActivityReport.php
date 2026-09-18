@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\BatchProgram;
 use App\Models\BatchProgramDetail;
 use App\Mail\DailyActivityReportMail;
+use App\Jobs\ProcessBatchEmailJob;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -150,22 +151,19 @@ class SendDailyActivityReport extends Command
             ]);
 
             try {
-                // Send individually to track success/failure accurately per person
-                Mail::to($email)
-                    ->cc($ccEmails)
-                    ->send($mailable);
+                // Instantiate a fresh Mailable
+                $freshMailable = new DailyActivityReportMail($reportData, $reportDate);
 
-                $detail->update([
-                    'status' => 'sent',
-                    'sent_at' => now(),
-                ]);
+                // Dispatch to background job instead of sending directly
+                ProcessBatchEmailJob::dispatch($detail->id, $email, $freshMailable);
+                
                 $successCount++;
             } catch (\Exception $e) {
                 $detail->update([
                     'status' => 'failed',
                     'error_message' => $e->getMessage(),
                 ]);
-                $log->error("Failed to send daily activity report to {$email}: " . $e->getMessage());
+                $log->error("Failed to queue daily activity report to {$email}: " . $e->getMessage());
             }
         }
 
