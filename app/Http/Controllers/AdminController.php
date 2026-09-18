@@ -163,4 +163,48 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'Profile updated successfully.');
     }
+
+    public function update2FASettings(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->roleRelation?->slug !== 'super-admin') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized action.']);
+        }
+
+        $request->validate([
+            'enforcement' => 'required|in:mandatory,optional,disabled',
+            'captcha_answer' => 'required|numeric',
+        ]);
+
+        if (!session('global_otp_verified_update_2fa_settings')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please verify OTP before saving settings.'
+            ]);
+        }
+
+        // Verify captcha
+        $captchaData = session('captcha_' . $user->id);
+        if (!$captchaData || $captchaData['answer'] != $request->captcha_answer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect security answer.'
+            ]);
+        }
+
+        $setting = \App\Models\Setting::firstOrCreate(
+            ['key' => 'global_2fa_enforcement'],
+            ['value' => 'optional']
+        );
+        $setting->value = $request->enforcement;
+        $setting->save();
+
+        session()->forget('captcha_' . $user->id);
+        session()->forget('global_otp_verified_update_2fa_settings');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Global 2FA Settings updated successfully!'
+        ]);
+    }
 }

@@ -94,6 +94,7 @@ if (togglePassword && password) {
                     else if (originalText.includes('Verify')) loadingText = 'Verifying...';
                     else if (originalText.includes('Send')) loadingText = 'Sending...';
                     else if (originalText.includes('Reset')) loadingText = 'Resetting...';
+                    else if (originalText.includes('Proceed')) loadingText = 'Proceeding...';
 
                     // Using setTimeout ensures the form still submits correctly in all browsers
                     // even if the button gets disabled.
@@ -150,24 +151,24 @@ if (togglePassword && password) {
 
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
-            const isEmailOtp = loginMethodInput.value === 'email_otp';
+            const isEmailOtp = loginMethodInput.value === '2fa_only';
             
             if (isEmailOtp) {
-                // Switch to Username
+                // Switch to Username/Password Mode
                 usernameSection.classList.add('show');
                 toggleBtn.classList.add('toggled');
                 emailLabel.innerHTML = '<i class="fa-regular fa-envelope"></i> Email or Username';
                 loginMethodInput.value = 'username';
                 submitBtnText.innerText = 'Login to Account';
                 if(passwordInput) passwordInput.required = true;
-                toggleText.innerText = 'Login with OTP instead';
+                toggleText.innerText = 'Login with 2FA instead';
             } else {
-                // Switch to Email OTP
+                // Switch to 2FA Mode
                 usernameSection.classList.remove('show');
                 toggleBtn.classList.remove('toggled');
                 emailLabel.innerHTML = '<i class="fa-regular fa-envelope"></i> Email Address';
-                loginMethodInput.value = 'email_otp';
-                submitBtnText.innerText = 'Send OTP';
+                loginMethodInput.value = '2fa_only';
+                submitBtnText.innerText = 'Proceed';
                 if(passwordInput) passwordInput.required = false;
                 toggleText.innerText = 'Login with Password instead';
             }
