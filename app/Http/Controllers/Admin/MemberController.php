@@ -11,6 +11,8 @@ use App\Models\SubDivision;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use App\Services\NotificationService;
 
@@ -41,26 +43,36 @@ class MemberController extends Controller
 
         $type = $request->get('type', 'all');
 
-        $members = User::query()
-            ->with(['roleRelation', 'detail', 'division', 'subDivision'])
-            ->whereDoesntHave('roleRelation', function ($query) {
-                $query->where('slug', 'allottee');
-            })
-            ->when($type === 'divisional', function ($query) {
-                $query->whereNotNull('division_id');
-            })
-            ->when($type === 'non_divisional', function ($query) {
-                $query->whereNull('division_id');
-            })
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%');
-                });
-            })
-            ->orderByDesc('created_at')
-            ->paginate(20)
-            ->withQueryString();
+        $page = $request->get('page', 1);
+        $cacheKey = "members_list_type_{$type}_search_{$search}_page_{$page}";
+
+        $members = Cache::remember($cacheKey, 60, function () use ($type, $search) {
+            return User::query()
+                ->with(['roleRelation', 'detail', 'division', 'subDivision'])
+                ->whereDoesntHave('roleRelation', function ($query) {
+                    $query->where('slug', 'allottee');
+                })
+                ->when($type === 'divisional', function ($query) {
+                    $query->whereNotNull('division_id');
+                })
+                ->when($type === 'non_divisional', function ($query) {
+                    $query->whereNull('division_id');
+                })
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('email', 'like', '%' . $search . '%');
+                    });
+                })
+                ->orderByDesc('created_at')
+                ->paginate(20)
+                ->withQueryString();
+        });
+
+        // Time measure end aur log karein
+        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
+        Log::info("⏱️ Time taken to load Members List: {$executionTime} ms\n----------------------------------");
+
 
         return view('admin.members.index', compact('members', 'search', 'type'));
     }
