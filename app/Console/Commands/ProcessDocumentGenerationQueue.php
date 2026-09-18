@@ -10,6 +10,8 @@ use App\Models\AllotteeGeneratedDocument;
 use App\Models\AllotteeProcessStep;
 use App\Models\AllotteePaymentOrder;
 use App\Models\AllotteeStageTracker;
+use App\Models\BatchProgram;
+use App\Models\BatchProgramDetail;
 use Illuminate\Support\Facades\Log;
 use App\Traits\DocumentUploadTrait;
 
@@ -27,10 +29,22 @@ class ProcessDocumentGenerationQueue extends Command
 
         $log->info("--- Starting Document Generation Queue (Portion: {$portion}) ---");
 
+        $batchProgram = BatchProgram::create([
+            'command_name' => 'ProcessDocumentGenerationQueue',
+            'started_at' => now(),
+            'status' => 'running',
+        ]);
+
         $pendingJobs = DocumentGenerationQueue::where('status', 'pending')->get();
         $totalPending = $pendingJobs->count();
 
         if ($totalPending === 0) {
+            $batchProgram->update([
+                'total_jobs' => 0,
+                'unique_engineers_count' => 0,
+                'completed_at' => now(),
+                'status' => 'completed',
+            ]);
             $this->info("No pending documents to generate.");
             $log->info("No pending documents. Exiting.");
             return;
@@ -48,17 +62,39 @@ class ProcessDocumentGenerationQueue extends Command
         foreach ($pendingJobs as $job) {
             $job->update(['status' => 'processing']);
             
+            $detail = BatchProgramDetail::create([
+                'batch_program_id' => $batchProgram->id,
+                'user_id' => $job->action_by_user_id,
+                'application_id' => $job->application_id,
+                'status' => 'queued',
+                'queued_at' => now(),
+            ]);
+            
             try {
                 $this->generateDocument($job, $log);
                 $job->update(['status' => 'completed', 'error_message' => null, 'completed_at' => now()]);
+                $detail->update([
+                    'status' => 'sent', // Using sent to align with UI statuses
+                    'sent_at' => now(),
+                ]);
                 $log->info("Successfully generated document for Application ID: {$job->application_id}");
             } catch (\Exception $e) {
                 $job->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
+                $detail->update([
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage(),
+                ]);
                 $log->error("Failed to generate document for Application ID: {$job->application_id}. Error: " . $e->getMessage());
             }
         }
 
-        $this->info("Document generation queue processed successfully.");
+        $batchProgram->update([
+            'total_jobs' => $limit,
+            'completed_at' => now(),
+            'status' => 'completed',
+        ]);
+
+        $this->info("Document generation queue processed successfully. Batch ID: {$batchProgram->id}");
         $log->info("--- Finished Document Generation Queue ---");
     }
 

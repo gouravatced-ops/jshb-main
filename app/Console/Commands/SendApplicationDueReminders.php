@@ -30,17 +30,23 @@ class SendApplicationDueReminders extends Command
         $movements = $query->get();
         $log->info("Query Response: Found " . $movements->count() . " pending movements with a due date in database.");
 
-        if ($movements->isEmpty()) {
-            $this->info("No pending movements found. Exiting.");
-            return;
-        }
-
-        // Create Master Batch Record
+        // Create Master Batch Record immediately to track execution even if 0 jobs
         $batchProgram = BatchProgram::create([
             'command_name' => 'SendApplicationDueReminders',
             'started_at' => now(),
             'status' => 'running',
         ]);
+
+        if ($movements->isEmpty()) {
+            $batchProgram->update([
+                'total_jobs' => 0,
+                'unique_engineers_count' => 0,
+                'completed_at' => now(),
+                'status' => 'completed',
+            ]);
+            $this->info("No pending movements found. Exiting.");
+            return;
+        }
 
         $count = 0;
         $uniqueEngineers = [];
@@ -59,20 +65,11 @@ class SendApplicationDueReminders extends Command
             if (in_array($diffDays, [5, 3, 1, 0])) {
                 $user = $movement->toUser;
 
-                if ($user && $user->email) {
+                if ($user && $user->email && !in_array($user->role_id, [8, 9])) {
                     // Track unique engineer
                     $uniqueEngineers[$user->id] = true;
 
-                    // 1. Create Detail Record
-                    $detail = BatchProgramDetail::create([
-                        'batch_program_id' => $batchProgram->id,
-                        'user_id' => $user->id,
-                        'application_id' => $movement->application_id,
-                        'status' => 'queued',
-                        'queued_at' => now(),
-                    ]);
-
-                    // 2. Prepare the Mailable
+                    // 1. Prepare the Mailable first to render body
                     $applicationNo = $movement->application ? $movement->application->application_no : 'Unknown';
                     $dueDateFormatted = Carbon::parse($movement->due_date)->format('d M Y');
                     $mailable = new ApplicationDueReminderMail(
@@ -81,6 +78,20 @@ class SendApplicationDueReminders extends Command
                         $dueDateFormatted,
                         $diffDays
                     );
+
+                    $ccEmails = ['system@adms.jshb.computered.co.in'];
+
+                    // 2. Create Detail Record
+                    $detail = BatchProgramDetail::create([
+                        'batch_program_id' => $batchProgram->id,
+                        'user_id' => $user->id,
+                        'application_id' => $movement->application_id,
+                        'recipient_email' => $user->email,
+                        'cc_email' => implode(', ', $ccEmails),
+                        'mail_body' => $mailable->render(),
+                        'status' => 'queued',
+                        'queued_at' => now(),
+                    ]);
 
                     // 3. Dispatch Job
                     ProcessBatchEmailJob::dispatch($detail->id, $user->email, $mailable);
