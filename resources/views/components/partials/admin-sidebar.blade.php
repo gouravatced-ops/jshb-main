@@ -300,4 +300,25 @@
         </a>
     </div>
 </div>
+
+<!-- 2FA Settings (Super Admin Only) -->
+<div class="nav-item-wrap">
+    <a class="nav-link-custom" href="javascript:void(0)" onclick="open2faSettingsModal(); return false;">
+        <div class="nav-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <span class="nav-text">2FA Settings</span>
+    </a>
+</div>
+
+<!-- Clear Cache (Super Admin Only) -->
+<div class="nav-item-wrap">
+    <a class="nav-link-custom" href="{{ route('admin.clear-cache') }}" onclick="handleClearCache(event, this)">
+        <div class="nav-icon">
+            <i class="fa-solid fa-broom" style="color: var(--pink-color);"></i>
+        </div>
+        <span class="nav-text">Clear Cache</span>
+    </a>
+</div>
+
 @endif

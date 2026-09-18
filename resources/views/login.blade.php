@@ -107,19 +107,19 @@
                 <form method="POST" action="{{ route('login.post') }}" class="login-form">
                     @csrf
                     <input type="hidden" name="otp_stage" value="{{ $otpRequired ? 1 : 0 }}">
-                    <input type="hidden" name="login_method" id="login_method" value="email_otp">
+                    <input type="hidden" name="login_method" id="login_method" value="2fa_only">
 
                     @if(! $otpRequired)
                     @endif
 
                     <div class="field" id="email-field-container">
-                        <label for="email" id="email-label"><i class="fa-regular fa-envelope"></i> Email or Username</label>
+                        <label for="email" id="email-label"><i class="fa-regular fa-envelope"></i> Email Address</label>
                         <input id="email" name="email" type="text" value="{{ $emailValue }}" placeholder="user@jharkhand.gov.in" required @if($otpRequired) readonly @endif>
                     </div>
 
                     @if (! $otpRequired)
                     <div id="username-login-section">
-                        <div class="field">
+                        <div class="field" style="margin-bottom: 0;">
                             <label for="password"><i class="fa-solid fa-lock"></i> Password / PIN</label>
                             <input id="password" name="password" type="password" placeholder="··········">
                             <!-- Eye Icon -->
@@ -171,7 +171,7 @@
                     </div>
 
                     <button type="submit" class="btn-submit" id="loginBtn" @if(! $otpRequired) disabled @endif>
-                        <i class="fa-solid fa-arrow-right-to-bracket"></i> <span id="submit-btn-text">{{ $otpRequired ? 'Verify & Login' : 'Send OTP' }}</span>
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> <span id="submit-btn-text">{{ $otpRequired ? 'Verify & Login' : 'Proceed' }}</span>
                     </button>
                 </form>
 

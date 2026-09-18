@@ -34,9 +34,9 @@ class AuthController extends Controller
         ]);
 
         $otpStage = (bool) $request->input('otp_stage', false);
-        $loginMethod = $request->input('login_method', 'username');
+        $loginMethod = $request->login_method ?? 'username';
 
-        if (!$otpStage && $loginMethod !== 'email_otp' && empty($request->password)) {
+        if (!$otpStage && $loginMethod !== '2fa_only' && empty($request->password)) {
             return back()->withInput()->with('error', 'The password field is required.');
         }
 
@@ -109,21 +109,25 @@ class AuthController extends Controller
             return redirect()->route($this->dashboardRoute($user))->with('success', 'Welcome back, ' . $user->name);
         }
 
-        // ─── EMAIL OTP LOGIN REQUEST ──────────────────────────
-        if ($loginMethod === 'email_otp') {
-            $this->otpService->generateAndSendOtp(
-                $user->id,
-                $user->email,
-                'login',
-                'Your OTP for login verification is:',
-                $request->ip(),
-                $request->userAgent()
-            );
+        // ─── GOOGLE 2FA (TOTP) SETTINGS CHECK ─────────────────────────────
+        $enforcement = \App\Models\Setting::getVal('global_2fa_enforcement', 'optional');
+        $is2faEnabledForUser = $user->google2fa_enabled && $enforcement !== 'disabled';
 
-            return back()->withInput()
-                ->with('success', 'OTP has been sent to your email. Enter it below to complete login.')
-                ->with('otp_required', true)
-                ->with('email', $request->email);
+        // ─── GOOGLE 2FA DIRECT LOGIN REQUEST (No Password) ──────────────────────────
+        if ($loginMethod === '2fa_only') {
+
+            // If TOTP is NOT enabled for this user, they cannot use this mode
+            if (!$is2faEnabledForUser) {
+                return back()->withInput()->with('error', '2FA is not enabled for your account. Please login with password.');
+            }
+
+            $token = \Illuminate\Support\Str::random(64);
+            $request->session()->put('2fa:user:id', $user->id);
+            $request->session()->put('2fa:user:remember', $request->boolean('remember'));
+            $request->session()->put('2fa:token', $token);
+            $request->session()->put('2fa:expires_at', now()->addMinutes(10)->timestamp);
+
+            return redirect()->route('2fa.verify', ['token' => $token]);
         }
 
         // ─── PASSWORD CHECK ─────────────────────────────────────
@@ -141,8 +145,9 @@ class AuthController extends Controller
         // Success resets lockout
         $this->resetLockoutState($user);
 
-        // ─── OTP REQUIRED: CHECK 8HR VALIDITY FIRST ──────────────
-        if ($user->login_with_otp) {
+        // ─── ALWAYS REQUIRE EMAIL OTP AFTER PASSWORD ──────────────
+        // In the new flow, password login ALWAYS requires Mail OTP (ignoring Google 2FA).
+        if (true) {
             // Check if OTP login is still valid (within 8 hours)
             if ($this->otpService->isOtpLoginValid($user->id)) {
                 // Skip OTP — still within 8-hour validity window

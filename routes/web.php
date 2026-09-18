@@ -95,9 +95,18 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.store');
 });
 
+Route::get('/2fa/verify/{token}', [\App\Http\Controllers\TwoFactorController::class, 'showVerifyForm'])->name('2fa.verify');
+Route::post('/2fa/verify/{token}', [\App\Http\Controllers\TwoFactorController::class, 'verify'])->name('2fa.verify.post');
+
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/2fa/setup', [\App\Http\Controllers\TwoFactorController::class, 'setup'])->name('2fa.setup');
+    Route::post('/2fa/enable', [\App\Http\Controllers\TwoFactorController::class, 'enable'])->name('2fa.enable');
+    Route::post('/2fa/disable', [\App\Http\Controllers\TwoFactorController::class, 'disable'])->name('2fa.disable');
+
+    Route::post('/admin/settings/2fa', [\App\Http\Controllers\AdminController::class, 'update2FASettings'])->name('admin.settings.2fa');
+
     Route::get('/lock-screen', [AuthController::class, 'showLockScreen'])->name('lock.screen');
     Route::post('/lock-screen/lock', [AuthController::class, 'lockScreen'])->name('lock.lock');
     Route::post('/lock-screen/unlock', [AuthController::class, 'unlockScreen'])->name('lock.unlock');

@@ -143,6 +143,9 @@
     <!-- Internal Password Update Modal -->
     <x-internal-password-modal></x-internal-password-modal>
 
+    <!-- Global 2FA Settings Modal -->
+    <x-global-2fa-settings-modal></x-global-2fa-settings-modal>
+
     <!-- GLOBAL IMAGE POPUP MODAL -->
     <div id="globalImageModal" class="image-modal">
         <span class="image-modal-close">&times;</span>
@@ -450,6 +453,50 @@
             }
         });
     </script>
+
+    @if(Auth::check() && !Auth::user()->google2fa_enabled && !request()->routeIs('2fa.setup'))
+        @php
+            $enforcement = \App\Models\Setting::getVal('global_2fa_enforcement', 'optional');
+        @endphp
+        @if($enforcement !== 'disabled')
+            <div class="modal fade show" id="twoFactorSetupModal" tabindex="-1" aria-labelledby="twoFactorSetupModalLabel" aria-hidden="true" style="display: block; background: rgba(0,0,0,0.5); z-index: 9999;">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+                        <div class="modal-header text-white" style="background: linear-gradient(135deg, #1f7b4d, #279f64); border-bottom: none; padding: 1.25rem 1.5rem;">
+                            <h5 class="modal-title" id="twoFactorSetupModalLabel" style="font-weight: 600; font-size: 1.1rem;"><i class="fa-solid fa-shield-halved me-2"></i> Enhance Account Security</h5>
+                            @if($enforcement === 'optional')
+                                <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('twoFactorSetupModal').style.display='none'" aria-label="Close"></button>
+                            @endif
+                        </div>
+                        <div class="modal-body p-4 text-center bg-white">
+                            <div class="mb-4 mt-2">
+                                <i class="fa-solid fa-mobile-screen-button" style="font-size: 3.5rem; color: #1f7b4d;"></i>
+                            </div>
+                            <h6 class="fw-bold mb-3 text-dark" style="font-size: 1.1rem;">Two-Factor Authentication is @if($enforcement === 'mandatory') Required @else Recommended @endif</h6>
+                            <p class="text-muted small mb-4" style="line-height: 1.6;">Protect your account from unauthorized access by setting up Google Authenticator or Microsoft Authenticator.</p>
+
+                            <a href="{{ route('2fa.setup') }}" class="btn btn-success w-100 rounded-pill fw-bold py-2 shadow-sm" style="background-color: #1f7b4d; border-color: #1f7b4d;">
+                                <i class="fa-solid fa-qrcode me-1"></i> Setup 2FA Now
+                            </a>
+
+                            @if($enforcement === 'mandatory')
+                                <p class="text-danger small mt-4 mb-0 fw-bold"><i class="fa-solid fa-circle-exclamation"></i> Mandatory: You must complete this setup to continue using your dashboard.</p>
+                            @else
+                                <button type="button" class="btn btn-link text-muted small mt-3 text-decoration-none" onclick="document.getElementById('twoFactorSetupModal').style.display='none'">I'll do this later</button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @if($enforcement === 'mandatory')
+                <style>
+                    body { overflow: hidden; pointer-events: none; }
+                    #twoFactorSetupModal { pointer-events: auto; }
+                </style>
+            @endif -->
+        @endif
+    @endif
+
     @yield('scripts')
 </body>
 

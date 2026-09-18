@@ -29,12 +29,8 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
     @endif
 
     <div class="header-actions">
-        @if ($authUser->roleRelation?->slug === 'super-admin')
-            <a href="{{ route('admin.clear-cache') }}" id="clearCacheBtn" onclick="handleClearCache(event, this)" class="header-icon-btn" title="Clear Cache" style="color: var(--pink-color); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 4px; padding: 4px 10px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 13px; margin-right: 15px; font-weight: 600; white-space: nowrap; width: auto; height: auto; background: transparent;">
-                <i class="fa-solid fa-broom" style="margin-right: 5px;"></i> <span>Clear Cache</span>
-            </a>
-        @endif
-        
+        <!-- Clear Cache Removed from Header -->
+
         <!-- Search -->
         <!-- <button class="header-icon-btn" title="Search">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -61,7 +57,7 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
             </button>
             <div class="notif-dropdown" id="notifDropdown">
                 <div class="notif-head">
-                    <span class="notif-head-title">Notifications 
+                    <span class="notif-head-title">Notifications
                         @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
                         <span style="font-size:11px;background:var(--pink-light);color:var(--primary-color);border-radius:20px;padding:2px 7px;margin-left:5px;">
                             {{ $unreadNotifCount }} New
@@ -72,7 +68,7 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
                     <span class="notif-mark" style="cursor:pointer;" onclick="markAllNotificationsRead()">Mark all read</span>
                     @endif
                 </div>
-                
+
                 @if(isset($headerNotifications) && count($headerNotifications) > 0)
                     @foreach($headerNotifications as $notif)
                     <div class="notif-item">
