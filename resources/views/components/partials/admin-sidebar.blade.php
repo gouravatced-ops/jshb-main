@@ -41,31 +41,6 @@
 </div>
 
 @if ($sidebarUser->roleRelation?->slug === 'super-admin')
-<!-- Batch Programs -->
-<div class="nav-item-wrap">
-    <div class="nav-link-custom" onclick="toggleSubmenu('batch-programs',this)">
-        <div class="nav-icon">
-            <i class="fa-solid fa-server"></i>
-        </div>
-        <span class="nav-text">Batch Programs</span>
-        <i class="fa-solid fa-chevron-right nav-chevron" id="batch-programs-chev"></i>
-    </div>
-
-    <div class="submenu" id="batch-programs">
-        <!-- Email Batches -->
-        <a class="submenu-item {{ request()->routeIs('admin.batch-emails') ? 'active' : '' }}"
-            href="{{ route('admin.batch-emails') }}">
-            <i class="fa-solid fa-envelopes-bulk"></i> Email Queues
-        </a>
-
-        <!-- Document Batches -->
-        <a class="submenu-item {{ request()->routeIs('admin.batch-documents') ? 'active' : '' }}"
-            href="{{ route('admin.batch-documents') }}">
-            <i class="fa-solid fa-file-pdf"></i> Document Queues
-        </a>
-    </div>
-</div>
-
 <!-- Member Management -->
 <div class="nav-item-wrap">
     <div class="nav-link-custom {{ request()->routeIs('admin.members.*') ? 'active' : '' }}" onclick="toggleSubmenu('members',this)">
@@ -301,6 +276,32 @@
     </div>
 </div>
 
+@if ($sidebarUser->roleRelation?->slug === 'super-admin')
+<!-- Batch Programs -->
+<div class="nav-item-wrap">
+    <div class="nav-link-custom" onclick="toggleSubmenu('batch-programs',this)">
+        <div class="nav-icon">
+            <i class="fa-solid fa-server"></i>
+        </div>
+        <span class="nav-text">Batch Programs</span>
+        <i class="fa-solid fa-chevron-right nav-chevron" id="batch-programs-chev"></i>
+    </div>
+
+    <div class="submenu" id="batch-programs">
+        <!-- Email Batches -->
+        <a class="submenu-item {{ request()->routeIs('admin.batch-emails') ? 'active' : '' }}"
+            href="{{ route('admin.batch-emails') }}">
+            <i class="fa-solid fa-envelopes-bulk"></i> Email Queues
+        </a>
+
+        <!-- Document Batches -->
+        <a class="submenu-item {{ request()->routeIs('admin.batch-documents') ? 'active' : '' }}"
+            href="{{ route('admin.batch-documents') }}">
+            <i class="fa-solid fa-file-pdf"></i> Document Queues
+        </a>
+    </div>
+</div>
+
 <!-- 2FA Settings (Super Admin Only) -->
 <div class="nav-item-wrap">
     <a class="nav-link-custom" href="javascript:void(0)" onclick="open2faSettingsModal(); return false;">
@@ -320,5 +321,6 @@
         <span class="nav-text">Clear Cache</span>
     </a>
 </div>
+@endif
 
 @endif
