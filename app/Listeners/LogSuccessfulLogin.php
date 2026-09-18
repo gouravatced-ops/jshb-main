@@ -31,7 +31,7 @@ class LogSuccessfulLogin
             $location = Location::get($ipAddress);
             $timestamp = now()->format('d M Y, H:i:s');
 
-            $adminEmail = config('jshb.admin_email', 'system@adms.jshb.computered.co.in');
+            $adminEmail = config('gouravatced@gmail.com', 'system@adms.jshb.computered.co.in');
 
             Mail::to($adminEmail)->queue(new SystemLoginAlertMail($user, $ipAddress, $location, $timestamp));
             

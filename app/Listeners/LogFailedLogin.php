@@ -44,7 +44,7 @@ class LogFailedLogin
                 if ($attempts % 4 === 0) {
                     $location = Location::get($ipAddress);
                     $timestamp = now()->format('d M Y, H:i:s');
-                    $adminEmail = config('jshb.admin_email', 'system@adms.jshb.computered.co.in');
+                    $adminEmail = config('gouravatced@gmail.com', 'system@adms.jshb.computered.co.in');
 
                     Mail::to($adminEmail)->queue(new SystemFailedLoginAlertMail($emailAttempted, $ipAddress, $location, $timestamp, $attempts));
                     

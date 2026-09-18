@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class BatchProgramDetail extends Model
 {
-    //
+    protected $guarded = [];
 }

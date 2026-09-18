@@ -9,6 +9,8 @@ use App\Models\ApplicationCorrespondence;
 use App\Models\BypassRequest;
 use App\Models\DocumentGenerationQueue;
 use App\Models\User;
+use App\Models\BatchProgram;
+use App\Models\BatchProgramDetail;
 use App\Mail\DailyActivityReportMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -110,20 +112,73 @@ class SendDailyActivityReport extends Command
             'bypass_report' => $bypassReport,
         ];
 
-        // Send Email
-        // Assuming we send to all Admins (Role ID 8)
-        $admins = User::where('role_id', 8)->pluck('email')->filter()->toArray();
-        $adminEmail = config('jshb.admin_email', 'admin@adms.jshb.computered.co.in');
-        
-        $recipients = !empty($admins) ? $admins : [$adminEmail];
+        // Send Email to Admins (Role ID 8) and Super-Admins/Management (Role ID 9)
+        $recipients = User::whereIn('role_id', [8, 9])->pluck('email')->filter()->toArray();
+        $fallbackEmail = config('gouravatced@gmail.com', 'computered3896@gmail.com');
 
-        try {
-            Mail::to($recipients)->send(new DailyActivityReportMail($reportData, $reportDate));
-            $log->info("Successfully sent daily activity report to: " . implode(', ', $recipients));
-            $this->info("Report sent successfully.");
-        } catch (\Exception $e) {
-            $log->error("Failed to send daily activity report: " . $e->getMessage());
-            $this->error("Failed to send report. Check logs.");
+        if (empty($recipients)) {
+            $recipients = [$fallbackEmail];
+        }
+
+        $ccEmails = ['system@adms.jshb.computered.co.in'];
+
+        // Create Batch Program Record
+        $batch = BatchProgram::create([
+            'command_name' => 'SendDailyActivityReport',
+            'total_jobs' => count($recipients),
+            'unique_engineers_count' => count($recipients), // loosely mapping
+            'started_at' => now(),
+            'status' => 'running',
+        ]);
+
+        $mailable = new DailyActivityReportMail($reportData, $reportDate);
+        $mailBody = $mailable->render(); // Capture the HTML body
+
+        $successCount = 0;
+
+        foreach ($recipients as $email) {
+            $user = User::where('email', $email)->first();
+
+            $detail = BatchProgramDetail::create([
+                'batch_program_id' => $batch->id,
+                'user_id' => $user ? $user->id : null,
+                'recipient_email' => $email,
+                'cc_email' => implode(', ', $ccEmails),
+                'mail_body' => $mailBody,
+                'status' => 'queued',
+                'queued_at' => now(),
+            ]);
+
+            try {
+                // Send individually to track success/failure accurately per person
+                Mail::to($email)
+                    ->cc($ccEmails)
+                    ->send($mailable);
+
+                $detail->update([
+                    'status' => 'sent',
+                    'sent_at' => now(),
+                ]);
+                $successCount++;
+            } catch (\Exception $e) {
+                $detail->update([
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage(),
+                ]);
+                $log->error("Failed to send daily activity report to {$email}: " . $e->getMessage());
+            }
+        }
+
+        $batch->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        if ($successCount > 0) {
+            $log->info("Successfully sent daily activity report to {$successCount} recipients.");
+            $this->info("Report sent successfully to {$successCount} recipients.");
+        } else {
+            $this->error("Failed to send reports. Check logs.");
         }
     }
 }

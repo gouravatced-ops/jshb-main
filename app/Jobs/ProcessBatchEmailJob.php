@@ -36,15 +36,22 @@ class ProcessBatchEmailJob implements ShouldQueue
     public function handle(): void
     {
         $detail = BatchProgramDetail::find($this->batchDetailId);
-        
+
         if (!$detail) {
             Log::warning("ProcessBatchEmailJob failed: BatchDetail ID {$this->batchDetailId} not found.");
             return;
         }
 
         try {
+            // Prepare Mail
+            $mail = Mail::to($this->email);
+            if (!empty($detail->cc_email)) {
+                $ccEmails = array_map('trim', explode(',', $detail->cc_email));
+                $mail->cc($ccEmails);
+            }
+
             // Send the email
-            Mail::to($this->email)->send($this->mailable);
+            $mail->send($this->mailable);
 
             // Update the detail record
             $detail->update([
@@ -53,16 +60,16 @@ class ProcessBatchEmailJob implements ShouldQueue
             ]);
 
             Log::info("ProcessBatchEmailJob successful for Detail ID {$this->batchDetailId} to {$this->email}.");
-            
+
         } catch (Exception $e) {
             // Log the failure
             $detail->update([
                 'status' => 'failed',
                 'error_message' => $e->getMessage(),
             ]);
-            
+
             Log::error("ProcessBatchEmailJob failed for Detail ID {$this->batchDetailId}: " . $e->getMessage());
-            
+
             // Re-throw to let the queue manager know it failed
             throw $e;
         }
