@@ -16,6 +16,7 @@
         "laravel/reverb": "^1.11",
         "laravel/tinker": "^2.10.1",
         "phpmailer/phpmailer": "^7.1",
+        "predis/predis": "^3.6",
         "pusher/pusher-php-server": "^7.2",
         "spatie/laravel-activitylog": "^4.12",
         "stevebauman/location": "^7.6"
