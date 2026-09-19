@@ -114,7 +114,7 @@
                     <span class="badge-dot"></span>
                     <span class="badge-text">2FA VERIFICATION</span>
                 </div>
-                
+
                 <p class="login-sub">Open Google Authenticator or Microsoft Authenticator app and enter the 6-digit code.</p>
 
                 <!-- session flash messages -->
@@ -133,7 +133,7 @@
 
                 <form method="POST" action="{{ route('2fa.verify.post', ['token' => $token]) }}" class="login-form">
                     @csrf
-                    
+
                     <div class="totp-input-container">
                         <input type="text" class="totp-input" id="totp" name="totp" required maxlength="6" autocomplete="off" placeholder="000000" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);" autofocus>
                     </div>
@@ -175,7 +175,7 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         // Server provided timestamp of when token expires
         const expiresAt = {{ $expiresAt ?? (time() + 10) }};
@@ -193,7 +193,7 @@
                 inputEl.disabled = true;
                 btnEl.disabled = true;
                 btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Expired. Redirecting...';
-                
+
                 // Redirect back to login
                 setTimeout(() => {
                     window.location.href = "{{ route('login') }}";
@@ -208,6 +208,15 @@
 
         updateTimer();
         setInterval(updateTimer, 1000);
+
+        // Auto submit when 6 digits are entered
+        inputEl.addEventListener('input', function() {
+            if (this.value.length === 6) {
+                btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+                btnEl.disabled = true;
+                this.closest('form').submit();
+            }
+        });
     </script>
 </body>
 
