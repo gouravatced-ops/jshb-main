@@ -16,10 +16,20 @@ use App\Models\ApplicationNote;
 use App\Models\ApplicationDocument;
 use App\Models\ApplicationStatusHistory;
 use App\Models\ApplicationAuditTrail;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Application extends Model
 {
-    use HasFactory, SoftDeletes, EncryptedRouteKey;
+    use HasFactory, SoftDeletes, EncryptedRouteKey, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['application_no', 'status', 'current_workflow_step_id', 'current_assigned_to_user_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $connection = 'adms_jshb';
     protected $table = 'applications';

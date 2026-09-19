@@ -302,6 +302,16 @@
     </div>
 </div>
 
+<!-- System Activity Logs (Super Admin Only) -->
+<div class="nav-item-wrap">
+    <a class="nav-link-custom {{ request()->routeIs('admin.activity-logs') ? 'active' : '' }}" href="{{ route('admin.activity-logs') }}">
+        <div class="nav-icon">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <span class="nav-text">Activity Tracker</span>
+    </a>
+</div>
+
 <!-- 2FA Settings (Super Admin Only) -->
 <div class="nav-item-wrap">
     <a class="nav-link-custom" href="javascript:void(0)" onclick="open2faSettingsModal(); return false;">

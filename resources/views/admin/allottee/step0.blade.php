@@ -208,7 +208,7 @@
         <div class="form-grid3">
             <div class="field">
                 <label class="field-label">
-                    Division {{ unicodeToKruti('B-45') }} <span class="req-star">*</span>
+                    Division <span class="req-star">*</span>
                 </label>
                 <select name="division_id" id="divisionId" class="custom-input division-select">
                     <option value="">— Select Division —</option>

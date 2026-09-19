@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\WorkflowController;
 use App\Http\Controllers\Admin\BypassRequestController;
 use App\Http\Controllers\Admin\ExtensionController;
 use App\Http\Controllers\Admin\BatchProgramController;
+use App\Http\Controllers\Admin\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -273,4 +274,5 @@ Route::middleware('auth')
         // System Reset (accessible to admin and superadmin per controller logic)
         Route::get('/batch-emails', [BatchProgramController::class, 'emails'])->name('batch-emails');
         Route::get('/batch-documents', [BatchProgramController::class, 'documents'])->name('batch-documents');
+        Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs');
     });
