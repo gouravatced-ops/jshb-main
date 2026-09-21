@@ -97,7 +97,6 @@ $rejectMovement = $application->movements->where('action_type', 'rejected')->las
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#verifyUploadDocModal" style="background: #17a2b8;"><i class="fa-solid fa-file-signature"></i> Verify & Upload</button>
             @endif
             @endif
-            <a href="{{ route($routePrefix . '.applications.site-verification.form', \Illuminate\Support\Facades\Crypt::encryptString($application->id)) }}" class="btn-compact" style="background: #e67e22; color: #fff; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-map-location-dot"></i> Site Verification</a>
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#workflowModal" style="background: #6f42c1; color: white; border: none; cursor: pointer;"><i class="fa-solid fa-code-branch"></i> View Workflow</button>
         </div>
     </div>
