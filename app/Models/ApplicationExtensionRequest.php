@@ -13,6 +13,7 @@ class ApplicationExtensionRequest extends Model
 
     protected $fillable = [
         'application_id',
+        'movement_id',
         'requested_by',
         'request_reason',
         'remarks',
@@ -27,6 +28,11 @@ class ApplicationExtensionRequest extends Model
     public function application()
     {
         return $this->belongsTo(Application::class, 'application_id');
+    }
+
+    public function movement()
+    {
+        return $this->belongsTo(ApplicationMovement::class, 'movement_id');
     }
 
     public function requestedBy()

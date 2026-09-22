@@ -29,8 +29,9 @@ Route::middleware('auth')
 
         // Extensions
         Route::get('/extensions', [ApplicationExtensionRequestController::class, 'index'])->name('extensions.index');
-        Route::get('/applications/{application}/extensions/create', [ApplicationExtensionRequestController::class, 'create'])->name('extensions.create');
-        Route::post('/applications/{application}/extensions', [ApplicationExtensionRequestController::class, 'store'])->name('extensions.store');
+        Route::get('/extensions/{id}/show', [ApplicationExtensionRequestController::class, 'show'])->name('extensions.show');
+        Route::get('/applications/{id}/extensions/create', [ApplicationExtensionRequestController::class, 'create'])->name('extensions.create');
+        Route::post('/applications/{id}/extensions', [ApplicationExtensionRequestController::class, 'store'])->name('extensions.store');
 
         // Site Verification
         Route::get('/applications/{id}/site-verification', [SiteVerificationController::class, 'siteVerificationForm'])->name('applications.site-verification.form');

@@ -21,6 +21,13 @@
     </a>
 </div>
 
+<div class="nav-item-wrap">
+    <a class="nav-link-custom {{ request()->routeIs('engineer.extensions.*') ? 'active' : '' }}" href="{{ route('engineer.extensions.index') }}">
+        <div class="nav-icon"><i class="fa-solid fa-calendar-plus"></i></div>
+        <span class="nav-text">My Extensions</span>
+    </a>
+</div>
+
 <div class="sidebar-section-label">Account</div>
 <div class="nav-item-wrap">
     <a class="nav-link-custom {{ request()->routeIs('my-activity') ? 'active' : '' }}" href="{{ route('my-activity') }}">

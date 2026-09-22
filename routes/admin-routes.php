@@ -114,8 +114,9 @@ Route::middleware('auth')
 
         // Extension Requests
         Route::get('/extension-requests', [ExtensionController::class, 'index'])->name('extensions.index');
-        Route::post('/extension-requests/{extension}/approve', [ExtensionController::class, 'approve'])->name('extensions.approve');
-        Route::post('/extension-requests/{extension}/reject', [ExtensionController::class, 'reject'])->name('extensions.reject');
+        Route::get('/extension-requests/history', [ExtensionController::class, 'history'])->name('extensions.history');
+        Route::get('/extension-requests/{id}/show', [ExtensionController::class, 'show'])->name('extensions.show');
+        Route::post('/extension-requests/{id}/process', [ExtensionController::class, 'process'])->name('extensions.process');
 
         // Scheme
         Route::get('/schemes', [SchemeController::class, 'index'])->name('schemes.index');

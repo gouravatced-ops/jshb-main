@@ -468,6 +468,7 @@
                                                         <th style="padding: 6px 8px;">App. No.</th>
                                                         <th style="padding: 6px 8px;">Type</th>
                                                         <th style="padding: 6px 8px;">Current Stage</th>
+                                                        <th style="padding: 6px 8px;">Due Date</th>
                                                         <th style="padding: 6px 8px;">Pending With</th>
                                                         <th style="padding: 6px 8px;">Status</th>
                                                         <th style="padding: 6px 8px; text-align: center;">Action / Tracks</th>
@@ -479,6 +480,13 @@
                                                         <td style="font-weight: 700; color: #000;">{{ $app->application_no }}</td>
                                                         <td style="text-transform: capitalize; font-weight: 600;">{{ str_replace('_', ' ', $app->application_type) }}</td>
                                                         <td style="color: #0f172a; font-weight: 600;">{{ $app->currentStep->step_name ?? 'Not Started' }}</td>
+                                                        <td style="color: #dc2626; font-weight: 600; font-size: 13px;">
+                                                            @php
+                                                                $latestMovement = $app->movements ? $app->movements->whereNotNull('due_date')->last() : null;
+                                                                $dueDate = $latestMovement ? $latestMovement->due_date : null;
+                                                            @endphp
+                                                            {{ $dueDate ? \Carbon\Carbon::parse($dueDate)->format('d M Y') : 'N/A' }}
+                                                        </td>
                                                         <td style="color: #0f172a; font-weight: 600;">
                                                             {{ $app->currentUser->name ?? ($app->currentRole->name ?? 'Unassigned') }}
                                                         </td>

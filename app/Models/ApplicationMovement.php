@@ -39,6 +39,7 @@ class ApplicationMovement extends Model
     protected $casts = [
         'movement_date' => 'datetime',
         'received_date' => 'datetime',
+        'due_date' => 'datetime',
         'read_at' => 'datetime',
         'is_read' => 'boolean',
     ];
