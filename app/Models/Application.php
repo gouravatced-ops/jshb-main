@@ -74,6 +74,11 @@ class Application extends Model
         return $this->hasMany(BypassRequest::class, 'application_id');
     }
 
+    public function extensionRequests()
+    {
+        return $this->hasMany(ApplicationExtensionRequest::class, 'application_id');
+    }
+
     public function currentStep()
     {
         return $this->belongsTo(WorkflowStep::class, 'current_step_id');

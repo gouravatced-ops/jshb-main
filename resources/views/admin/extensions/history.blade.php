@@ -1,12 +1,11 @@
 @extends('layouts.main')
 
-@section('title', 'Manage Extension Requests | Admin')
+@section('title', 'Extension Request History | Admin')
 
 @section('content')
 <div class="card">
     <div class="card-head">
-        <div class="card-title">Extension Requests</div>
-        <div class="card-subtitle">Manage timeline extensions requested by engineers</div>
+        <div class="card-title">Extension Request History</div>
     </div>
 
     @if(session('success'))
@@ -48,16 +47,16 @@
                         @endif
                     </td>
                     <td>
-                        @if($req->status === 'pending')
-                            <a href="{{ route('admin.extensions.show', \Illuminate\Support\Facades\Crypt::encryptString($req->id)) }}" class="btn-primary" style="padding: 6px 12px; font-size: 13px; text-decoration: none; background: #0f172a; color: white; display: inline-block; border-radius: 4px;">
-                                <i class="fa-solid fa-eye"></i> Review Request
-                            </a>
-                        @else
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
                             <span style="color: #6c757d; font-size: 13px;">Processed <br>{{ $req->approved_at ? $req->approved_at->format('d M, h:i A') : $req->updated_at->format('d M, h:i A') }}</span>
                             @if($req->extension_days)
-                                <br><strong style="font-size: 12px; color: #155724;">+{{ $req->extension_days }} Days</strong>
+                                <strong style="font-size: 12px; color: #155724;">+{{ $req->extension_days }} Days</strong>
                             @endif
-                        @endif
+                            
+                            <a href="{{ route('admin.extensions.show', \Illuminate\Support\Facades\Crypt::encryptString($req->id)) }}" class="btn-primary" style="margin-top: 5px; padding: 4px 10px; font-size: 12px; text-decoration: none; background: #0f172a; color: white; display: inline-block; border-radius: 4px; text-align: center;">
+                                <i class="fa-solid fa-eye"></i> View Details
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 @empty

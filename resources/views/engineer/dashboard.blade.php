@@ -79,7 +79,7 @@
             line-height: 1.2;
         }
     </style>
-    
+
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-3 mb-4 mt-3">
         <!-- Total Received -->
         <div class="col">
@@ -93,7 +93,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Pending Applications -->
         <div class="col">
             <div class="stat-card-modern">
@@ -106,7 +106,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Processed Applications -->
         <div class="col">
             <div class="stat-card-modern">
@@ -119,7 +119,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Sent Back -->
         <div class="col">
             <div class="stat-card-modern">
@@ -132,7 +132,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Rejected -->
         <div class="col">
             <div class="stat-card-modern">
@@ -167,6 +167,7 @@
                         <th>Allottee</th>
                         <th>Created Date</th>
                         <th>Priority</th>
+                        <th>Due Date</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -192,7 +193,43 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('engineer.applications.show', $app) }}" class="btn-primary" style="padding: 4px 10px; font-size: 12px; display: inline-block; text-decoration: none;">Review</a>
+                            @php
+                                $currentMovement = $app->movements ? $app->movements->whereNotNull('due_date')->last() : null;
+                                $dueDate = $currentMovement ? $currentMovement->due_date : null;
+
+                                $isOverdue = false;
+                                $daysRemaining = null;
+                                if ($dueDate) {
+                                    $parsedDueDate = \Carbon\Carbon::parse($dueDate)->endOfDay();
+                                    $isOverdue = $parsedDueDate->isPast();
+                                    $daysRemaining = (int) floor(now()->startOfDay()->diffInDays($parsedDueDate->startOfDay(), false));
+                                }
+
+                                $hasExtensionRequest = $app->extensionRequests ? $app->extensionRequests->where('requested_by', auth()->id())->where('status', 'pending')->isNotEmpty() : false;
+                            @endphp
+
+                            @if($dueDate)
+                                <div style="font-weight: 600; font-size: 13px; color: {{ $isOverdue ? '#dc2626' : '#16a34a' }};">
+                                    {{ \Carbon\Carbon::parse($dueDate)->format('d M Y') }}
+                                </div>
+                            @else
+                                <span class="text-muted" style="font-size: 13px;">N/A</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($hasExtensionRequest)
+                                <div style="margin-bottom: 5px;">
+                                    <span style="background-color: #f59e0b; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-clock-rotate-left"></i> Extension Pending</span>
+                                </div>
+                            @elseif($isOverdue)
+                                <div style="font-size: 11px; color: #dc2626; margin-bottom: 6px; font-weight: 600;"><i class="fa-solid fa-circle-exclamation"></i> Due date passed, you can't act.</div>
+                                <a href="{{ route('engineer.extensions.create', \Illuminate\Support\Facades\Crypt::encryptString($app->id)) }}" class="btn-danger" style="padding: 4px 10px; font-size: 12px; display: inline-block; text-decoration: none; background-color: #dc3545; color: white; border-radius: 4px;"><i class="fa-solid fa-calendar-plus"></i> Request Extension</a>
+                            @else
+                                @if($daysRemaining !== null && $daysRemaining <= 2 && $daysRemaining >= 0)
+                                    <div style="font-size: 11px; color: #ea580c; margin-bottom: 6px; font-weight: 600;"><i class="fa-solid fa-bell"></i> Expiring in {{ $daysRemaining }} day(s)</div>
+                                @endif
+                                <a href="{{ route('engineer.applications.show', $app) }}" class="btn-primary" style="padding: 4px 10px; font-size: 12px; display: inline-block; text-decoration: none;">Review</a>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

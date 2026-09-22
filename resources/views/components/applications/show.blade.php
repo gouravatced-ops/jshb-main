@@ -27,6 +27,12 @@ $effectiveRoleId = Auth::user()->assistant_to_id
 : Auth::user()->role_id;
 @endphp
 
+@php
+    $latestMovementForBtn = $application->movements ? $application->movements->whereNotNull('due_date')->last() : null;
+    $dueDateForBtn = $latestMovementForBtn ? $latestMovementForBtn->due_date : null;
+    $isDueDateValid = $dueDateForBtn && !\Carbon\Carbon::parse($dueDateForBtn)->endOfDay()->isPast();
+@endphp
+
 @if($application->bypassRequests->isNotEmpty())
 <div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #ffc107;">
     <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; background: #fff8e1;">
@@ -59,8 +65,21 @@ $rejectMovement = $application->movements->where('action_type', 'rejected')->las
         </div>
     </div>
 </div>
+
 @elseif(Auth::check() && $application->current_role_id == $effectiveRoleId && $application->currentStep && $application->bypassRequests->isEmpty())
-<div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #3498db;">
+    @if(!$isDueDateValid)
+    <div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #dc3545;">
+        <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; background: #f8d7da;">
+            <div>
+                <strong style="color: #721c24; font-size: 14px; margin-right: 15px;">
+                    <i class="fa-solid fa-clock" style="color: #dc3545;"></i> Deadline Expired / Not Set
+                </strong><br>
+                <span style="color: #721c24; font-size: 13px;">The due date for this application has passed or is not set. You cannot take actions on it.</span>
+            </div>
+        </div>
+    </div>
+    @else
+    <div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #3498db;">
     <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;">
         <div>
             <strong style="color: #2c3e50; font-size: 14px; margin-right: 15px;">
@@ -100,7 +119,9 @@ $rejectMovement = $application->movements->where('action_type', 'rejected')->las
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#workflowModal" style="background: #6f42c1; color: white; border: none; cursor: pointer;"><i class="fa-solid fa-code-branch"></i> View Workflow</button>
         </div>
     </div>
+    </div>
 </div>
+    @endif
 @endif
 
 
@@ -146,8 +167,17 @@ $hasAllotmentLetter = \App\Models\AllotteeGeneratedDocument::where('allottee_id'
                 <div class="data-value">{{ $application->created_date ? $application->created_date->format('d-M-Y h:i A') : 'N/A' }}</div>
             </div>
             <div class="data-pair">
-                <div class="data-label">Expected Completion</div>
-                <div class="data-value">{{ $application->expected_completion_date ? $application->expected_completion_date->format('d-M-Y') : 'N/A' }}</div>
+                <div class="data-label">Due Date</div>
+                <div class="data-value">
+                    @if($dueDateForBtn)
+                        <span style="color: {{ $isDueDateValid ? '#16a34a' : '#dc2626' }}; font-weight: 600;">
+                            {{ \Carbon\Carbon::parse($dueDateForBtn)->format('d-M-Y') }}
+                            @if(!$isDueDateValid) (Expired) @endif
+                        </span>
+                    @else
+                        N/A
+                    @endif
+                </div>
             </div>
         </div>
     </div>

@@ -130,6 +130,37 @@
     </div>
 </div>
 
+<!-- Extension Requests -->
+@php
+    $pendingExtensionCount = \App\Models\ApplicationExtensionRequest::where('status', 'pending')->count();
+@endphp
+<div class="nav-item-wrap">
+    <div class="nav-link-custom {{ request()->routeIs('admin.extensions.*') ? 'active' : '' }}" onclick="toggleSubmenu('extension-requests-menu',this)">
+        <div class="nav-icon">
+            <i class="fa-solid fa-calendar-plus" style="color: #0dcaf0;"></i>
+        </div>
+        <span class="nav-text" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            Extension Requests
+            @if($pendingExtensionCount > 0)
+                <span class="badge bg-danger rounded-pill" style="font-size: 11px; padding: 3px 6px;">{{ $pendingExtensionCount }}</span>
+            @endif
+        </span>
+        <i class="fa-solid fa-chevron-right nav-chevron" id="extension-requests-menu-chev"></i>
+    </div>
+
+    <div class="submenu" id="extension-requests-menu" style="{{ request()->routeIs('admin.extensions.*') ? 'display:block' : '' }}">
+        <a class="submenu-item {{ request()->routeIs('admin.extensions.index') ? 'active' : '' }}"
+            href="{{ route('admin.extensions.index') }}">
+            <i class="fa-solid fa-list-check"></i> Pending Requests
+        </a>
+
+        <a class="submenu-item {{ request()->routeIs('admin.extensions.history') ? 'active' : '' }}"
+            href="{{ route('admin.extensions.history') }}">
+            <i class="fa-solid fa-clock-rotate-left"></i> Extension History
+        </a>
+    </div>
+</div>
+
 <!-- Notices & Announcements -->
 <div class="nav-item-wrap">
     <a class="nav-link-custom {{ request()->routeIs('admin.notices.*') ? 'active' : '' }}" href="{{ route('admin.notices.index') }}">

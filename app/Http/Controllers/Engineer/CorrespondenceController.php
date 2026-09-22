@@ -134,18 +134,15 @@ class CorrespondenceController extends Controller
         $user = Auth::user();
         if (!$user || !$user->email) return;
 
-        $systemEmail = config('mail.from.address', 'admin@jshb.in');
+        $systemEmail = 'system@adms.jshb.computered.co.in';
         $subject = "Correspondence Published - Reference # {$correspondence->reference_number}";
 
-        $mailBody = "<p>Dear {$user->name},</p>";
-        $mailBody .= "<p>A new correspondence letter has been successfully generated and published.</p>";
-        $mailBody .= "<ul>";
-        $mailBody .= "<li><strong>Application No:</strong> {$application->application_no}</li>";
-        $mailBody .= "<li><strong>Reference Number:</strong> {$correspondence->reference_number}</li>";
-        $mailBody .= "<li><strong>Letter Type:</strong> {$correspondence->type}</li>";
-        $mailBody .= "<li><strong>Subject:</strong> {$correspondence->subject}</li>";
-        $mailBody .= "</ul>";
-        $mailBody .= "<p>This order letter is now officially attached to the application.</p>";
+        $mailBody = "Dear {$user->name},\n\n";
+        $mailBody .= "A new correspondence letter has been successfully generated and published.\n\n";
+        $mailBody .= "Application No: {$application->application_no}\n";
+        $mailBody .= "Reference Number: {$correspondence->reference_number}\n";
+        $mailBody .= "Letter Type: {$correspondence->type}\n\n";
+        $mailBody .= "This order letter is now officially attached to the application.";
 
         try {
             Mail::to($user->email)->cc($systemEmail)->send(new GenericNotificationMail($subject, $mailBody, null));

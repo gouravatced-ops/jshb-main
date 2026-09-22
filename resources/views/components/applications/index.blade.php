@@ -103,6 +103,7 @@
                     <th>Property / Allotment</th>
                     <th>Created Date</th>
                     <th>Priority</th>
+                    <th>Due Date</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -152,12 +153,43 @@
                     <td>
                         @php
                             $isEngineer = $routePrefix === 'engineer';
-                            $currentMovement = $app->movements()->where('to_user_id', auth()->id())->where('status', 'pending')->latest()->first();
-                            $isOverdue = $currentMovement && $currentMovement->due_date && $currentMovement->due_date < now();
+                            $currentMovement = $app->movements ? $app->movements->whereNotNull('due_date')->last() : null;
+                            $dueDate = $currentMovement ? $currentMovement->due_date : null;
+                            
+                            $isOverdue = false;
+                            $daysRemaining = null;
+                            if ($dueDate) {
+                                $parsedDueDate = \Carbon\Carbon::parse($dueDate)->endOfDay();
+                                $isOverdue = $parsedDueDate->isPast();
+                                $daysRemaining = (int) floor(now()->startOfDay()->diffInDays($parsedDueDate->startOfDay(), false));
+                            }
+                            
+                            $hasExtensionRequest = $app->extensionRequests ? $app->extensionRequests->where('requested_by', auth()->id())->where('status', 'pending')->isNotEmpty() : false;
                         @endphp
-                        
-                        @if($isEngineer && $isOverdue)
-                            <a href="{{ route($routePrefix . '.extensions.create', $app->id) }}" class="btn-danger" style="padding: 6px 12px; font-size: 13px; text-decoration: none; background-color: #dc3545; color: white;">Request Send for Extension</a>
+
+                        @if($dueDate)
+                            <div style="font-weight: 600; font-size: 13px; color: {{ $isOverdue ? '#dc2626' : '#16a34a' }};">
+                                {{ \Carbon\Carbon::parse($dueDate)->format('d M Y') }}
+                            </div>
+                        @else
+                            <span class="text-muted" style="font-size: 13px;">N/A</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($isEngineer)
+                            @if($hasExtensionRequest)
+                                <div style="margin-bottom: 5px;">
+                                    <span style="background-color: #f59e0b; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-clock-rotate-left"></i> Extension Pending</span>
+                                </div>
+                            @elseif($isOverdue)
+                                <div style="font-size: 11px; color: #dc2626; margin-bottom: 6px; font-weight: 600;"><i class="fa-solid fa-circle-exclamation"></i> Due date passed, you can't act.</div>
+                                <a href="{{ route($routePrefix . '.extensions.create', \Illuminate\Support\Facades\Crypt::encryptString($app->id)) }}" class="btn-danger" style="padding: 6px 12px; font-size: 12px; text-decoration: none; background-color: #dc3545; color: white; border-radius: 4px;"><i class="fa-solid fa-calendar-plus"></i> Request Extension</a>
+                            @else
+                                @if($daysRemaining !== null && $daysRemaining <= 2 && $daysRemaining >= 0)
+                                    <div style="font-size: 11px; color: #ea580c; margin-bottom: 6px; font-weight: 600;"><i class="fa-solid fa-bell"></i> Expiring in {{ $daysRemaining }} day(s)</div>
+                                @endif
+                                <a href="{{ route($routePrefix . '.applications.show', $app) }}" class="btn-primary" style="padding: 6px 12px; font-size: 13px; text-decoration: none;">Review Application</a>
+                            @endif
                         @else
                             <a href="{{ route($routePrefix . '.applications.show', $app) }}" class="btn-primary" style="padding: 6px 12px; font-size: 13px; text-decoration: none;">Review Application</a>
                         @endif
