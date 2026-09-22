@@ -6,7 +6,6 @@
 <div class="card">
     <div class="card-head">
         <div class="card-title">Extension Requests</div>
-        <div class="card-subtitle">Manage timeline extensions requested by engineers</div>
     </div>
 
     @if(session('success'))
