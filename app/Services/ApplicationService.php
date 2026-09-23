@@ -151,7 +151,9 @@ class ApplicationService
                 // Notify Admins
                 $admins = User::on('adms_jshb')->where('role_id', 1)->get();
                 $mailSubject = "Bypass Request Pending for Application: " . $application->application_no;
-                $mailBody = "A workflow bypass request has been requested by " . $user->name . " for Application No: " . $application->application_no . ". Reason: " . $request->bypass_reason;
+                $mailBody = "A workflow bypass request has been requested by " . $user->name
+                . " for Application No: " . $application->application_no
+                . ".\nReason: " . $request->bypass_reason;
                 $link = route('admin.bypass-requests.index');
 
                 foreach ($admins as $admin) {
@@ -305,7 +307,7 @@ class ApplicationService
 
             try {
                 Log::info("Queuing document generation for Application ID: {$application->id}, Type: {$application->application_type}");
-                
+
                 \App\Models\DocumentGenerationQueue::create([
                     'application_id' => $application->id,
                     'allottee_id' => $allottee->id ?? null,
@@ -314,7 +316,7 @@ class ApplicationService
                     'status' => 'pending',
                     'queued_at' => now()
                 ]);
-                
+
             } catch (\Exception $e) {
                 Log::error("Failed to queue document generation: " . $e->getMessage());
             }
@@ -474,12 +476,12 @@ class ApplicationService
                 if ($user->assistant_to_id) {
                     $mdUser = User::find($user->assistant_to_id);
                     $ccEmails = [];
-                    
+
                     if ($user->email) {
                         $ccEmails[] = $user->email;
                     }
                     $ccEmails[] = 'system@adms.jshb.computered.co.in';
-                    
+
                     if (count($ccEmails) > 0) {
                         $notificationParams['cc'] = $ccEmails;
                     }
@@ -488,7 +490,7 @@ class ApplicationService
                     if ($mdUser) {
                         $mdSubject = "Application sent back by your Co-Assistant: {$application->application_no}";
                         $mdMessage = "Application {$application->application_no} was sent back to {$targetUser->name} by your Co-Assistant {$user->name}.";
-                        
+
                         $mdMailable = new ApplicationForwardedMail(
                             $mdUser->name,
                             $application->application_no,
@@ -625,15 +627,40 @@ class ApplicationService
                     ->orderBy('step_order', 'asc')
                     ->first() : null;
 
-                // Find Target User based on division
+                // Find Target User based on division and sub_division
                 $divisionId = $allottee->division_id;
-                $targetUser = $nextStep ? User::where('role_id', $nextStep->role_id)
-                    ->when($divisionId, function ($query) use ($divisionId) {
-                        return $query->where('division_id', $divisionId);
-                    })
-                    ->where('status', 1)
-                    ->orderByDesc('is_default')
-                    ->first() : null;
+                $subDivisionId = $allottee->subdivision_id;
+
+                if ($nextStep) {
+                    $targetUser = User::where('role_id', $nextStep->role_id)
+                        ->when($divisionId, function ($query) use ($divisionId) {
+                            return $query->where('division_id', $divisionId);
+                        })
+                        ->when($subDivisionId, function ($query) use ($subDivisionId) {
+                            return $query->where('sub_division_id', $subDivisionId);
+                        })
+                        ->where('status', 1)
+                        ->orderByDesc('is_default')
+                        ->first();
+
+                    if (!$targetUser) {
+                        $errorMessage = "Target officer not found. Please create the first officer for this division and sub-division.";
+
+                        if (Auth::check()) {
+                            Notification::create([
+                                'user_id' => Auth::id(),
+                                'notification_type' => 'system_error',
+                                'subject' => 'Application Creation Failed',
+                                'message' => $errorMessage,
+                                'is_read' => 0
+                            ]);
+                        }
+
+                        throw new \Exception($errorMessage);
+                    }
+                } else {
+                    $targetUser = null;
+                }
 
                 $typePrefixMap = [
                     'allotment' => 'ALT',

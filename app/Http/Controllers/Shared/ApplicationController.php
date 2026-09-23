@@ -309,7 +309,7 @@ class ApplicationController extends Controller
 
             foreach ($eligibleSteps as $step) {
                 $engineersQuery = User::on('adms_jshb')->where('role_id', $step->role_id)->where('status', 1);
-                
+
                 if ($divisionId) {
                     $engineersQuery->where(function ($q) use ($divisionId, $subDivisionId) {
                         // Administration can see applications regardless of division matching (or according to previous logic)
@@ -319,7 +319,7 @@ class ApplicationController extends Controller
                         $q->orWhere(function ($qEng) use ($divisionId, $subDivisionId) {
                             $qEng->where('user_type', 'engineer')
                                  ->where('division_id', $divisionId);
-                            
+
                             if ($subDivisionId) {
                                 $qEng->where('sub_division_id', $subDivisionId);
                             }
@@ -332,7 +332,7 @@ class ApplicationController extends Controller
                         });
                     });
                 }
-                
+
                 $engineers = $engineersQuery->get();
 
                 $forwardOptions[] = [
@@ -359,10 +359,12 @@ class ApplicationController extends Controller
                     $userId = $movement->from_user_id;
                     $user = $movement->fromUser;
 
-                    if ($user->user_type == 'engineer') {
-                        if ($divisionId && $user->division_id != $divisionId) continue;
-                        if ($subDivisionId && $user->sub_division_id != $subDivisionId) continue;
+                    if ($user->user_type != 'engineer') {
+                        continue;
                     }
+
+                    if ($divisionId && $user->division_id != $divisionId) continue;
+                    if ($subDivisionId && $user->sub_division_id != $subDivisionId) continue;
 
                     if (!isset($processedSteps[$stepId])) {
                         $processedSteps[$stepId] = [
@@ -679,14 +681,14 @@ class ApplicationController extends Controller
         if ($application->currentStep && $application->currentStep->step_code === 'agreement-da-verify-upload') {
             $agreementProcessStep = AllotteeProcessStep::where([
                 'allottee_id' => $application->allottee_id,
-                'menu_key'    => 'allotment',
+                'menu_key'    => 'doucment-process',
                 'sub_menu_key' => 'agreement-document-letter',
             ])->first();
 
             if ($agreementProcessStep) {
                 AllotteeProcessStep::completeStep(
                     $application->allottee_id,
-                    'allotment',
+                    'doucment-process',
                     'agreement-document-letter',
                     $user->id
                 );

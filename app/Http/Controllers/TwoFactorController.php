@@ -126,10 +126,25 @@ class TwoFactorController extends Controller
             return redirect()->route('login');
         }
 
+        // ─── LOCKOUT CHECK ─────────────────────────────
+        if ($user->account_blocked_until && $user->account_blocked_until > now()) {
+            $diff = $user->account_blocked_until->diffForHumans(now(), \Carbon\CarbonInterface::DIFF_ABSOLUTE);
+            return back()->with('error', 'Your account is blocked. Please try again after ' . $diff . '.');
+        }
+
         $google2fa = app('pragmarx.google2fa');
         $isValid = $google2fa->verifyKey($user->google2fa_secret, $request->totp);
 
         if ($isValid) {
+            // Success resets lockout
+            if ($user->failed_login_attempts > 0 || $user->account_blocked_until || $user->has_been_blocked_once) {
+                $user->update([
+                    'failed_login_attempts' => 0,
+                    'account_blocked_until' => null,
+                    'has_been_blocked_once' => 0,
+                ]);
+            }
+
             // Login the user
             $request->session()->forget(['2fa:user:id', '2fa:user:remember', '2fa:token', '2fa:expires_at']);
             Auth::login($user, $request->session()->get('2fa:user:remember', false));
@@ -151,6 +166,45 @@ class TwoFactorController extends Controller
             return redirect()->route($route)->with('success', 'Welcome back, ' . $user->name);
         }
 
-        return back()->with('error', 'Invalid Authenticator Code. Please try again.');
+        // ─── FAILED ATTEMPT LOGIC ─────────────────────────────
+        $user->increment('failed_login_attempts');
+
+        if ($user->has_been_blocked_once && $user->failed_login_attempts >= 1) {
+            $user->update([
+                'account_blocked_until' => now()->addHours(24),
+                'failed_login_attempts' => 0,
+            ]);
+            $msg = 'Your account has been blocked for 24 hours due to another failed login attempt.';
+            $isBlocked = true;
+        } elseif ($user->failed_login_attempts >= 5) {
+            $user->update([
+                'account_blocked_until' => now()->addHours(1),
+                'has_been_blocked_once' => 1,
+                'failed_login_attempts' => 0,
+            ]);
+            $msg = 'Your account has been blocked for 1 hour due to 5 failed login attempts.';
+            $isBlocked = true;
+        } else {
+            $remaining = $user->has_been_blocked_once ? (1 - $user->failed_login_attempts) : (5 - $user->failed_login_attempts);
+            $msg = 'Invalid Authenticator Code. Attempts remaining: ' . $remaining;
+            $isBlocked = false;
+        }
+
+        \App\Models\LoginLog::create([
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'status' => 'failed',
+            'action' => $isBlocked ? 'login_blocked' : 'login_failed',
+        ]);
+
+        // Fire Laravel's Failed event to trigger the LogFailedLogin listener for email alerts
+        event(new \Illuminate\Auth\Events\Failed(config('auth.defaults.guard'), $user, [
+            'email' => $user->email,
+            'totp' => $request->totp
+        ]));
+
+        return back()->with('error', $msg);
     }
 }

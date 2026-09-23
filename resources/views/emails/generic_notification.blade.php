@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $mailSubject ?? 'Notification' }} - ADMS JSHB</title>
+    <title>{{ $mailSubject ?? 'Notification' }} - JSHB Portal</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -172,7 +172,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p class="footer-brand">ADMS JSHB</p>
+            <p class="footer-brand">JSHB Portal</p>
             <p class="footer-text">This is an automated notification from JSHB. Please do not reply to this email.</p>
             <p class="footer-text">&copy; {{ date('Y') }} Jharkhand State Housing Board. All rights reserved.</p>
         </div>
