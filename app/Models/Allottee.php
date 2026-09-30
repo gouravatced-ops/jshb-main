@@ -313,4 +313,21 @@ class Allottee extends Model
     {
         return trim("{$this->prefix} {$this->allottee_name} {$this->allottee_surname}");
     }
+    public static function getTotalAmountAllotted()
+    {
+        $allottees = self::select('scheme_id')->whereNotNull('scheme_id')->get();
+        $schemeIds = $allottees->pluck('scheme_id')->unique()->toArray();
+        
+        $financials = \App\Models\SchemeFinancial::whereIn('scheme_id', $schemeIds)
+            ->pluck('property_total_cost', 'scheme_id');
+            
+        $total = 0;
+        foreach ($allottees as $allottee) {
+            if (isset($financials[$allottee->scheme_id])) {
+                $total += (float) $financials[$allottee->scheme_id];
+            }
+        }
+        
+        return $total;
+    }
 }

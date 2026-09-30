@@ -692,11 +692,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const appTypes = [
-                        'allotment', 'agreement', 'possession', 'registry', 'mutation',
-                        'transfer', 'noc', 'lease_renewal', 'duplicate_certificate',
-                        'cancellation', 'name_correction'
-                    ];
+                    const appTypes = data.active_app_types || [];
 
                     let html = '<table style="width: 100%; border-collapse: collapse; font-size: 13px;">';
                     html += '<thead><tr style="border-bottom: 2px solid #eaeaea; background: #fbfbfc;">';

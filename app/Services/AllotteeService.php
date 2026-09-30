@@ -154,7 +154,7 @@ class AllotteeService
                     'utr_no'           => $data['payment_utr_no'] ?? null,
                     'receipt_file'     => $receiptFile,
                     'receipt_path'     => $receiptPath,
-                    'remarks'          => 'pending',
+                    'remarks'          => 'Lottery Payment',
                     'payment_day'      => $data['payment_day'],
                     'payment_month'    => $data['payment_month'],
                     'payment_year'     => $data['payment_year'],
@@ -319,8 +319,12 @@ class AllotteeService
                 throw new \Exception('Applicant not found');
             }
 
+            $divCode = $allottee->division ? strtoupper($allottee->division->division_code) : 'XXX';
+            $rand2 = str_pad(rand(0, 99), 2, '0', STR_PAD_LEFT);
+            $rand6 = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+
             $allottee->is_step_completed = 1;
-            $allottee->allotment_no = str_pad($allottee->id, 3, '0', STR_PAD_LEFT) . '/' . strtoupper(Str::random(3)) . '/' . rand(111, 999) . '/' . date('Y');
+            $allottee->allotment_no = 'ALT/JSHB/' . date('Y') . '/' . date('m') . '/' . $rand2 . date('d') . '/' . $divCode . '/' . $rand6;
             $allottee->allotment_day = date('d');
             $allottee->allotment_month = date('m');
             $allottee->allotment_year = date('Y');

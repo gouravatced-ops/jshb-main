@@ -52,7 +52,7 @@ class OtpMail extends Mailable
 
         return new Envelope(
             from: $from,
-            subject: "Your OTP for {$purposeLabel} - " . config('app.name'),
+            subject: "Your OTP for {$purposeLabel} - JSHB Portal",
         );
     }
 
@@ -66,7 +66,7 @@ class OtpMail extends Mailable
             with: [
                 'otp' => $this->otp,
                 'messageBody' => $this->messageBody,
-                'appName' => config('app.name'),
+                'appName' => 'JSHB Portal',
                 'userName' => $this->userName,
             ],
         );
@@ -80,13 +80,13 @@ class OtpMail extends Mailable
     public function attachments(): array
     {
         $attachments = [];
-        
+
         foreach ($this->attachmentPaths as $path) {
             if (file_exists($path)) {
                 $attachments[] = Attachment::fromPath($path);
             }
         }
-        
+
         return $attachments;
     }
 }

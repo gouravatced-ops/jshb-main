@@ -1601,9 +1601,12 @@ class AllotteeController extends Controller
         ])
             ->where('allottee_id', $allotteeId)
             ->get();
+        $activeAppTypes = Workflow::where('is_active', 1)->pluck('application_type')->toArray();
+
         return response()->json([
             'success' => true,
             'applications' => $applications,
+            'active_app_types' => $activeAppTypes,
         ]);
     }
 
@@ -1673,7 +1676,7 @@ class AllotteeController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while creating the application.',
+                'message' => $e->getMessage(),
                 'error' => $e->getMessage()
             ], 500);
         }

@@ -35,7 +35,7 @@ class SendDailyActivityReport extends Command
 
         // 1. Application Stats
         $totalCreated = Application::whereBetween('created_at', [$startOfYesterday, $endOfYesterday])->count();
-        $totalMovements = ApplicationMovement::whereBetween('movement_date', [$startOfYesterday, $endOfYesterday])->count();
+        $totalMovements = ApplicationMovement::whereNotIn('from_role_id', [8, 9])->whereBetween('movement_date', [$startOfYesterday, $endOfYesterday])->count();
         $totalCompleted = Application::where('status', 'completed')
             ->whereBetween('updated_at', [$startOfYesterday, $endOfYesterday])->count();
         $totalDocsGenerated = DocumentGenerationQueue::where('status', 'completed')
@@ -43,8 +43,9 @@ class SendDailyActivityReport extends Command
 
         // 2. Engineer Performance Report
         $movements = ApplicationMovement::with('fromUser.roleRelation')
-            ->whereBetween('movement_date', [$startOfYesterday, $endOfYesterday])
+            ->whereNotIn('from_role_id', [8, 9])
             ->whereNotNull('from_user_id')
+            ->whereBetween('movement_date', [$startOfYesterday, $endOfYesterday])
             ->get();
 
         $correspondences = ApplicationCorrespondence::with('generatedBy')
@@ -156,7 +157,7 @@ class SendDailyActivityReport extends Command
 
                 // Dispatch to background job instead of sending directly
                 ProcessBatchEmailJob::dispatch($detail->id, $email, $freshMailable);
-                
+
                 $successCount++;
             } catch (\Exception $e) {
                 $detail->update([

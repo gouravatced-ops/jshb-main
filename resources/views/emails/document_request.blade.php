@@ -240,7 +240,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <div class="footer-brand">ADMS JSHB</div>
+            <div class="footer-brand">JSHB Portal</div>
             <p class="footer-text">This is an automated notification. Please do not reply to this email.</p>
             <p class="footer-text">&copy; {{ date('Y') }} Jharkhand State Housing Board. All rights reserved.</p>
         </div>

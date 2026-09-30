@@ -110,7 +110,7 @@ $rejectMovement = $application->movements->where('action_type', 'rejected')->las
             @if($application->currentStep->can_upload_document)
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#uploadDocModal" style="background: #34495e;"><i class="fa-solid fa-upload"></i> Upload Doc</button>
             @php
-            $hasVerifiedAndUploaded = $application->documents->where('document_type', 'engineer_verify_upload')->isNotEmpty();
+            $hasVerifiedAndUploaded = $application->documents->where('document_type', 'officer_verify_upload')->isNotEmpty();
             @endphp
             @if($hasVerifyUploadRoute && !$hasVerifiedAndUploaded)
             <button class="btn-compact" data-bs-toggle="modal" data-bs-target="#verifyUploadDocModal" style="background: #17a2b8;"><i class="fa-solid fa-file-signature"></i> Verify & Upload</button>
@@ -257,7 +257,10 @@ $hasAllotmentLetter = \App\Models\AllotteeGeneratedDocument::where('allottee_id'
                                 <div style="color: #888; font-size: 11px; margin-top: 2px; font-weight: normal;">
                                     {{ \Illuminate\Support\Str::limit($doc->file_name, 25) }}
                                     <br>
-                                    <span style="color: #0056b3; font-weight: 500;">Uploaded by: {{ $doc->uploader_name }} ({{ ucfirst($doc->uploader_type ?? 'Staff') }})</span>
+                                    <span style="color: #0056b3; font-weight: 500;">
+                                        Uploaded by: {{ $doc->uploader_name }}
+                                        ({{ $doc->uploader_type === 'engineer' ? 'Officer' : ucfirst($doc->uploader_type ?? 'Staff') }})
+                                    </span>
                                 </div>
                             </td>
                             <td style="text-transform: capitalize; color: #555;">{{ str_replace('_', ' ', $doc->document_type) }}</td>

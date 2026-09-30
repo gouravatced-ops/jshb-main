@@ -66,13 +66,85 @@ class DashboardController extends Controller
         $dashboardNotices = $this->getNoticesForUser($user);
         $dashboardNotifications = $this->getNotificationsForUser($user);
 
+        // Calculate dynamic metrics
+        $totalAllottees = \App\Models\Allottee::count();
+        $totalProjects = \App\Models\Scheme::count();
+
+        $totalTransactions = \Illuminate\Support\Facades\DB::connection('adms_allottees')
+            ->table('allottee_transactions')
+            ->whereIn('payment_status', ['success', 'paid', 'completed'])
+            ->sum('total_amount');
+
+        $totalAmountAllotted = \App\Models\Allottee::getTotalAmountAllotted();
+
+        // Format to Crores
+        $totalTransactionsCr = number_format($totalTransactions / 10000000, 2);
+        $totalAmountAllottedCr = number_format($totalAmountAllotted / 10000000, 2);
+
+        // Monthly Data (Zero by default)
+        $monthlyTransactionsData = array_fill(0, 12, 0);
+        $monthlyAllotteesData = array_fill(0, 12, 0);
+
+        // Fetch monthly transactions for current year
+        $txnsData = \Illuminate\Support\Facades\DB::connection('adms_allottees')
+            ->table('allottee_transactions')
+            ->selectRaw('MONTH(created_at) as month, SUM(total_amount) as total')
+            ->whereYear('created_at', now()->year)
+            ->whereIn('payment_status', ['success', 'paid', 'completed'])
+            ->groupBy('month')
+            ->pluck('total', 'month');
+
+        foreach ($txnsData as $month => $total) {
+            $monthlyTransactionsData[$month - 1] = round($total / 10000000, 2);
+        }
+
+        // Fetch monthly allottees for current year
+        $allotteesData = \App\Models\Allottee::selectRaw('MONTH(created_at) as month, COUNT(id) as total')
+            ->whereYear('created_at', now()->year)
+            ->groupBy('month')
+            ->pluck('total', 'month');
+
+        foreach ($allotteesData as $month => $total) {
+            $monthlyAllotteesData[$month - 1] = $total;
+        }
+
+        // Fetch Recent Transactions
+        $recentTransactions = \Illuminate\Support\Facades\DB::connection('adms_allottees')
+            ->table('allottee_transactions')
+            ->join('allottees', 'allottees.id', '=', 'allottee_transactions.allottee_id')
+            ->select(
+                'allottee_transactions.transaction_no',
+                'allottees.allottee_name',
+                'allottees.allottee_surname',
+                'allottee_transactions.total_amount',
+                'allottee_transactions.created_at',
+                'allottee_transactions.payment_status'
+            )
+            ->orderByDesc('allottee_transactions.created_at')
+            ->take(5)
+            ->get();
+
+        // Fetch Recent Allottees
+        $recentAllottees = \App\Models\Allottee::with('alloteeAdresses')
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get();
+
         return view('admin.module.dashboard', compact(
             'users',
             'loginLogs',
             'otpLogs',
             'latestLogin',
             'dashboardNotices',
-            'dashboardNotifications'
+            'dashboardNotifications',
+            'totalAllottees',
+            'totalProjects',
+            'totalTransactionsCr',
+            'totalAmountAllottedCr',
+            'monthlyTransactionsData',
+            'monthlyAllotteesData',
+            'recentTransactions',
+            'recentAllottees'
         ));
     }
 
@@ -196,6 +268,7 @@ class DashboardController extends Controller
         // 2. Filter these allottees by the user's division using the proper DB connection
         $validAllotteeIds = Allottee::whereIn('id', $pendingAllotteeIds)
             ->where('division_id', $user->division_id)
+            ->where('subdivision_id', $user->sub_division_id)
             ->pluck('id')
             ->toArray();
 

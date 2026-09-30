@@ -24,41 +24,41 @@ class BypassRequestController extends Controller
     public function index()
     {
         $bypassRequests = BypassRequest::with([
-                'application.notes.user.roleRelation', 
+                'application.notes.user.roleRelation',
                 'application.notes' => function($q) {
                     $q->orderBy('created_at', 'desc');
                 },
-                'requestedBy', 
-                'targetRole', 
+                'requestedBy',
+                'targetRole',
                 'targetStep'
             ])
             ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         return view('admin.bypass-requests.index', compact('bypassRequests'));
     }
 
     public function history()
     {
         $bypassRequests = BypassRequest::with([
-                'application', 
-                'requestedBy', 
+                'application',
+                'requestedBy',
                 'approvedBy',
-                'targetRole', 
+                'targetRole',
                 'targetStep'
             ])
             ->where('status', '!=', 'pending')
             ->orderBy('updated_at', 'desc')
             ->get();
-            
+
         return view('admin.bypass-requests.history', compact('bypassRequests'));
     }
 
     public function approve(Request $request, $id)
     {
         $bypassRequest = BypassRequest::findOrFail($id);
-        
+
         if ($bypassRequest->status !== 'pending') {
             return back()->with('error', 'Request already processed.');
         }
@@ -89,9 +89,27 @@ class BypassRequestController extends Controller
 
                 if ($engineer->email) {
                     try {
-                        Mail::to($engineer->email)->send(new GenericNotificationMail($mailSubject, $mailBody, $link));
+                        $mailable = Mail::to($engineer->email);
+
+                        // System email in CC
+                        $systemEmail = 'system@adms.jshb.computered.co.in';
+                        if ($systemEmail) {
+                            $mailable->cc($systemEmail);
+                        }
+
+                        $mailable->send(new GenericNotificationMail($mailSubject, $mailBody, $link));
                     } catch (\Exception $e) {
-                        Log::error("Failed to send bypass approval mail to engineer: " . $e->getMessage());
+                        Log::error("Failed to send bypass approval mail to engineer/system: " . $e->getMessage());
+                    }
+                }
+
+                // Send a separate email to the Approver
+                $approver = Auth::user();
+                if ($approver && $approver->email) {
+                    try {
+                        Mail::to($approver->email)->send(new GenericNotificationMail($mailSubject, $mailBody, $link));
+                    } catch (\Exception $e) {
+                        Log::error("Failed to send bypass approval mail to approver: " . $e->getMessage());
                     }
                 }
             }
@@ -103,7 +121,7 @@ class BypassRequestController extends Controller
     public function reject(Request $request, $id)
     {
         $bypassRequest = BypassRequest::findOrFail($id);
-        
+
         if ($bypassRequest->status !== 'pending') {
             return back()->with('error', 'Request already processed.');
         }

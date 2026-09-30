@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Due Reminder - ADMS JSHB</title>
+    <title>Application Due Reminder - JSHB Portal</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -98,7 +98,7 @@
             margin: 15px 0;
             border-left: 4px solid #F6C23E; /* Yellow warning accent */
         }
-        
+
         li {
             margin-bottom: 5px;
         }
@@ -112,7 +112,7 @@
             margin-top: 20px;
             font-size: 15px;
         }
-        
+
         .days-remaining.urgent {
             background: #E74A3B;
             color: white;
@@ -179,7 +179,7 @@
             <div class="message-text">
                 <p>Dear <strong>{{ $userName }}</strong>,</p>
                 <p>This is an automated reminder regarding a pending application assigned to you.</p>
-                
+
                 <ul>
                     <li><strong>Application No:</strong> {{ $applicationNo }}</li>
                     <li><strong>Action Required:</strong> Please review and process this application immediately.</li>
@@ -204,7 +204,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p class="footer-brand">ADMS JSHB</p>
+            <p class="footer-brand">JSHB Portal</p>
             <p class="footer-text">This is an automated notification from JSHB. Please do not reply to this email.</p>
             <p class="footer-text">&copy; {{ date('Y') }} Jharkhand State Housing Board. All rights reserved.</p>
         </div>

@@ -104,7 +104,7 @@
             </td>
             <td style="width:50%; text-align:right; padding-top:5px;">
                 dksfV %&
-                <span>--------------------</span>
+                <span>{{ $allottee->allottee_category_hindi ?? '----------------------' }}</span>
             </td>
         </tr>
     </table>

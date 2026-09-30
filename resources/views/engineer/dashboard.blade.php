@@ -1,16 +1,16 @@
 @extends('layouts.main')
 
-@section('title', 'Engineer Dashboard | JSHB')
+@section('title', 'Official Dashboard | JSHB')
 
 @section('content')
 <div id="page-dashboard" class="admin-dashboard-page">
     <div class="dashboard-hero-card">
         <div>
             <div class="dashboard-hero-kicker">
-                Engineer Quick View
+                Official Quick View
             </div>
 
-            <h2 class="dashboard-hero-title" style="text-transform: capitalize;">{{ Auth::user()->user_type }} Dashboard</h2>
+            <h2 class="dashboard-hero-title" style="text-transform: capitalize;">Official Dashboard</h2>
 
             @if($latestLogin)
             <div class="login-meta" style="margin-top:15px;">

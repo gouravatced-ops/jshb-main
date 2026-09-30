@@ -152,7 +152,7 @@
                             @endforeach
                         </div>
                         @else
-                        <div class="alert alert-danger" style="margin-bottom: 0; padding: 10px 15px;">
+                        <div class="alert1 alert-danger" style="margin-bottom: 0; padding: 10px 15px;">
                             <i class="fa-solid fa-triangle-exclamation"></i> Cannot send back. No eligible engineers found in previous steps.
                         </div>
                         @endif
