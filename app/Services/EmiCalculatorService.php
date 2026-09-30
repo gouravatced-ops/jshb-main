@@ -184,8 +184,8 @@ class EmiCalculatorService
      */
     public function applyPayment(AllotteeMonthlyDemand $demand, float $amount, string $paymentMode = 'gateway'): array
     {
-        // Refresh penalty before applying payment
-        $this->refreshPenalty($demand);
+        // User request: Do not update penalty columns at the time of payment
+        // $this->refreshPenalty($demand);
 
         Log::info('EMI applyPayment start', [
             'demand_id' => $demand->id,
@@ -301,7 +301,7 @@ class EmiCalculatorService
             )->whereIn('step_no', $nextSteps)
                 ->update([
                     'status' => 'pending',
-            ]);
+                ]);
         }
 
         // Return payment allocation summary for caller to record transaction
@@ -338,19 +338,34 @@ class EmiCalculatorService
             // Penalty Interest Rate (Dynamic: 16%)
             $penaltyInterestRate = $demand->penalty_interest_rate;
 
-            // Formula: late_fine_penalty = 0.01 * emi_amount
-            $lateFinePenalty = round($demand->emi_amount * 0.01, 2);
+            // Calculate Months Late (Penalty bumps every month after due date)
+            $adjustedToday = $today->copy()->startOfDay()->subDay();
+            $monthsLate = $dueDate->copy()->startOfDay()->diffInMonths($adjustedToday) + 1;
+
+            // Formula: late_fine_penalty compounds monthly but does NOT sum across months
+            $lateFinePenalty = 0;
+            $emiAmount = $demand->emi_amount;
+
+            for ($i = 1; $i <= $monthsLate; $i++) {
+                if ($i === 1) {
+                    $lateFinePenalty = round($emiAmount * 0.01, 2);
+                } else {
+                    $lateFinePenalty = round(($emiAmount * 0.01) + ($lateFinePenalty * 0.01), 2);
+                }
+            }
 
             // Formula: penalty_admin_charges = 10.00
             $adminCharges = 10.00;
 
-            // Formula: penalty_interest_amount = (opening_balance * penalty_interest_rate) / 100 / 12
-            $penaltyInterestAmount = round(($demand->opening_balance * $penaltyInterestRate) / 100 / 12, 2);
+            // Formula: penalty_interest_amount = (opening_balance * penalty_interest_rate) / 100 / 12 * monthsLate
+            $monthlyInterestAmount = round(($demand->opening_balance * $penaltyInterestRate) / 100 / 12, 2);
+            $penaltyInterestAmount = $monthlyInterestAmount * $monthsLate;
 
             // New Formula: total_demand_amount = penalty_interest_amount + late_fine_penalty + penalty_admin_charges
             $newTotalDemandAmount = $penaltyInterestAmount + $lateFinePenalty + $adminCharges + $demand->emi_amount;
 
             Log::info('EMI refreshPenalty overdue update', [
+                'emi_month' => $dueDate->format('M Y'),
                 'demand_id' => $demand->id,
                 'allottee_id' => $demand->allottee_id,
                 'old_total_demand_amount' => $demand->total_demand_amount,
@@ -358,10 +373,15 @@ class EmiCalculatorService
                 'new_total_demand_amount' => $newTotalDemandAmount,
                 'late_fine_penalty' => $lateFinePenalty,
                 'penalty_admin_charges' => $adminCharges,
+                'late_month' => $monthsLate,
+                'opening_balance' => $demand->opening_balance,
+                'monthly_interest_amount' => $monthlyInterestAmount,
                 'penalty_interest_amount' => $penaltyInterestAmount,
                 'principle_amount' => $demand->principle_amount,
                 'outstanding_amount_before' => $demand->outstanding_amount,
                 'outstanding_amount_after' => $newTotalDemandAmount - $demand->total_paid_amount,
+                'due_date' => $dueDate->format('d-m-Y'),
+                'today_date' => $today->format('d-m-Y'),
             ]);
 
             $demand->update([
@@ -458,5 +478,56 @@ class EmiCalculatorService
             'pending_demands_count' => $pendingDemands->count(),
             'is_overdue' => $currentDemand && Carbon::parse($currentDemand->due_date)->lt(now()),
         ];
+    }
+
+    /**
+     * Sync EMI ledger statistics
+     */
+    public function syncEmiLedger($emiAccountId): void
+    {
+        $emiAccount = AllotteeEmiAccount::find($emiAccountId);
+        if (!$emiAccount) return;
+
+        $demands = AllotteeMonthlyDemand::where('emi_account_id', $emiAccountId)->get();
+        $firstDemand = $demands->sortBy('emi_no')->first();
+        $lastPaidDemand = $demands->where('demand_status', 'Paid')->sortByDesc('emi_no')->first();
+
+        $withoutPenaltyPaidDemands = $demands->where('demand_status', 'Paid')->where('is_late_payment', 0);
+        $withPenaltyPaidDemands = $demands->where('demand_status', 'Paid')->where('is_late_payment', 1);
+
+        $withoutPenaltyCount = $withoutPenaltyPaidDemands->count();
+        $withPenaltyCount = $withPenaltyPaidDemands->count();
+        $completedEmiCount = $withoutPenaltyCount + $withPenaltyCount;
+        $expectedEmiCount = $demands->where('due_date', '<=', now())->count();
+        $paymentGap = max(0, $expectedEmiCount - $completedEmiCount);
+
+        $pendingOutstanding = $demands->whereIn('demand_status', ['Pending', 'Partially Paid', 'Overdue'])->sum('outstanding_amount');
+
+        \App\Models\AllotteeEmiLedger::updateOrCreate(
+            ['allottee_id' => $emiAccount->allottee_id],
+            [
+                'calculation_type' => 'Standard EMI',
+                'total_amount' => $emiAccount->total_payable,
+                'total_emi_count' => $emiAccount->tenure_months,
+                'start_month' => $firstDemand ? Carbon::parse($firstDemand->due_date)->month : null,
+                'start_year' => $firstDemand ? Carbon::parse($firstDemand->due_date)->year : null,
+                'last_emi_month' => $lastPaidDemand ? Carbon::parse($lastPaidDemand->due_date)->month : null,
+                'last_emi_year' => $lastPaidDemand ? Carbon::parse($lastPaidDemand->due_date)->year : null,
+                'amount_without_penalty' => $withoutPenaltyPaidDemands->sum('total_paid_amount'),
+                'amount_with_penalty' => $withPenaltyPaidDemands->sum('total_paid_amount'),
+                'without_penalty_count' => $withoutPenaltyCount,
+                'with_penalty_count' => $withPenaltyCount,
+                'completed_emi' => $completedEmiCount,
+                'late_emi' => $withPenaltyCount,
+                'remaining_emi' => max(0, $emiAccount->tenure_months - $completedEmiCount),
+                'total_paid' => $emiAccount->paid_amount,
+                'total_remaining' => $emiAccount->remaining_amount,
+                'current_balance' => $pendingOutstanding,
+                'emi_status' => $emiAccount->account_status,
+                'expected_emi' => $expectedEmiCount,
+                'payment_gap' => $paymentGap,
+                'emi_active' => $emiAccount->remaining_amount > 0 ? 1 : 0,
+            ]
+        );
     }
 }

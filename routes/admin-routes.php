@@ -276,4 +276,7 @@ Route::middleware('auth')
         Route::get('/batch-emails', [BatchProgramController::class, 'emails'])->name('batch-emails');
         Route::get('/batch-documents', [BatchProgramController::class, 'documents'])->name('batch-documents');
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs');
+        
+        // Transactions
+        Route::get('/transactions', [\App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('transactions.index');
     });

@@ -160,7 +160,7 @@
         <!-- Body -->
         <div class="body-content">
             <div class="message-text">
-                {!! nl2br(e($mailBody ?? $message)) !!}
+                {!! $mailBody ?? $message !!}
             </div>
 
             @if(isset($link) && $link)

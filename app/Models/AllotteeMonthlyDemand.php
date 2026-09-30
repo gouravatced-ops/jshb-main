@@ -25,6 +25,9 @@ class AllotteeMonthlyDemand extends Model
         'emi_no',
         'due_date',
 
+        'emi_month',
+        'emi_year',
+
         'opening_balance',
         'emi_amount',
 

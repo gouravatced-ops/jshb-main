@@ -154,7 +154,7 @@ class AllotteeService
                     'utr_no'           => $data['payment_utr_no'] ?? null,
                     'receipt_file'     => $receiptFile,
                     'receipt_path'     => $receiptPath,
-                    'remarks'          => 'pending',
+                    'remarks'          => 'Lottery Payment',
                     'payment_day'      => $data['payment_day'],
                     'payment_month'    => $data['payment_month'],
                     'payment_year'     => $data['payment_year'],

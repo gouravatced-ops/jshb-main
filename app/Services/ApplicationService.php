@@ -451,7 +451,7 @@ class ApplicationService
                 'send_email' => true,
                 'send_sms' => false,
                 'send_whatsapp' => false,
-                'link' => '/login',
+                'link' => '/',
                 'mailable' => $customMailable
             ];
 
@@ -511,7 +511,7 @@ class ApplicationService
                             'send_email' => true,
                             'send_sms' => false,
                             'send_whatsapp' => false,
-                            'link' => '/login',
+                            'link' => '/',
                             'mailable' => $mdMailable
                         ]);
                     }
@@ -573,7 +573,7 @@ class ApplicationService
                     'send_email' => true,
                     'send_sms' => true,
                     'send_whatsapp' => true,
-                    'link' => '/login',
+                    'link' => '/',
                     'mailable' => $customMailableAllottee
                 ];
 

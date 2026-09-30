@@ -63,7 +63,7 @@
                         <div class="stat-icon teal"><i class="fas fa-users"></i></div>
                         <div class="stat-info">
                             <p class="stat-label">Total Allottees</p>
-                            <p class="stat-value">2,354</p>
+                            <p class="stat-value">{{ number_format($totalAllottees) }}</p>
                         </div>
                     </div>
                     {{-- <div class="stat-delta up"><i class="fas fa-arrow-up"></i> 12.5% <span style="color:var(--text-dark)">vs
@@ -77,7 +77,7 @@
                         <div class="stat-icon green"><i class="fas fa-file-lines"></i></div>
                         <div class="stat-info">
                             <p class="stat-label">Total Projects</p>
-                            <p class="stat-value">128</p>
+                            <p class="stat-value">{{ number_format($totalProjects) }}</p>
                         </div>
                     </div>
                     {{-- <div class="stat-delta up"><i class="fas fa-arrow-up"></i> 8.3% <span style="color:var(--text-dark)">vs
@@ -91,7 +91,7 @@
                         <div class="stat-icon yellow"><i class="fas fa-indian-rupee-sign"></i></div>
                         <div class="stat-info">
                             <p class="stat-label">Total Transactions</p>
-                            <p class="stat-value" style="font-size:16px;">₹ 45.68 Cr</p>
+                            <p class="stat-value" style="font-size:16px;">₹ {{ $totalTransactionsCr }} Cr</p>
                         </div>
                     </div>
                     {{-- <div class="stat-delta up"><i class="fas fa-arrow-up"></i> 15.7% <span style="color:var(--text-dark)">vs
@@ -105,7 +105,7 @@
                         <div class="stat-icon navy"><i class="fas fa-chart-column"></i></div>
                         <div class="stat-info">
                             <p class="stat-label">Total Amount Allotted</p>
-                            <p class="stat-value" style="font-size:16px;">₹ 320.45 Cr</p>
+                            <p class="stat-value" style="font-size:16px;">₹ {{ $totalAmountAllottedCr }} Cr</p>
                         </div>
                     </div>
                     {{-- <div class="stat-delta up"><i class="fas fa-arrow-up"></i> 10.4% <span style="color:var(--text-dark)">vs
@@ -164,46 +164,29 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @forelse($recentTransactions as $index => $txn)
                                 <tr>
-                                    <td class="row-num">1</td>
-                                    <td>TXN10001</td>
-                                    <td>Ravi Kumar</td>
-                                    <td>₹ 12,45,000</td>
-                                    <td>24 May 2024</td>
-                                    <td><span class="badge-status badge-completed">Completed</span></td>
+                                    <td class="row-num">{{ $index + 1 }}</td>
+                                    <td>{{ $txn->transaction_no }}</td>
+                                    <td>{{ $txn->allottee_name }} {{ $txn->allottee_surname }}</td>
+                                    <td>₹ {{ number_format($txn->total_amount) }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($txn->created_at)->format('d M Y') }}</td>
+                                    <td>
+                                        @php
+                                            $statusClass = match(strtolower($txn->payment_status)) {
+                                                'success', 'paid', 'completed' => 'badge-completed',
+                                                'pending' => 'badge-pending',
+                                                default => 'badge-failed',
+                                            };
+                                        @endphp
+                                        <span class="badge-status {{ $statusClass }}">{{ ucfirst($txn->payment_status) }}</span>
+                                    </td>
                                 </tr>
+                                @empty
                                 <tr>
-                                    <td class="row-num">2</td>
-                                    <td>TXN10002</td>
-                                    <td>Priya Sharma</td>
-                                    <td>₹ 8,75,000</td>
-                                    <td>23 May 2024</td>
-                                    <td><span class="badge-status badge-completed">Completed</span></td>
+                                    <td colspan="6" class="text-center text-muted">No recent transactions found.</td>
                                 </tr>
-                                <tr>
-                                    <td class="row-num">3</td>
-                                    <td>TXN10003</td>
-                                    <td>Amit Verma</td>
-                                    <td>₹ 15,60,000</td>
-                                    <td>22 May 2024</td>
-                                    <td><span class="badge-status badge-pending">Pending</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="row-num">4</td>
-                                    <td>TXN10004</td>
-                                    <td>Neha Singh</td>
-                                    <td>₹ 7,25,000</td>
-                                    <td>21 May 2024</td>
-                                    <td><span class="badge-status badge-completed">Completed</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="row-num">5</td>
-                                    <td>TXN10005</td>
-                                    <td>Sandeep Patel</td>
-                                    <td>₹ 9,80,000</td>
-                                    <td>20 May 2024</td>
-                                    <td><span class="badge-status badge-failed">Failed</span></td>
-                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -220,7 +203,7 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Allottee ID</th>
+                                    <th>Property Number</th>
                                     <th>Allottee Name</th>
                                     <th>Contact</th>
                                     <th>Date</th>
@@ -228,46 +211,26 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @forelse($recentAllottees as $index => $allottee)
                                 <tr>
-                                    <td class="row-num">1</td>
-                                    <td>ALT10001</td>
-                                    <td>Ravi Kumar</td>
-                                    <td>9876543210</td>
-                                    <td>24 May 2024</td>
-                                    <td><span class="badge-status badge-active">Active</span></td>
+                                    <td class="row-num">{{ $index + 1 }}</td>
+                                    <td>{{ $allottee->property_number ?? 'N/A' }}</td>
+                                    <td>{{ $allottee->allottee_name }} {{ $allottee->allottee_surname }}</td>
+                                    <td>{{ $allottee->alloteeAdresses ? ($allottee->alloteeAdresses->mobile_number ?? 'N/A') : 'N/A' }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($allottee->created_at)->format('d M Y') }}</td>
+                                    <td>
+                                        @if($allottee->is_cancelled)
+                                        <span class="badge-status badge-inactive">Cancelled</span>
+                                        @else
+                                        <span class="badge-status badge-active">Active</span>
+                                        @endif
+                                    </td>
                                 </tr>
+                                @empty
                                 <tr>
-                                    <td class="row-num">2</td>
-                                    <td>ALT10002</td>
-                                    <td>Priya Sharma</td>
-                                    <td>9123456780</td>
-                                    <td>23 May 2024</td>
-                                    <td><span class="badge-status badge-active">Active</span></td>
+                                    <td colspan="6" class="text-center text-muted">No recent allottees found.</td>
                                 </tr>
-                                <tr>
-                                    <td class="row-num">3</td>
-                                    <td>ALT10003</td>
-                                    <td>Amit Verma</td>
-                                    <td>9988776655</td>
-                                    <td>22 May 2024</td>
-                                    <td><span class="badge-status badge-active">Active</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="row-num">4</td>
-                                    <td>ALT10004</td>
-                                    <td>Neha Singh</td>
-                                    <td>9090909090</td>
-                                    <td>21 May 2024</td>
-                                    <td><span class="badge-status badge-inactive">Inactive</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="row-num">5</td>
-                                    <td>ALT10005</td>
-                                    <td>Sandeep Patel</td>
-                                    <td>8881234567</td>
-                                    <td>20 May 2024</td>
-                                    <td><span class="badge-status badge-active">Active</span></td>
-                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

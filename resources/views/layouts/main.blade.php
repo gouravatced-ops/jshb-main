@@ -210,7 +210,7 @@
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                     datasets: [{
                         label: 'Amount (in Cr)',
-                        data: [13, 19, 9, 25, 23, 31, 30, 43, 42, 38, 45, 55],
+                        data: {!! isset($monthlyTransactionsData) ? json_encode($monthlyTransactionsData) : '[13, 19, 9, 25, 23, 31, 30, 43, 42, 38, 45, 55]' !!},
                         borderColor: '#1a7a4a',
                         backgroundColor: 'rgba(26,122,74,0.08)',
                         borderWidth: 2,
@@ -272,7 +272,7 @@
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                     datasets: [{
                         label: 'Allottees',
-                        data: [310, 290, 420, 300, 300, 340, 295, 300, 420, 300, 295, 550],
+                        data: {!! isset($monthlyAllotteesData) ? json_encode($monthlyAllotteesData) : '[310, 290, 420, 300, 300, 340, 295, 300, 420, 300, 295, 550]' !!},
                         backgroundColor: '#0f1b2d',
                         borderRadius: 1,
                         barThickness: 14
@@ -454,7 +454,7 @@
         });
     </script>
 
-    @if(Auth::check() && !Auth::user()->google2fa_enabled && !request()->routeIs('2fa.setup'))
+    @if(Auth::check() && !Auth::user()->google2fa_enabled && !request()->routeIs('2fa.setup') && (request()->routeIs('*.dashboard') || request()->routeIs('dashboard')))
         @php
             $enforcement = \App\Models\Setting::getVal('global_2fa_enforcement', 'optional');
         @endphp

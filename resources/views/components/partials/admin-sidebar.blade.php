@@ -40,6 +40,15 @@
     </div>
 </div>
 
+<!-- Transactions -->
+<div class="nav-item-wrap">
+    <a class="nav-link-custom {{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}" href="{{ route('admin.transactions.index') }}">
+        <div class="nav-icon">
+            <i class="fa-solid fa-indian-rupee-sign"></i>
+        </div>
+        <span class="nav-text">Transactions</span>
+    </a>
+</div>
 @if ($sidebarUser->roleRelation?->slug === 'super-admin')
 <!-- Member Management -->
 <div class="nav-item-wrap">

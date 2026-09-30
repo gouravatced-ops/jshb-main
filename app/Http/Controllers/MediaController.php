@@ -204,6 +204,22 @@ class MediaController extends Controller
                 $fullPath = storage_path('app/public/' . ltrim($path, '/'));
             }
 
+            // Fallback for dossier folder
+            if (!File::exists($fullPath)) {
+                $parentDir = dirname(base_path());
+                $baseDocPath = config('app.doc_api_local_path');
+                
+                if (empty($baseDocPath)) {
+                    if (File::isDirectory($parentDir . '/dossier.adms.jshb.computered.co.in')) {
+                        $baseDocPath = $parentDir . '/dossier.adms.jshb.computered.co.in';
+                    } else {
+                        $baseDocPath = $parentDir . '/jshb-doc';
+                    }
+                }
+                
+                $fullPath = rtrim($baseDocPath, '/') . '/' . ltrim($path, '/');
+            }
+
             if (File::exists($fullPath) && is_file($fullPath)) {
                 return response()->file($fullPath);
             }

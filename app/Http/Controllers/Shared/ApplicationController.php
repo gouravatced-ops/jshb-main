@@ -655,8 +655,8 @@ class ApplicationController extends Controller
         ApplicationDocument::create([
             'application_id' => $application->id,
             'movement_id'    => $latestMovement ? $latestMovement->id : null,
-            'document_type'  => 'engineer_verify_upload',
-            'document_name'  => 'Engineer Verification Document',
+            'document_type'  => 'officer_verify_upload',
+            'document_name'  => 'Officer Verification Document',
             'file_name'      => $originalName,
             'file_path'      => $path,
             'file_size'      => $file->getSize(),

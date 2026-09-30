@@ -3,8 +3,9 @@
 namespace App\Http\Requests\Allottee;
 
 use Illuminate\Contracts\Validation\ValidationRule;
-
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Models\Allottee;
 
 class Step1Request extends FormRequest
 {
@@ -42,8 +43,8 @@ class Step1Request extends FormRequest
             'relation_name_hindi' => ['required', 'string', 'max:100'],
             'marital_status' => ['nullable', 'string', 'max:50'],
             'allottee_gender' => ['nullable', 'string', 'max:20'],
-            'pan_card_number' => ['nullable', 'string', 'max:20'],
-            'aadhar_card_number' => ['nullable', 'string', 'max:20'],
+            'pan_card_number' => ['nullable', 'string', 'max:20', Rule::unique(Allottee::class, 'pan_card_number')->ignore($this->input('allottee_id'))],
+            'aadhar_card_number' => ['nullable', 'string', 'max:20', Rule::unique(Allottee::class, 'aadhar_card_number')->ignore($this->input('allottee_id'))],
             'allottee_category' => ['nullable', 'string', 'max:100'],
             'allottee_category_hindi' => ['nullable', 'string', 'max:200'],
             'allottee_religion' => ['nullable', 'string', 'max:100'],
