@@ -40,13 +40,13 @@ class AutoEscalateStalledApplications extends Command
         ]);
 
         $log->info('--- AutoEscalateStalledApplications Command Started ---');
-        
+
         $batchProgram = BatchProgram::create([
             'command_name' => 'AutoEscalateStalledApplications',
             'started_at' => now(),
             'status' => 'running',
         ]);
-        
+
         $daysThreshold = (int) $this->option('days');
         $thresholdDate = now()->subDays($daysThreshold);
 
@@ -85,8 +85,8 @@ class AutoEscalateStalledApplications extends Command
             // Notify Admins
             foreach ($admins as $admin) {
                 $subject = "ESCALATION: Stalled Application #$appNo";
-                $message = "Application #$appNo has been stalled with Engineer $engineerName for more than $daysThreshold days past its due date. No extension has been requested.";
-                
+                $message = "Application #$appNo has been stalled with Officer $engineerName for more than $daysThreshold days past its due date. No extension has been requested.";
+
                 $mailable = new GenericNotificationMail($subject, $message, null, false);
                 $detail = BatchProgramDetail::create([
                     'batch_program_id' => $batchProgram->id,
@@ -107,7 +107,7 @@ class AutoEscalateStalledApplications extends Command
                     'notification_type' => 'warning',
                     'subject' => $subject,
                     'message' => $message,
-                    'link' => null, 
+                    'link' => null,
                     'send_email' => false,
                     'application_id' => $movement->application_id,
                 ]);
@@ -117,7 +117,7 @@ class AutoEscalateStalledApplications extends Command
             $subjectEng = "WARNING: Application #$appNo Escalated";
             $messageEng = "Your pending Application #$appNo is overdue by more than $daysThreshold days. This has been automatically escalated to the Admin.";
             $linkEng = route('engineer.applications.show', $movement->application_id);
-            
+
             if ($movement->toUser && $movement->toUser->email) {
                 $mailableEng = new GenericNotificationMail($subjectEng, $messageEng, $linkEng, false);
                 $detailEng = BatchProgramDetail::create([
@@ -146,7 +146,7 @@ class AutoEscalateStalledApplications extends Command
             ]);
 
             $escalatedCount++;
-            
+
             // Mark as escalated so we don't notify again tomorrow for the same movement
             $movement->update([
                 'is_escalated' => true,
