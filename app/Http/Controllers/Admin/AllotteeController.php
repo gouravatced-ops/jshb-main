@@ -661,7 +661,8 @@ class AllotteeController extends Controller
             'applications.bypassRequests.requestedBy',
             'applications.bypassRequests.targetUser',
             'applications.bypassRequests.targetRole',
-            'applications.bypassRequests.targetStep'
+            'applications.bypassRequests.targetStep',
+            'userdetails'
         ]);
         if ($request->filled('search')) {
             $search = trim((string) $request->search);

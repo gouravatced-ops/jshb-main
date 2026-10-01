@@ -330,4 +330,8 @@ class Allottee extends Model
         
         return $total;
     }
+    public function userdetails()
+    {
+        return $this->belongsTo(User::class, 'username', 'username');
+    }
 }

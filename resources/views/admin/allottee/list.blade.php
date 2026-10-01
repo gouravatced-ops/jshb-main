@@ -412,6 +412,7 @@
                                             <i class="fa-solid fa-user-shield"></i> Personal Data
                                         </div>
                                         <div class="detail-grid">
+                                            <div class="detail-item" style="grid-column: span 2;"><span class="detail-label">Email Id</span> {{ $allottee->userdetails->email ?? 'N/A' }}</div>
                                             <div class="detail-item"><span class="detail-label">Date of Birth</span> {{ $allottee->date_of_birth_day ? $allottee->date_of_birth_day.'-'.$allottee->date_of_birth_month.'-'.$allottee->date_of_birth_year : 'N/A' }}</div>
                                             <div class="detail-item"><span class="detail-label">Gender</span> {{ $allottee->allottee_gender ?? 'N/A' }}</div>
                                             <div class="detail-item"><span class="detail-label">Marital Status</span> {{ $allottee->marital_status ?? 'N/A' }}</div>
