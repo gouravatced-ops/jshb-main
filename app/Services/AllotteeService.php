@@ -367,36 +367,10 @@ class AllotteeService
                     'password' => $plainPassword
                 ]);
 
-                $portalUrl = config('jshb.allottee_portal_url', 'http://localhost/jshb-allottees');
-
-                $notificationService = app(NotificationService::class);
-                $notificationService->send([
-                    'user_id' => $user->id,
-                    'application_id' => $application ? $application->id : null,
-                    'allottee_id' => $allottee->id,
-                    'is_allottee' => true,
-                    'notification_type' => 'info',
-                    'subject' => 'Your JSHB Allottee Portal Login Credentials',
-                    'message' => 'Credentials sent automatically after Step 3.',
-                    'email_id' => $user->email,
-                    'send_email' => true,
-                    'mailable' => new AllotteeCredentialMail($user->username, $plainPassword, $portalUrl)
-                ]);
-
-                // Send System Email
-                $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
-                $adminSubject = "New Allottee Created";
-                $adminMessage = "Dear Admin,\n\nA new allottee has been successfully created in the system.\n\nAllottee Name: {$user->name}\nUsername/Email: {$user->username}\n\nPlease check the JSHB portal for more details.";
-
-                $notificationService->send([
-                    'user_id' => 6, // Hardcoded per user request in previous session
-                    'email_id' => $systemEmail,
-                    'subject' => $adminSubject,
-                    'message' => $adminMessage,
-                    'notification_type' => 'system',
-                    'send_email' => true,
-                    'send_sms' => false
-                ]);
+                // ----------------------------------------------------
+                // PROFESSIONAL ARCHITECTURE: FIRE EVENT INSTEAD OF DIRECT MAIL
+                // ----------------------------------------------------
+                event(new \App\Events\AllotteeCreated($user, $allottee, $application ?? null, $plainPassword));
 
                 // Send Welcome Email
                 if (filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
