@@ -143,7 +143,7 @@
                         <div class="action-btns">
                             @php
                             $roleSlug = $member->roleRelation?->slug;
-                            $isProtected = in_array($roleSlug, ['admin', 'super-admin', 'allottee']);
+                            $isProtected = in_array($roleSlug, ['admin', 'allottee']);
                             @endphp
 
                             @if(!$isProtected)

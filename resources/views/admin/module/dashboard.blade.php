@@ -28,7 +28,7 @@
             </svg> --}}
             <div>
                 <div class="dashboard-hero-kicker">
-                    Admin Quick View
+                    Quick View
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center">
