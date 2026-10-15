@@ -329,8 +329,13 @@
                     </td>
                     <td>{{ $allottees->firstItem() + $loop->index }}</td>
                     <td>
-                        <div class="table-name">
-                            {{ trim(($allottee->allottee_name ?? '') . ' ' . ($allottee->allottee_middle_name ?? '') . ' ' . ($allottee->allottee_surname ?? '')) ?: '-' }}
+                        <div class="table-name" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <span>{{ trim(($allottee->allottee_name ?? '') . ' ' . ($allottee->allottee_middle_name ?? '') . ' ' . ($allottee->allottee_surname ?? '')) ?: '-' }}</span>
+                            @if ((int) $allottee->is_synced === 1)
+                                <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.3px;"><i class="fa-solid fa-cloud-arrow-down"></i> Synced</span>
+                            @else
+                                <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.3px;"><i class="fa-solid fa-user-pen"></i> Manual</span>
+                            @endif
                         </div>
                         <div class="table-email" style="color: #0284c7; font-weight: 500; font-size: 12px; margin-top: 2px;">
                             <i class="fa-solid fa-user-circle"></i> {{ $allottee->username ?: 'N/A' }}

@@ -102,26 +102,27 @@
                 @php
                 $otpRequired = session('otp_required', false);
                 $emailValue = old('email', session('email', ''));
+                $loginMethod = old('login_method', 'username');
                 @endphp
 
                 <form method="POST" action="{{ route('login.post') }}" class="login-form">
                     @csrf
                     <input type="hidden" name="otp_stage" value="{{ $otpRequired ? 1 : 0 }}">
-                    <input type="hidden" name="login_method" id="login_method" value="2fa_only">
+                    <input type="hidden" name="login_method" id="login_method" value="{{ $loginMethod }}">
 
                     @if(! $otpRequired)
                     @endif
 
                     <div class="field" id="email-field-container">
-                        <label for="email" id="email-label"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                        <label for="email" id="email-label"><i class="fa-regular fa-envelope"></i> {{ $loginMethod === '2fa_only' ? 'Email Address' : 'Email or Username' }}</label>
                         <input id="email" name="email" type="text" value="{{ $emailValue }}" placeholder="user@jharkhand.gov.in" required @if($otpRequired) readonly @endif>
                     </div>
 
                     @if (! $otpRequired)
-                    <div id="username-login-section">
+                    <div id="username-login-section" class="{{ $loginMethod === '2fa_only' ? '' : 'show' }}">
                         <div class="field" style="margin-bottom: 0;">
                             <label for="password"><i class="fa-solid fa-lock"></i> Password / PIN</label>
-                            <input id="password" name="password" type="password" placeholder="··········">
+                            <input id="password" name="password" type="password" placeholder="··········" {{ $loginMethod === '2fa_only' ? '' : 'required' }}>
                             <!-- Eye Icon -->
                             <i id="togglePassword" class="fa-solid fa-eye"></i>
                         </div>
@@ -130,7 +131,7 @@
                     <div class="field captcha-field">
                         <label for="captcha_input">Security Captcha</label>
                         <div class="captcha-row">
-                            <div id="captchaCode" class="captcha-code">JH42K</div>
+                            <div id="captchaCode" class="captcha-code">Jh42K</div>
                             <button type="button" class="captcha-refresh" id="refreshCaptcha" aria-label="Refresh captcha"><i class="fa-solid fa-arrows-rotate"></i></button>
                             <input id="captcha_input" name="captcha_input" type="text" placeholder="Enter code" autocomplete="off" required>
                         </div>
@@ -138,8 +139,8 @@
                     @endif
 
                     @if(! $otpRequired)
-                    <div class="toggle-login-mode" id="toggle-login-mode" style="margin-top: 1rem;">
-                        <i class="fa-solid fa-lock"></i> <span id="toggle-text">Login with Password instead</span>
+                    <div class="toggle-login-mode {{ $loginMethod === '2fa_only' ? 'toggled' : '' }}" id="toggle-login-mode" style="margin-top: 1rem;">
+                        <i class="fa-solid {{ $loginMethod === '2fa_only' ? 'fa-lock' : 'fa-shield-halved' }}"></i> <span id="toggle-text">{{ $loginMethod === '2fa_only' ? 'Login with Password instead' : 'Login with 2FA instead' }}</span>
                     </div>
                     @endif
 
@@ -171,7 +172,7 @@
                     </div>
 
                     <button type="submit" class="btn-submit" id="loginBtn" @if(! $otpRequired) disabled @endif>
-                        <i class="fa-solid fa-arrow-right-to-bracket"></i> <span id="submit-btn-text">{{ $otpRequired ? 'Verify & Login' : 'Proceed' }}</span>
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> <span id="submit-btn-text">{{ $otpRequired ? 'Verify & Login' : ($loginMethod === '2fa_only' ? 'Proceed' : 'Login to Account') }}</span>
                     </button>
                 </form>
 

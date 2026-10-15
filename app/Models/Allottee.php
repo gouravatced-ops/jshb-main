@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\EncryptedRouteKey;
 use App\Models\Application;
+use App\Models\Scheme;
+use App\Models\SchemeFinancial;
+use App\Models\Division;
+use App\Models\SubDivision;
+use App\Models\PropertyCategory;
+use App\Models\QuarterType;
+use App\Models\AllotteeStageTracker;
+use App\Models\User;
 
 class Allottee extends Model
 {
@@ -65,12 +73,19 @@ class Allottee extends Model
         'update_ip_address',
         'allottee_document_path',
         'is_step_completed',
+        'is_synced',
         'is_cancelled',
         'cancellation_reason',
         'cancelled_at',
         'updated_by',
         'created_by',
         'deleted_at',
+    ];
+
+    protected $casts = [
+        'is_step_completed' => 'integer',
+        'is_synced' => 'integer',
+        'is_cancelled' => 'boolean',
     ];
 
     // Parent relationship (the parent of this allottee)
@@ -318,7 +333,7 @@ class Allottee extends Model
         $allottees = self::select('scheme_id')->whereNotNull('scheme_id')->get();
         $schemeIds = $allottees->pluck('scheme_id')->unique()->toArray();
         
-        $financials = \App\Models\SchemeFinancial::whereIn('scheme_id', $schemeIds)
+        $financials = SchemeFinancial::whereIn('scheme_id', $schemeIds)
             ->pluck('property_total_cost', 'scheme_id');
             
         $total = 0;
@@ -333,5 +348,20 @@ class Allottee extends Model
     public function userdetails()
     {
         return $this->belongsTo(User::class, 'username', 'username');
+    }
+
+    public function getIsSyncedTextAttribute(): string
+    {
+        return (int) $this->is_synced === 1 ? 'Synced' : 'Manual';
+    }
+
+    public function scopeSynced($query)
+    {
+        return $query->where('is_synced', 1);
+    }
+
+    public function scopeManual($query)
+    {
+        return $query->where('is_synced', 0);
     }
 }

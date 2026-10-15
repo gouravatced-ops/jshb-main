@@ -801,9 +801,10 @@ class ApplicationService
 
                 // 4. Create Application Movement (Forward to Next Step)
                 if ($nextStep) {
+                    $fallbackUserId = User::whereIn('role_id', [8, 9])->value('id') ?? 6;
                     ApplicationMovement::create([
                         'application_id' => $application->id,
-                        'from_user_id' => auth()->id() ?? 1,
+                        'from_user_id' => auth()->id() ?? $fallbackUserId,
                         'to_user_id' => $targetUser ? $targetUser->id : null,
                         'from_role_id' => auth()->check() ? auth()->user()->role_id : $startingStep->role_id,
                         'to_role_id' => $nextStep->role_id,

@@ -121,7 +121,7 @@
                                 </select>
                             </div>
 
-                            <div class="form-group" style="display:flex; align-items:center; gap: 10px; margin-top: 30px;">
+                            <div class="form-group" id="isDefaultGroup" style="display:flex; align-items:center; gap: 10px; margin-top: 30px;">
                                 <input type="checkbox" name="is_default" id="isDefault" value="1" {{ old('is_default', $member->is_default) ? 'checked' : '' }} style="width:20px; height:20px;">
                                 <label for="isDefault" style="margin:0; cursor:pointer;">Set as Default Member for this Role/Division</label>
                             </div>
@@ -162,6 +162,8 @@
         const subDivisionSelect = document.getElementById('subDivisionSelect');
         const assistantToGroup = document.getElementById('assistantToGroup');
         const assistantToSelect = document.getElementById('assistantToSelect');
+        const isDefaultGroup = document.getElementById('isDefaultGroup');
+        const isDefaultCheckbox = document.getElementById('isDefault');
 
         function toggleFields() {
             const selectedOption = roleSelect.options[roleSelect.selectedIndex];
@@ -176,7 +178,9 @@
                 assistantToSelect.value = '';
             }
 
-            if (slug === 'operator' || slug === 'managing-director' || slug === 'co-assistant' || slug === 'revenue-officer' || slug === 'chief-accounts-officer' || slug === 'chief-financial-officer' || slug === 'secretary-chief-engineer') {
+            const noDivisionSlugs = ['admin', 'operator', 'managing-director', 'co-assistant', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer'];
+
+            if (noDivisionSlugs.includes(slug)) {
                 divisionGroup.style.display = 'none';
                 subDivisionGroup.style.display = 'none';
                 divisionSelect.removeAttribute('required');
@@ -186,6 +190,13 @@
                 divisionGroup.style.display = 'block';
                 subDivisionGroup.style.display = 'block';
                 divisionSelect.setAttribute('required', 'required');
+            }
+
+            if (slug === 'admin') {
+                if (isDefaultGroup) isDefaultGroup.style.display = 'none';
+                if (isDefaultCheckbox) isDefaultCheckbox.checked = false;
+            } else {
+                if (isDefaultGroup) isDefaultGroup.style.display = 'flex';
             }
         }
 

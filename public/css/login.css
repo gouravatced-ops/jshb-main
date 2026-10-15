@@ -714,10 +714,7 @@ body {
     color: var(--green-dark);
 }
 .toggle-login-mode i {
-    transition: transform 0.3s ease;
-}
-.toggle-login-mode.toggled i {
-    transform: rotate(180deg);
+    font-size: 0.95rem;
 }
 
 #username-login-section {

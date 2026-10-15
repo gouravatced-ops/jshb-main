@@ -6,6 +6,8 @@ use App\Mail\AllotteeCredentialMail;
 
 use App\Models\Allottee;
 use App\Models\AllotteeTransaction;
+use App\Models\AllotteeLedger;
+use App\Models\AllotteeStageTracker;
 use App\Models\AllotteesContactDetail;
 use App\Models\Division;
 use App\Models\QuarterType;
@@ -33,10 +35,17 @@ class AllotteeService
             $subDivisionId     = decryptId($data['subdivision_id']);
             $pcategoryId       = decryptId($data['pcategory_id']);
             $propertyTypeId    = decryptId($data['property_type_id']);
-            $propertySubTypeId = decryptId($data['p_sub_type_id'] ?? null);
             $quarterId         = decryptId($data['quarter_id']);
 
             $applicant = $applicantId ? Allottee::find($applicantId) : new Allottee();
+
+            $rawSubType = $data['p_sub_type_id'] ?? null;
+            if (!empty($rawSubType)) {
+                $propertySubTypeId = is_numeric($rawSubType) ? (int) $rawSubType : decryptId($rawSubType);
+            } else {
+                $scheme = isset($data['scheme_id']) ? Scheme::find($data['scheme_id']) : null;
+                $propertySubTypeId = $applicant->p_sub_type_id ?: ($scheme?->p_sub_type_id ?? null);
+            }
 
             $isDraftLogin = !$applicant->exists || Str::startsWith((string) $applicant->username, 'DRAFT_');
             $plainPassword = null;
@@ -48,6 +57,7 @@ class AllotteeService
                 $applicant->password = Hash::make($plainPassword);
                 $applicant->create_ip_address = $ipAddress;
                 $applicant->created_by = Auth::id();
+                $applicant->is_synced = 0;
             }
 
             if (empty($applicant->property_number)) {
@@ -164,10 +174,10 @@ class AllotteeService
             );
 
             // UPDATE ALLOTTEE LEDGER
-            $lastLedger = \App\Models\AllotteeLedger::where('allottee_id', $applicant->id)->orderBy('id', 'desc')->first();
+            $lastLedger = AllotteeLedger::where('allottee_id', $applicant->id)->orderBy('id', 'desc')->first();
             $runningBalance = ($lastLedger->running_balance ?? 0) - $amount;
 
-            \App\Models\AllotteeLedger::create([
+            AllotteeLedger::create([
                 'allottee_id'      => $applicant->id,
                 'payment_id'       => $payment->id,
                 'order_id'         => $payment->id,
@@ -186,7 +196,7 @@ class AllotteeService
 
             DB::commit();
 
-            \App\Models\AllotteeStageTracker::create([
+            AllotteeStageTracker::create([
                 'allottee_id'    => $applicant->id,
                 'application_no' => $applicant->application_no,
                 'stage_type'     => 'lottery_payment',
@@ -367,36 +377,10 @@ class AllotteeService
                     'password' => $plainPassword
                 ]);
 
-                $portalUrl = config('jshb.allottee_portal_url', 'http://localhost/jshb-allottees');
-
-                $notificationService = app(NotificationService::class);
-                $notificationService->send([
-                    'user_id' => $user->id,
-                    'application_id' => $application ? $application->id : null,
-                    'allottee_id' => $allottee->id,
-                    'is_allottee' => true,
-                    'notification_type' => 'info',
-                    'subject' => 'Your JSHB Allottee Portal Login Credentials',
-                    'message' => 'Credentials sent automatically after Step 3.',
-                    'email_id' => $user->email,
-                    'send_email' => true,
-                    'mailable' => new AllotteeCredentialMail($user->username, $plainPassword, $portalUrl)
-                ]);
-
-                // Send System Email
-                $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
-                $adminSubject = "New Allottee Created";
-                $adminMessage = "Dear Admin,\n\nA new allottee has been successfully created in the system.\n\nAllottee Name: {$user->name}\nUsername/Email: {$user->username}\n\nPlease check the JSHB portal for more details.";
-
-                $notificationService->send([
-                    'user_id' => 6, // Hardcoded per user request in previous session
-                    'email_id' => $systemEmail,
-                    'subject' => $adminSubject,
-                    'message' => $adminMessage,
-                    'notification_type' => 'system',
-                    'send_email' => true,
-                    'send_sms' => false
-                ]);
+                // ----------------------------------------------------
+                // PROFESSIONAL ARCHITECTURE: FIRE EVENT INSTEAD OF DIRECT MAIL
+                // ----------------------------------------------------
+                event(new \App\Events\AllotteeCreated($user, $allottee, $application ?? null, $plainPassword));
 
                 // Send Welcome Email
                 if (filter_var($user->email, FILTER_VALIDATE_EMAIL)) {

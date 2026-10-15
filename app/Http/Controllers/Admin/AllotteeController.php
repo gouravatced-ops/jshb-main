@@ -692,6 +692,9 @@ class AllotteeController extends Controller
             $flat = trim((string) $request->flat);
             $query->where('allotment_no', 'like', "%{$flat}%");
         }
+        if ($request->filled('is_synced')) {
+            $query->where('is_synced', (int) $request->is_synced);
+        }
         $allottees = $query->latest('id')->paginate(20)->appends($request->query());
         $divisions = Division::select('id', 'name')->where('status', 1)->orderBy('name')->get();
         $subDivisions = SubDivision::select('id', 'name')->where('status', 1)->orderBy('name')->get();
@@ -1358,8 +1361,13 @@ class AllotteeController extends Controller
     public function saveStep0(Step0Request $request, AllotteeService $allotteeService)
     {
         try {
+            $data = $request->validated();
+            if ($request->has('p_sub_type_id') && !isset($data['p_sub_type_id'])) {
+                $data['p_sub_type_id'] = $request->input('p_sub_type_id');
+            }
+
             $result = $allotteeService->processStep0(
-                $request->validated(),
+                $data,
                 $request->ip(),
                 $request->applicant_id
             );

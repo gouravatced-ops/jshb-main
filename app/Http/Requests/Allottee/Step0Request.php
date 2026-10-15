@@ -45,6 +45,7 @@ class Step0Request extends FormRequest
             'subdivision_id'   => 'required|string',
             'pcategory_id'     => 'required|string',
             'property_type_id' => 'required|string',
+            'p_sub_type_id'    => 'nullable|string',
             'quarter_id'       => 'required|string',
             'scheme_id'        => 'required|integer|exists:schemes,id',
         ];

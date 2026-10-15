@@ -11,6 +11,29 @@ use Exception;
 trait DocumentUploadTrait
 {
     /**
+     * Get the absolute physical path for the documents directory outside the project.
+     */
+    private function getBaseTargetDir()
+    {
+        $parentDir = dirname(base_path());
+        
+        // 1. Try to use .env variable if set
+        $baseTargetDir = config('app.doc_api_local_path');
+
+        if (empty($baseTargetDir)) {
+            // 2. Fallback for production server (Plesk/cPanel folder)
+            if (File::isDirectory($parentDir . '/dossier.adms.jshb.computered.co.in')) {
+                $baseTargetDir = $parentDir . '/dossier.adms.jshb.computered.co.in';
+            } else {
+                // 3. Fallback for local (XAMPP folder)
+                $baseTargetDir = $parentDir . '/jshb-doc';
+            }
+        }
+
+        return rtrim($baseTargetDir, '/');
+    }
+
+    /**
      * Common logic to save document directly to the local disk, bypassing HTTP API.
      */
     private function saveDocumentDirectly($fileOrContent, $originalFileName, $category, $data, $isFileContent = false)
@@ -115,22 +138,8 @@ trait DocumentUploadTrait
         $subFolderPath = implode('/', $pathSegments);
 
         // HTTP URLs cannot be used for saving files. We MUST use a physical hard drive path.
-        // Find the physical path on the hard drive
-        $parentDir = dirname(base_path());
-
-        // 1. Try to use .env variable if set
-        $baseTargetDir = config('app.doc_api_local_path');
-
-        if (empty($baseTargetDir)) {
-            // 2. Fallback for production server (Plesk/cPanel folder)
-            if (File::isDirectory($parentDir . '/dossier.adms.jshb.computered.co.in')) {
-                $baseTargetDir = $parentDir . '/dossier.adms.jshb.computered.co.in';
-            } else {
-                // 3. Fallback for local (XAMPP folder)
-                $baseTargetDir = $parentDir . '/jshb-doc';
-            }
-        }
-        $targetDir = rtrim($baseTargetDir, '/') . '/documents/' . $subFolderPath;
+        $baseTargetDir = $this->getBaseTargetDir();
+        $targetDir = $baseTargetDir . '/documents/' . $subFolderPath;
 
         // Create directory if it does not exist
         if (!File::isDirectory($targetDir)) {
@@ -181,7 +190,10 @@ trait DocumentUploadTrait
     ) {
         // Delete old file if provided
         if (!empty($oldFilePath)) {
-            $oldFile = public_path($oldFilePath);
+            $baseTargetDir = $this->getBaseTargetDir();
+            // Resolve the absolute path outside the project folder
+            $oldFile = $baseTargetDir . '/' . ltrim($oldFilePath, '/');
+            
             if (File::exists($oldFile)) {
                 File::delete($oldFile);
             }

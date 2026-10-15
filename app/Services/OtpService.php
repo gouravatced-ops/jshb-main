@@ -271,8 +271,9 @@ class OtpService
 
     /**
      * Check if user has a valid OTP login session (within 8 hours)
+     * and the IP address matches the one used to set the validity.
      */
-    public function isOtpLoginValid(?int $userId): bool
+    public function isOtpLoginValid(?int $userId, ?string $currentIp = null): bool
     {
         $user = User::find($userId);
 
@@ -280,19 +281,37 @@ class OtpService
             return false;
         }
 
-        return now()->lessThan($user->otp_login_valid_until);
+        if (!now()->lessThan($user->otp_login_valid_until)) {
+            return false; // Time expired
+        }
+
+        if ($currentIp) {
+            // Check the last successful login IP from the database
+            $lastLogin = \App\Models\LoginLog::where('user_id', $userId)
+                ->where('status', 'success')->where('action', 'otp_login')
+                ->latest('created_at')
+                ->first();
+
+            if ($lastLogin && $lastLogin->ip_address !== $currentIp) {
+                // IP changed since last successful login! Require OTP again for security.
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
-     * Set OTP login validity for 8 hours after successful OTP login
+     * Set OTP login validity for 8 hours after successful OTP login.
+     * (IP is automatically tracked via the LoginLog model in AuthController)
      */
-    public function setOtpLoginValidity(?int $userId): void
+    public function setOtpLoginValidity(?int $userId, ?string $ipAddress = null): void
     {
         $user = User::find($userId);
         if ($user) {
             $validUntil = now()->addHours(8);
             $user->update(['otp_login_valid_until' => $validUntil]);
-            Log::info("OTP login validity set for user_id: {$userId}, valid until: {$validUntil->toDateTimeString()}");
+            Log::info("OTP login validity set for user_id: {$userId}, valid until: {$validUntil->toDateTimeString()}, IP: {$ipAddress}");
         }
     }
 

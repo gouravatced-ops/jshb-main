@@ -37,6 +37,12 @@
             href="{{ route('admin.allottees.cancellations') }}">
             <i class="fa-solid fa-ban"></i> Cancellations
         </a>
+
+        <!-- Sync Allottees (Citizen Portal) -->
+        <a class="submenu-item {{ request()->routeIs('admin.future-allottees.*') ? 'active' : '' }}"
+            href="{{ route('admin.future-allottees.index') }}">
+            <i class="fa-solid fa-arrows-rotate"></i> Sync Allottees
+        </a>
     </div>
 </div>
 

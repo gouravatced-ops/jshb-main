@@ -13,6 +13,8 @@ use Illuminate\Queue\Events\JobFailed;
 use App\Models\User;
 use App\Models\Notification;
 use App\Models\AllotteeNotification;
+use App\Events\AllotteeCreated;
+use App\Listeners\SendAllotteeCredentials;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Failed;
 use App\Listeners\LogSuccessfulLogin;
@@ -34,6 +36,38 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::define('super-admin', function (User $user) {
             return $user->roleRelation?->slug === 'super-admin';
+        });
+
+        // Register Events
+        Event::listen(AllotteeCreated::class, SendAllotteeCredentials::class);
+
+        // ----------------------------------------------------
+        // MODULE-BASED GATES (Using User Model Attributes)
+        // ----------------------------------------------------
+
+        Gate::define('manage-allottees', function (User $user) {
+            // Allow only administration (admin, super-admin)
+            return $user->user_type === 'administration';
+        });
+
+        Gate::define('manage-transactions', function (User $user) {
+            return $user->user_type === 'administration' || $user->user_type === 'accountant';
+        });
+
+        Gate::define('manage-components', function (User $user) {
+            return $user->user_type === 'administration';
+        });
+
+        Gate::define('manage-applications', function (User $user) {
+            return in_array($user->user_type, ['administration', 'engineer', 'operator', 'coassistant']);
+        });
+
+        Gate::define('manage-workflows', function (User $user) {
+            return $user->user_type === 'administration';
+        });
+
+        Gate::define('view-reports', function (User $user) {
+            return in_array($user->user_type, ['administration', 'engineer', 'division', 'managing']);
         });
         // Inject notifications into header and sidebar components
         View::composer(['components.header', 'components.partials.common-sidebar-elements'], function ($view) {
