@@ -120,7 +120,7 @@
                                 </select>
                             </div>
 
-                            <div class="form-group" style="display:flex; align-items:center; gap: 10px; margin-top: 30px;">
+                            <div class="form-group" id="isDefaultGroup" style="display:flex; align-items:center; gap: 10px; margin-top: 30px;">
                                 <input type="checkbox" name="is_default" id="isDefault" value="1" {{ old('is_default') ? 'checked' : '' }} style="width:20px; height:20px;">
                                 <label for="isDefault" style="margin:0; cursor:pointer;">Set as Default Member for this Role/Division</label>
                             </div>
@@ -161,11 +161,13 @@
         const subDivisionSelect = document.getElementById('subDivisionSelect');
         const assistantToGroup = document.getElementById('assistantToGroup');
         const assistantToSelect = document.getElementById('assistantToSelect');
+        const isDefaultGroup = document.getElementById('isDefaultGroup');
+        const isDefaultCheckbox = document.getElementById('isDefault');
 
         function toggleFields() {
             const selectedOption = roleSelect.options[roleSelect.selectedIndex];
             const slug = selectedOption ? selectedOption.getAttribute('data-slug') : '';
-            
+
             if (slug === 'co-assistant') {
                 assistantToGroup.style.display = 'block';
                 assistantToSelect.setAttribute('required', 'required');
@@ -175,7 +177,9 @@
                 assistantToSelect.value = '';
             }
 
-            if (slug === 'operator' || slug === 'managing-director' || slug === 'co-assistant' || slug === 'revenue-officer' || slug === 'chief-accounts-officer' || slug === 'chief-financial-officer' || slug === 'secretary-chief-engineer') {
+            const noDivisionSlugs = ['admin', 'operator', 'managing-director', 'co-assistant', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer'];
+
+            if (noDivisionSlugs.includes(slug)) {
                 divisionGroup.style.display = 'none';
                 subDivisionGroup.style.display = 'none';
                 divisionSelect.removeAttribute('required');
@@ -186,15 +190,22 @@
                 subDivisionGroup.style.display = 'block';
                 divisionSelect.setAttribute('required', 'required');
             }
+
+            if (slug === 'admin') {
+                if (isDefaultGroup) isDefaultGroup.style.display = 'none';
+                if (isDefaultCheckbox) isDefaultCheckbox.checked = false;
+            } else {
+                if (isDefaultGroup) isDefaultGroup.style.display = 'flex';
+            }
         }
 
         function filterSubDivisions() {
             const divisionId = divisionSelect.value;
             let hasOptions = false;
-            
+
             Array.from(subDivisionSelect.options).forEach(option => {
                 if (option.value === "") return; // Skip placeholder
-                
+
                 if (option.getAttribute('data-division') === divisionId) {
                     option.style.display = '';
                     hasOptions = true;
@@ -212,7 +223,7 @@
 
         roleSelect.addEventListener('change', toggleFields);
         divisionSelect.addEventListener('change', filterSubDivisions);
-        
+
         toggleFields(); // Run on initial load in case of validation errors
         filterSubDivisions(); // Run on initial load to set correct sub divisions
     });

@@ -6,6 +6,8 @@ use App\Mail\AllotteeCredentialMail;
 
 use App\Models\Allottee;
 use App\Models\AllotteeTransaction;
+use App\Models\AllotteeLedger;
+use App\Models\AllotteeStageTracker;
 use App\Models\AllotteesContactDetail;
 use App\Models\Division;
 use App\Models\QuarterType;
@@ -33,10 +35,17 @@ class AllotteeService
             $subDivisionId     = decryptId($data['subdivision_id']);
             $pcategoryId       = decryptId($data['pcategory_id']);
             $propertyTypeId    = decryptId($data['property_type_id']);
-            $propertySubTypeId = decryptId($data['p_sub_type_id'] ?? null);
             $quarterId         = decryptId($data['quarter_id']);
 
             $applicant = $applicantId ? Allottee::find($applicantId) : new Allottee();
+
+            $rawSubType = $data['p_sub_type_id'] ?? null;
+            if (!empty($rawSubType)) {
+                $propertySubTypeId = is_numeric($rawSubType) ? (int) $rawSubType : decryptId($rawSubType);
+            } else {
+                $scheme = isset($data['scheme_id']) ? Scheme::find($data['scheme_id']) : null;
+                $propertySubTypeId = $applicant->p_sub_type_id ?: ($scheme?->p_sub_type_id ?? null);
+            }
 
             $isDraftLogin = !$applicant->exists || Str::startsWith((string) $applicant->username, 'DRAFT_');
             $plainPassword = null;
@@ -48,6 +57,7 @@ class AllotteeService
                 $applicant->password = Hash::make($plainPassword);
                 $applicant->create_ip_address = $ipAddress;
                 $applicant->created_by = Auth::id();
+                $applicant->is_synced = 0;
             }
 
             if (empty($applicant->property_number)) {
@@ -164,10 +174,10 @@ class AllotteeService
             );
 
             // UPDATE ALLOTTEE LEDGER
-            $lastLedger = \App\Models\AllotteeLedger::where('allottee_id', $applicant->id)->orderBy('id', 'desc')->first();
+            $lastLedger = AllotteeLedger::where('allottee_id', $applicant->id)->orderBy('id', 'desc')->first();
             $runningBalance = ($lastLedger->running_balance ?? 0) - $amount;
 
-            \App\Models\AllotteeLedger::create([
+            AllotteeLedger::create([
                 'allottee_id'      => $applicant->id,
                 'payment_id'       => $payment->id,
                 'order_id'         => $payment->id,
@@ -186,7 +196,7 @@ class AllotteeService
 
             DB::commit();
 
-            \App\Models\AllotteeStageTracker::create([
+            AllotteeStageTracker::create([
                 'allottee_id'    => $applicant->id,
                 'application_no' => $applicant->application_no,
                 'stage_type'     => 'lottery_payment',

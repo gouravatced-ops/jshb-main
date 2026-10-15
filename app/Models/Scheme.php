@@ -107,4 +107,12 @@ class Scheme extends Model
             'scheme_id'
         );
     }
+
+    public function schemeFinancials()
+    {
+        return $this->hasOne(
+            SchemeFinancial::class,
+            'scheme_id'
+        );
+    }
 }

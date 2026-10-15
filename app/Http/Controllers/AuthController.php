@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LoginLog;
 use App\Models\OtpLog;
+use App\Models\Setting;
 use App\Models\User;
 use App\Services\OtpService;
 use Illuminate\Http\Request;
@@ -145,9 +146,8 @@ class AuthController extends Controller
         // Success resets lockout
         $this->resetLockoutState($user);
 
-        // ─── ALWAYS REQUIRE EMAIL OTP AFTER PASSWORD ──────────────
-        // In the new flow, password login ALWAYS requires Mail OTP (ignoring Google 2FA).
-        if (true) {
+        // ─── OTP / DIRECT LOGIN BASED ON login_with_otp ──────────
+        if ($user->login_with_otp) {
             // Check if OTP login is still valid (within 8 hours AND same IP address)
             if ($this->otpService->isOtpLoginValid($user->id, $request->ip())) {
                 // Skip OTP — still within 8-hour validity window

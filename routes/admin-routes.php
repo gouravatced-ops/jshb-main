@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\BypassRequestController;
 use App\Http\Controllers\Admin\ExtensionController;
 use App\Http\Controllers\Admin\BatchProgramController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\FutureAllotteeSyncController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -143,6 +144,15 @@ Route::middleware('auth')
         // Allottee
         Route::get('/allottees/cancellations', [AllotteeCancellationController::class, 'index'])->name('allottees.cancellations');
         Route::post('/allottees/cancellations/bulk', [AllotteeCancellationController::class, 'bulkCancel'])->name('allottees.cancellations.bulk');
+
+        // Future Allottees / Citizen Portal Sync
+        Route::prefix('future-allottees')->name('future-allottees.')->group(function () {
+            Route::get('/', [FutureAllotteeSyncController::class, 'index'])->name('index');
+            Route::get('/{id}/preview', [FutureAllotteeSyncController::class, 'show'])->name('preview');
+            Route::post('/{id}/sync', [FutureAllotteeSyncController::class, 'syncSingle'])->name('sync');
+            Route::post('/bulk-sync', [FutureAllotteeSyncController::class, 'syncBatch'])->name('bulk-sync');
+            Route::post('/seed-sample-data', [FutureAllotteeSyncController::class, 'seedSampleData'])->name('seed');
+        });
 
         Route::get('/allottees/list', [AllotteeController::class, 'index'])->name('allottees.index');
         //create

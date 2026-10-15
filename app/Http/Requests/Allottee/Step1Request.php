@@ -24,6 +24,49 @@ class Step1Request extends FormRequest
      */
     public function rules(): array
     {
+        $rawId = $this->input('allottee_id') 
+              ?: $this->input('applicant_id') 
+              ?: $this->route('allottee') 
+              ?: $this->route('applicantId');
+
+        $allotteeId = null;
+        if ($rawId instanceof Allottee) {
+            $allotteeId = $rawId->id;
+        } elseif (is_numeric($rawId)) {
+            $allotteeId = (int) $rawId;
+        } elseif (is_string($rawId) && !empty($rawId)) {
+            $decrypted = decryptId($rawId);
+            $allotteeId = $decrypted ? (int) $decrypted : null;
+        }
+
+        $allottee = $allotteeId ? Allottee::find($allotteeId) : null;
+
+        // PAN Card Rule: If old == new, skip unique check; only check unique when changed
+        $panRules = ['nullable', 'string', 'max:20'];
+        $inputPan = strtoupper(trim((string)$this->input('pan_card_number', '')));
+
+        if ($allottee) {
+            $oldPan = strtoupper(trim((string)$allottee->pan_card_number));
+            if ($inputPan !== '' && $inputPan !== $oldPan) {
+                $panRules[] = Rule::unique(Allottee::class, 'pan_card_number')->ignore($allottee->id);
+            }
+        } else {
+            $panRules[] = Rule::unique(Allottee::class, 'pan_card_number');
+        }
+
+        // Aadhar Card Rule: If old == new, skip unique check; only check unique when changed
+        $aadharRules = ['nullable', 'string', 'max:20'];
+        $inputAadhar = preg_replace('/\D/', '', (string)$this->input('aadhar_card_number', ''));
+
+        if ($allottee) {
+            $oldAadhar = preg_replace('/\D/', '', (string)$allottee->aadhar_card_number);
+            if ($inputAadhar !== '' && $inputAadhar !== $oldAadhar) {
+                $aadharRules[] = Rule::unique(Allottee::class, 'aadhar_card_number')->ignore($allottee->id);
+            }
+        } else {
+            $aadharRules[] = Rule::unique(Allottee::class, 'aadhar_card_number');
+        }
+
         return [
             'application_no' => ['required', 'string', 'max:255'],
             'application_day' => ['required', 'string', 'between:1,31'],
@@ -43,8 +86,8 @@ class Step1Request extends FormRequest
             'relation_name_hindi' => ['required', 'string', 'max:100'],
             'marital_status' => ['nullable', 'string', 'max:50'],
             'allottee_gender' => ['nullable', 'string', 'max:20'],
-            'pan_card_number' => ['nullable', 'string', 'max:20', Rule::unique(Allottee::class, 'pan_card_number')->ignore($this->input('allottee_id'))],
-            'aadhar_card_number' => ['nullable', 'string', 'max:20', Rule::unique(Allottee::class, 'aadhar_card_number')->ignore($this->input('allottee_id'))],
+            'pan_card_number' => $panRules,
+            'aadhar_card_number' => $aadharRules,
             'allottee_category' => ['nullable', 'string', 'max:100'],
             'allottee_category_hindi' => ['nullable', 'string', 'max:200'],
             'allottee_religion' => ['nullable', 'string', 'max:100'],

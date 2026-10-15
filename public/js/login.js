@@ -17,12 +17,15 @@ if (togglePassword && password) {
 }
 
 (function () {
-    // CAPTCHA GENERATOR (fully functional)
+    // CAPTCHA GENERATOR (fully functional & case-sensitive)
     const captchaDiv = document.getElementById('captchaCode');
     const refreshBtn = document.getElementById('refreshCaptcha');
 
     function generateCaptcha() {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ123456789';
+        const uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const lowercase = 'abcdefghjkmnpqrstuvwxyz';
+        const numbers = '23456789';
+        const chars = uppercase + lowercase + numbers;
         let captcha = '';
         for (let i = 0; i < 5; i++) {
             captcha += chars[Math.floor(Math.random() * chars.length)];
@@ -32,14 +35,13 @@ if (togglePassword && password) {
     }
     if (captchaDiv && refreshBtn) {
         generateCaptcha();
-        refreshBtn.addEventListener('click', () => generateCaptcha());
         const captchaInput = document.getElementById('captcha_input');
         const loginBtn = document.getElementById('loginBtn');
 
         function validateCaptcha() {
             if (!captchaDiv || !captchaInput) return;
-            const currentCaptcha = captchaDiv.innerText;
-            const entered = captchaInput.value.trim().toUpperCase();
+            const currentCaptcha = captchaDiv.innerText.trim();
+            const entered = captchaInput.value.trim();
             if (loginBtn) {
                 if (entered === currentCaptcha && entered !== '') {
                     loginBtn.disabled = false;
@@ -48,6 +50,12 @@ if (togglePassword && password) {
                 }
             }
         }
+
+        refreshBtn.addEventListener('click', () => {
+            generateCaptcha();
+            validateCaptcha();
+        });
+
         captchaInput.addEventListener('input', validateCaptcha);
     }
 
@@ -73,8 +81,8 @@ if (togglePassword && password) {
         if (captchaDiv && document.getElementById('captcha_input')) {
             const captchaInp = document.getElementById('captcha_input');
             if (captchaInp && captchaInp.value.trim() !== '') {
-                const curr = captchaDiv.innerText;
-                if (curr && captchaInp.value.trim().toUpperCase() === curr) {
+                const curr = captchaDiv.innerText.trim();
+                if (curr && captchaInp.value.trim() === curr) {
                     if (loginBtnForm) loginBtnForm.disabled = false;
                 }
             }
@@ -83,7 +91,18 @@ if (togglePassword && password) {
 
     const allLoginForms = document.querySelectorAll('.login-form');
     allLoginForms.forEach(form => {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
+            // Guard: Validate captcha matches case-sensitively before submitting
+            const captchaBox = this.querySelector('#captchaCode');
+            const captchaField = this.querySelector('#captcha_input');
+            if (captchaBox && captchaField) {
+                if (captchaField.value.trim() !== captchaBox.innerText.trim()) {
+                    e.preventDefault();
+                    if (loginBtnForm) loginBtnForm.disabled = true;
+                    return false;
+                }
+            }
+
             if (this.checkValidity()) {
                 // Find the submit button within this form
                 const btn = this.querySelector('.btn-submit');
@@ -140,9 +159,10 @@ if (togglePassword && password) {
 })();
 
 (function () {
-    // Toggle logic
+    // Toggle logic (Default: Password login; Click: Toggle 2FA)
     const toggleBtn = document.getElementById('toggle-login-mode');
     const toggleText = document.getElementById('toggle-text');
+    const toggleIcon = toggleBtn ? toggleBtn.querySelector('i') : null;
     const usernameSection = document.getElementById('username-login-section');
     const emailLabel = document.getElementById('email-label');
     const loginMethodInput = document.getElementById('login_method');
@@ -151,26 +171,31 @@ if (togglePassword && password) {
 
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
-            const isEmailOtp = loginMethodInput.value === '2fa_only';
+            const isPasswordMode = loginMethodInput ? loginMethodInput.value === 'username' : true;
             
-            if (isEmailOtp) {
-                // Switch to Username/Password Mode
-                usernameSection.classList.add('show');
+            if (isPasswordMode) {
+                // Switch from Password to 2FA Mode
+                if (usernameSection) usernameSection.classList.remove('show');
                 toggleBtn.classList.add('toggled');
-                emailLabel.innerHTML = '<i class="fa-regular fa-envelope"></i> Email or Username';
-                loginMethodInput.value = 'username';
-                submitBtnText.innerText = 'Login to Account';
-                if(passwordInput) passwordInput.required = true;
-                toggleText.innerText = 'Login with 2FA instead';
+                if (toggleIcon) toggleIcon.className = 'fa-solid fa-lock';
+                if (emailLabel) emailLabel.innerHTML = '<i class="fa-regular fa-envelope"></i> Email Address';
+                if (loginMethodInput) loginMethodInput.value = '2fa_only';
+                if (submitBtnText) submitBtnText.innerText = 'Proceed';
+                if (passwordInput) {
+                    passwordInput.required = false;
+                    passwordInput.value = '';
+                }
+                if (toggleText) toggleText.innerText = 'Login with Password instead';
             } else {
-                // Switch to 2FA Mode
-                usernameSection.classList.remove('show');
+                // Switch from 2FA to Password Mode
+                if (usernameSection) usernameSection.classList.add('show');
                 toggleBtn.classList.remove('toggled');
-                emailLabel.innerHTML = '<i class="fa-regular fa-envelope"></i> Email Address';
-                loginMethodInput.value = '2fa_only';
-                submitBtnText.innerText = 'Proceed';
-                if(passwordInput) passwordInput.required = false;
-                toggleText.innerText = 'Login with Password instead';
+                if (toggleIcon) toggleIcon.className = 'fa-solid fa-shield-halved';
+                if (emailLabel) emailLabel.innerHTML = '<i class="fa-regular fa-envelope"></i> Email or Username';
+                if (loginMethodInput) loginMethodInput.value = 'username';
+                if (submitBtnText) submitBtnText.innerText = 'Login to Account';
+                if (passwordInput) passwordInput.required = true;
+                if (toggleText) toggleText.innerText = 'Login with 2FA instead';
             }
         });
     }

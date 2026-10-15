@@ -75,7 +75,7 @@ class MemberController extends Controller
         $restrictedSlugs = ['managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer'];
 
         $roles = Role::where('status', true)
-            ->whereNotIn('slug', ['admin', 'super-admin', 'allottee'])
+            ->whereNotIn('slug', ['super-admin', 'allottee'])
             ->orderBy('name')
             ->get()
             ->filter(function ($role) use ($takenRoleIds, $restrictedSlugs) {
@@ -127,23 +127,31 @@ class MemberController extends Controller
             return back()->withInput()->withErrors(['division_id' => 'The division field is required for the selected role.']);
         }
 
-        $isDefault = $request->boolean('is_default');
-        $divisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id;
-        $subDivisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->sub_division_id;
+        $noDivisionRoles = ['admin', 'operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer', 'co-assistant'];
 
-        if (!$isDefault) {
-            $existingCount = User::where('role_id', $request->role_id)
-                ->where('division_id', $divisionId)
-                ->count();
-            if ($existingCount === 0) {
-                $isDefault = true;
+        if ($role->slug === 'admin') {
+            $isDefault = false;
+            $divisionId = null;
+            $subDivisionId = null;
+        } else {
+            $isDefault = $request->boolean('is_default');
+            $divisionId = in_array($role->slug, $noDivisionRoles) ? null : $request->division_id;
+            $subDivisionId = in_array($role->slug, $noDivisionRoles) ? null : $request->sub_division_id;
+
+            if (!$isDefault) {
+                $existingCount = User::where('role_id', $request->role_id)
+                    ->where('division_id', $divisionId)
+                    ->count();
+                if ($existingCount === 0) {
+                    $isDefault = true;
+                }
             }
         }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'username' => $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername(),
+            'username' => $divisionId ? User::generateUniqueUsername($divisionId) : User::generateMemberUsername(),
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
             'division_id' => $divisionId,
@@ -182,7 +190,7 @@ class MemberController extends Controller
         $restrictedSlugs = ['managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer'];
 
         $roles = Role::where('status', true)
-            ->whereNotIn('slug', ['admin', 'super-admin', 'allottee'])
+            ->whereNotIn('slug', ['super-admin', 'allottee'])
             ->orderBy('name')
             ->get()
             ->filter(function ($role) use ($takenRoleIds, $restrictedSlugs, $member) {
@@ -239,13 +247,21 @@ class MemberController extends Controller
             return back()->withInput()->withErrors(['division_id' => 'The division field is required for the selected role.']);
         }
 
-        if ($member->username == NULL) {
-            $member->username = $request->division_id ? User::generateUniqueUsername($request->division_id) : User::generateMemberUsername();
+        $noDivisionRoles = ['admin', 'operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer', 'co-assistant'];
+
+        if ($role->slug === 'admin') {
+            $isDefault = false;
+            $divisionId = null;
+            $subDivisionId = null;
+        } else {
+            $isDefault = $request->boolean('is_default');
+            $divisionId = in_array($role->slug, $noDivisionRoles) ? null : $request->division_id;
+            $subDivisionId = in_array($role->slug, $noDivisionRoles) ? null : $request->sub_division_id;
         }
 
-        $isDefault = $request->boolean('is_default');
-        $divisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->division_id;
-        $subDivisionId = in_array($role->slug, ['operator', 'managing-director', 'revenue-officer', 'chief-accounts-officer', 'chief-financial-officer', 'secretary-chief-engineer']) ? null : $request->sub_division_id;
+        if ($member->username == NULL) {
+            $member->username = $divisionId ? User::generateUniqueUsername($divisionId) : User::generateMemberUsername();
+        }
 
         $userData = [
             'name' => $request->name,
@@ -295,8 +311,8 @@ class MemberController extends Controller
             return redirect()->route('admin.members.index')->with('error', 'You cannot delete yourself.');
         }
 
-        // Prevent deletion of admin, super-admin, and allottee
-        if ($member->roleRelation && in_array($member->roleRelation->slug, ['admin', 'super-admin', 'allottee'])) {
+        // Prevent deletion of super-admin and allottee
+        if ($member->roleRelation && in_array($member->roleRelation->slug, ['super-admin', 'allottee'])) {
             return redirect()->route('admin.members.index')->with('error', 'You cannot delete administrative or allottee accounts.');
         }
 
