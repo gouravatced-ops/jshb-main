@@ -13,7 +13,7 @@ $requiresInternalPassword = in_array($roleSlug, [
 ]);
 @endphp
 
-@if(auth()->check() && auth()->user()->is_first_login == 0)
+@if(false && auth()->check() && auth()->user()->is_first_login == 0)
 <!-- First Login Setup Modal -->
 <div id="firstSetupModal" class="password-reset-modal" style="display: flex;">
     <div class="password-reset-overlay"></div>

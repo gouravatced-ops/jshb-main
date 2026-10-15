@@ -135,10 +135,10 @@
     <x-password-reset-modal></x-password-reset-modal>
 
     <!-- First Login Setup Modal -->
-    <!-- <x-first-login-setup-modal></x-first-login-setup-modal> -->
+    {{-- <x-first-login-setup-modal></x-first-login-setup-modal> --}}
 
     <!-- Quick PIN Settings Modal -->
-    <!-- <x-quick-pin-modal></x-quick-pin-modal> -->
+    {{-- <x-quick-pin-modal></x-quick-pin-modal> --}}
 
     <!-- Internal Password Update Modal -->
     <x-internal-password-modal></x-internal-password-modal>
