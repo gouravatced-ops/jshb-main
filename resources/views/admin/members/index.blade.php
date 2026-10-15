@@ -141,17 +141,10 @@
                     </td>
                     <td>
                         <div class="action-btns">
-                            @php
-                            $roleSlug = $member->roleRelation?->slug;
-                            $isProtected = in_array($roleSlug, ['admin', 'allottee']);
-                            @endphp
-
-                            @if(!$isProtected)
                             <a class="action-btn edit" href="{{ route('admin.members.edit', $member->id) }}"
                                 title="Edit">
                                 <i class="fa-solid fa-pen text-primary"></i>
                             </a>
-                            @endif
 
                             <!-- Status Toggle (Deactive / Active Switch) -->
                             <form action="{{ route('admin.members.toggle-status', $member->id) }}" method="POST"
