@@ -7,7 +7,7 @@
     <div class="dashboard-hero-card">
         <div>
             <div class="dashboard-hero-kicker">
-                Admin Quick View
+                Quick View
             </div>
 
             <h2 class="dashboard-hero-title">Sub Division Dashboard</h2>
