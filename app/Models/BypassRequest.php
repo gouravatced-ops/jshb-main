@@ -3,6 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Application;
+use App\Models\User;
+use App\Models\Role;
+use App\Models\WorkflowStep;
 
 class BypassRequest extends Model
 {

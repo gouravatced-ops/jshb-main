@@ -17,15 +17,30 @@ class AllotteeCredentialMail extends Mailable
     public $username;
     public $password;
     public $portalLink;
+    public $allotteeName;
+    public $applicationNo;
+    public $allotmentNo;
+    public $customSubject;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($username, $password, $portalLink)
-    {
+    public function __construct(
+        $username,
+        $password,
+        $portalLink,
+        $allotteeName = null,
+        $applicationNo = null,
+        $allotmentNo = null,
+        $customSubject = null
+    ) {
         $this->username = $username;
         $this->password = $password;
         $this->portalLink = $portalLink;
+        $this->allotteeName = $allotteeName;
+        $this->applicationNo = $applicationNo;
+        $this->allotmentNo = $allotmentNo;
+        $this->customSubject = $customSubject;
     }
 
     /**
@@ -33,8 +48,15 @@ class AllotteeCredentialMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $subject = $this->customSubject;
+        if (!$subject) {
+            $subject = $this->allotteeName
+                ? 'Your JSHB Allottee Portal Login Credentials - ' . $this->allotteeName
+                : 'Your JSHB Allottee Portal Login Credentials';
+        }
+
         return new Envelope(
-            subject: 'Your JSHB Allottee Portal Login Credentials',
+            subject: $subject,
         );
     }
 

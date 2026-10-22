@@ -182,7 +182,7 @@
                                     <label class="form-check-label" for="requestBypassToggle" style="font-weight: 600; color: #856404;">
                                         <i class="fa-solid fa-forward-step me-1"></i> Request Workflow Bypass (Skip Level)
                                     </label>
-                                    <p style="margin: 5px 0 0; font-size: 12px; color: #856404; font-weight: normal;">Check this if the immediate officer is unavailable and you need to forward this directly to a higher authority. Requires Admin approval.</p>
+                                    <p style="margin: 5px 0 0; font-size: 12px; color: #856404; font-weight: normal;">Check this if the immediate officer is unavailable and you need to forward this directly to a higher authority. Requires Admin approval. Please wait <strong>24 hours</strong> for approval (pending requests are automatically approved by the system after 24 hours).</p>
                                 </div>
                             </div>
 

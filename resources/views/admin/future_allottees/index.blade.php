@@ -145,7 +145,7 @@
                             <th>Applicant Name</th>
                             <th>Target Scheme / Location</th>
                             <th>Payment Details</th>
-                            <th>Receipt Slip</th>
+                            <!-- <th>Receipt Slip</th> -->
                             <th>Sync Status</th>
                             <th class="text-end pe-3">Action</th>
                         </tr>
@@ -168,9 +168,23 @@
                                 <div class="text-muted small mt-1">{{ $item->created_at ? $item->created_at->format('d M Y, h:i A') : 'N/A' }}</div>
                             </td>
                             <td>
-                                <div class="fw-semibold text-dark">{{ $item->full_name }}</div>
+                                <div class="fw-semibold text-dark">
+                                    {{ trim(
+                                            ($item->prefix ?? '') . ' ' .
+                                            ($item->allottee_name ?? '') . ' ' .
+                                            ($item->allottee_middle_name ?? '') . ' ' .
+                                            ($item->allottee_surname ?? '')
+                                        ) ?: '-' }}
+                                </div>
                                 @if($item->allottee_name_hindi)
-                                    <div class="small text-secondary">{{ $item->allottee_name_hindi }} {{ $item->allottee_surname_hindi }}</div>
+                                    <div class="small text-secondary" style="font-family: 'KrutiDev', sans-serif, Arial; font-size: 20px;">
+                                        {{ trim(
+                                            ($item->allottee_prefix_hindi ?? '') . ' ' .
+                                            ($item->allottee_name_hindi ?? '') . ' ' .
+                                            ($item->allottee_middle_hindi ?? '') . ' ' .
+                                            ($item->allottee_surname_hindi ?? '')
+                                        ) ?: '-' }}
+                                    </div>
                                 @endif
                                 <div class="small text-muted">
                                     <i class="fa-solid fa-phone me-1 text-secondary" style="font-size: 10px;"></i>{{ $item->mobile }}
@@ -178,7 +192,7 @@
                             </td>
                             <td>
                                 <div class="fw-medium text-dark">{{ $item->scheme?->scheme_code ?? 'Scheme #' . $item->scheme_id }}</div>
-                                <div class="small text-muted">
+                                <div class="small text-dark">
                                     {{ $item->division?->name ?? 'Div ' . $item->division_id }}
                                     @if($item->subDivision)
                                         • {{ $item->subDivision->name }}
@@ -196,7 +210,7 @@
                                     <span class="text-muted small">No payment info</span>
                                 @endif
                             </td>
-                            <td>
+                            <!-- <td>
                                 @if($item->transaction && $item->transaction->receipt_path)
                                     <a href="{{ asset($item->transaction->receipt_path) }}" target="_blank" class="btn btn-outline-primary btn-sm py-1 px-2 text-nowrap" style="font-size: 11px;">
                                         <i class="fa-solid fa-file-invoice me-1"></i> View Slip
@@ -204,7 +218,7 @@
                                 @else
                                     <span class="text-muted small">N/A</span>
                                 @endif
-                            </td>
+                            </td> -->
                             <td>
                                 @if($item->sync_status === 'synced')
                                     <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
@@ -229,9 +243,9 @@
                             <td class="text-end pe-3">
                                 <div class="btn-group btn-group-sm">
                                     <!-- Preview Button -->
-                                    <button type="button" class="btn btn-light btn-sm border" onclick="previewRecord({{ $item->id }})" title="Preview Details">
+                                    <!-- <button type="button" class="btn btn-light btn-sm border" onclick="previewRecord({{ $item->id }})" title="Preview Details">
                                         <i class="fa-solid fa-eye text-secondary"></i>
-                                    </button>
+                                    </button> -->
 
                                     <!-- Sync Button -->
                                     @if($item->sync_status !== 'synced')

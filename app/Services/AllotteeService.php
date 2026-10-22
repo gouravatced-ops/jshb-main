@@ -5,11 +5,39 @@ namespace App\Services;
 use App\Mail\AllotteeCredentialMail;
 
 use App\Models\Allottee;
-use App\Models\AllotteeTransaction;
+use App\Models\AllotteeDocument;
+use App\Models\AllotteeEmiAccount;
+use App\Models\AllotteeEmiLedger;
+use App\Models\AllotteeEmiSchedule;
+use App\Models\AllotteeGeneratedDocument;
+use App\Models\AllotteeInitialPayment;
 use App\Models\AllotteeLedger;
+use App\Models\AllotteeMonthlyDemand;
+use App\Models\AllotteeNomineeBankDetail;
+use App\Models\AllotteeNotification;
+use App\Models\AllotteePaymentOrder;
+use App\Models\AllotteePaymentTransaction;
+use App\Models\AllotteeProcessStep;
+use App\Models\AllotteePropertyFinDetail;
+use App\Models\AllotteeSiteVerification;
 use App\Models\AllotteeStageTracker;
+use App\Models\AllotteeStepDuration;
+use App\Models\AllotteeTransaction;
 use App\Models\AllotteesContactDetail;
+use App\Models\Application;
+use App\Models\ApplicationAuditTrail;
+use App\Models\ApplicationCorrespondence;
+use App\Models\ApplicationDocument;
+use App\Models\ApplicationExtensionRequest;
+use App\Models\ApplicationMovement;
+use App\Models\ApplicationNote;
+use App\Models\BypassRequest;
+use App\Models\CommunicationTrack;
 use App\Models\Division;
+use App\Models\DocumentGenerationQueue;
+use App\Models\DocumentRequest;
+use App\Models\FutureAllottee;
+use App\Models\Notification;
 use App\Models\QuarterType;
 use App\Models\Scheme;
 use App\Models\SubDivision;
@@ -20,6 +48,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class AllotteeService
@@ -430,5 +459,196 @@ class AllotteeService
             $password .= $allChars[random_int(0, strlen($allChars) - 1)];
         }
         return str_shuffle($password);
+    }
+
+    /**
+     * Completely delete an allottee and all its related records across adms_allottees and adms_jshb.
+     * If the allottee was synced from Citizen Portal, revert the staging record in future_allottees to 'pending'.
+     *
+     * @param Allottee $allottee
+     * @return array
+     */
+    public function deleteAllottee(Allottee $allottee): array
+    {
+        $allotteeId = $allottee->id;
+        $isSynced   = (int) ($allottee->is_synced ?? 0) === 1;
+
+        DB::connection('adms_allottees')->beginTransaction();
+        DB::connection('adms_jshb')->beginTransaction();
+
+        try {
+            // 1. Revert Citizen Portal FutureAllottee record if this was a synced allottee
+            $revertedFuture = FutureAllottee::where('synced_allottee_id', $allotteeId)->first();
+            if (!$revertedFuture && !empty($allottee->application_no)) {
+                $revertedFuture = FutureAllottee::where('application_no', $allottee->application_no)
+                    ->where('sync_status', 'synced')
+                    ->first();
+            }
+
+            if ($revertedFuture) {
+                $revertedFuture->update([
+                    'sync_status'           => 'pending',
+                    'synced_allottee_id'    => null,
+                    'synced_application_id' => null,
+                    'synced_at'             => null,
+                    'error_log'             => null,
+                ]);
+            }
+
+            // 2. Delete Workflow Applications & movements, notes, documents in adms_jshb
+            $applications = Application::where('allottee_id', $allotteeId)->get();
+            foreach ($applications as $app) {
+                // Delete movements
+                ApplicationMovement::where('application_id', $app->id)->delete();
+
+                // Delete notes
+                ApplicationNote::where('application_id', $app->id)->delete();
+
+                // Delete application documents (and physical files)
+                $appDocs = ApplicationDocument::where('application_id', $app->id)->get();
+                foreach ($appDocs as $ad) {
+                    if (!empty($ad->file_path) && file_exists(public_path($ad->file_path))) {
+                        @unlink(public_path($ad->file_path));
+                    }
+                }
+                ApplicationDocument::where('application_id', $app->id)->delete();
+
+                // Delete audit trails
+                ApplicationAuditTrail::where('application_id', $app->id)->delete();
+
+                // Delete notifications in adms_jshb
+                Notification::where('application_id', $app->id)->delete();
+
+                // Delete communication tracks
+                CommunicationTrack::where('application_id', $app->id)->delete();
+
+                // Delete correspondences
+                ApplicationCorrespondence::where('application_id', $app->id)->delete();
+
+                // Delete bypass & extension requests
+                BypassRequest::where('application_id', $app->id)->delete();
+                ApplicationExtensionRequest::where('application_id', $app->id)->delete();
+
+                // Clean optional application child tables if they exist
+                if (Schema::connection('adms_jshb')->hasTable('application_status_history')) {
+                    DB::connection('adms_jshb')->table('application_status_history')->where('application_id', $app->id)->delete();
+                }
+                if (Schema::connection('adms_jshb')->hasTable('application_pdf_history')) {
+                    DB::connection('adms_jshb')->table('application_pdf_history')->where('application_id', $app->id)->delete();
+                }
+
+                // Delete the application itself
+                if (method_exists($app, 'forceDelete')) {
+                    $app->forceDelete();
+                } else {
+                    $app->delete();
+                }
+            }
+
+            // Clean up adms_jshb records referencing allottee_id directly
+            DocumentRequest::where('allottee_id', $allotteeId)->delete();
+            CommunicationTrack::where('allottee_id', $allotteeId)->delete();
+            DocumentGenerationQueue::where('allottee_id', $allotteeId)->delete();
+
+            // 3. Delete Generated Documents in adms_allottees (and unlink physical files)
+            $genDocs = AllotteeGeneratedDocument::where('allottee_id', $allotteeId)->get();
+            foreach ($genDocs as $doc) {
+                if (!empty($doc->file_path) && file_exists(public_path($doc->file_path))) {
+                    @unlink(public_path($doc->file_path));
+                }
+                if (!empty($doc->signed_file_path) && file_exists(public_path($doc->signed_file_path))) {
+                    @unlink(public_path($doc->signed_file_path));
+                }
+            }
+            AllotteeGeneratedDocument::where('allottee_id', $allotteeId)->delete();
+
+            // 4. Delete Transactions in adms_allottees (and unlink receipt files)
+            $txns = AllotteeTransaction::where('allottee_id', $allotteeId)->get();
+            foreach ($txns as $txn) {
+                if (!empty($txn->receipt_path) && file_exists(public_path($txn->receipt_path))) {
+                    @unlink(public_path($txn->receipt_path));
+                }
+            }
+            AllotteeTransaction::where('allottee_id', $allotteeId)->delete();
+
+            // 5. Delete Uploaded Allottee Documents in adms_allottees (and unlink physical files)
+            $docs = AllotteeDocument::where('allottee_id', $allotteeId)->get();
+            foreach ($docs as $doc) {
+                if (!empty($doc->file_path) && file_exists(public_path($doc->file_path))) {
+                    @unlink(public_path($doc->file_path));
+                }
+            }
+            AllotteeDocument::where('allottee_id', $allotteeId)->delete();
+
+            // 6. Delete all child records in adms_allottees
+            $allotteeChildTables = [
+                'allottee_ledger',
+                'allottee_stage_trackers',
+                'allottees_contact_details',
+                'allottee_process_steps',
+                'allottee_payment_orders',
+                'allottee_payment_transactions',
+                'allottee_initial_payments',
+                'allottee_emi_accounts',
+                'allottee_emi_schedules',
+                'allottee_monthly_demands',
+                'allottee_property_fin_details',
+                'allottee_nominee_bank_details',
+                'allottee_emi_ledger',
+                'allottee_step_durations',
+                'allottee_site_verifications',
+                'allottee_emi_demands',
+            ];
+
+            foreach ($allotteeChildTables as $table) {
+                if (Schema::connection('adms_allottees')->hasTable($table)) {
+                    DB::connection('adms_allottees')->table($table)->where('allottee_id', $allotteeId)->delete();
+                }
+            }
+
+            // 7. Delete Citizen Login User in adms_allottees
+            $citizenUserId = $allottee->user_id;
+            $username      = $allottee->username;
+
+            if ($citizenUserId) {
+                if (Schema::connection('adms_allottees')->hasTable('notifications')) {
+                    AllotteeNotification::where('user_id', $citizenUserId)->delete();
+                }
+                User::on('adms_allottees')->where('id', $citizenUserId)->delete();
+            }
+            if ($username) {
+                User::on('adms_allottees')->where('username', $username)->delete();
+            }
+
+            // 8. Delete Allottee document if path exists
+            if (!empty($allottee->allottee_document_path) && file_exists(public_path($allottee->allottee_document_path))) {
+                @unlink(public_path($allottee->allottee_document_path));
+            }
+
+            // 9. Delete the Allottee record itself from adms_allottees
+            DB::connection('adms_allottees')->table('allottees')->where('id', $allotteeId)->delete();
+
+            DB::connection('adms_allottees')->commit();
+            DB::connection('adms_jshb')->commit();
+
+            return [
+                'success'   => true,
+                'message'   => ($isSynced || $revertedFuture)
+                    ? 'Allottee and all related components deleted successfully. The Citizen Portal staging record has been reverted to pending and can be re-synced anytime.'
+                    : 'Allottee and all related components deleted successfully.',
+                'is_synced' => ($isSynced || $revertedFuture ? true : false),
+            ];
+        } catch (\Throwable $e) {
+            DB::connection('adms_allottees')->rollBack();
+            DB::connection('adms_jshb')->rollBack();
+
+            Log::error('Failed to delete allottee: ' . $e->getMessage(), [
+                'allottee_id' => $allotteeId,
+                'file'        => $e->getFile(),
+                'line'        => $e->getLine(),
+            ]);
+
+            throw $e;
+        }
     }
 }

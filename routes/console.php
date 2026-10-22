@@ -16,4 +16,7 @@ Schedule::command('app:process-document-generation-queue --portion=half')->daily
 Schedule::command('app:process-document-generation-queue --portion=all')->dailyAt('03:00');
 
 // Daily Management Report
-Schedule::command('app:send-daily-activity-report')->dailyAt('01:00');
+Schedule::command('app:send-daily-activity-report')->dailyAt('01:00')->withoutOverlapping();
+
+// Auto Approve Pending Bypass & Extension Requests (Default 3 days)
+Schedule::command('app:approve-pending-requests --days=3')->dailyAt('06:10')->withoutOverlapping();

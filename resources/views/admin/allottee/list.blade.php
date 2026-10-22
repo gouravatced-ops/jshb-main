@@ -23,6 +23,12 @@
     </div>
     @endif
 
+    @if (session('error'))
+    <div class="alert alert-danger" style="margin: 20px 20px 0; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 16px; border-radius: 6px;">
+        {{ session('error') }}
+    </div>
+    @endif
+
     <style>
         .accordion-row {
             display: none;
@@ -365,6 +371,14 @@
                                 <i class="fa-solid fa-pen"></i>
                             </a>
 
+                            <form action="{{ route('admin.allottees.destroy', $allottee) }}" method="POST" style="display:inline;" onsubmit="return confirmAllotteeDelete(event, {{ (int)$allottee->is_synced }})">
+                                @csrf
+                                @method('DELETE')
+                                <button class="action-btn del" style="background:#fee2e2; color:#dc2626; border: 1px solid #fecaca; cursor: pointer;" type="submit" title="Delete Allottee & Components">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+
                             <a class="action-btn delete"
                                 href="{{ route('admin.allottee.delete.components', $allottee) }}"
                                 title="Reset Allottee Components">
@@ -657,6 +671,18 @@
             el.classList.toggle('open');
             btn.classList.toggle('active');
         }
+    }
+
+    function confirmAllotteeDelete(event, isSynced) {
+        let msg = (isSynced === 1)
+            ? "Are you sure you want to completely delete this allottee and all associated records?\n\nBecause this allottee was synced from Citizen Portal, its record in Future Allottees will be reverted to 'pending' so you can re-sync it anytime."
+            : "Are you sure you want to completely delete this manual allottee and all associated records (applications, movements, payments, generated documents)?\n\nThis action cannot be undone.";
+
+        if (!confirm(msg)) {
+            event.preventDefault();
+            return false;
+        }
+        return true;
     }
 
     let currentModalAllotteeId = null;

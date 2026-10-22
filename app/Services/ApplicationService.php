@@ -107,7 +107,8 @@ class ApplicationService
 
                 try {
                     $mailSubject = "Bypass Request Submitted for Application: " . $application->application_no;
-                    $mailBody = "Application bypass due to this by pass reason: " . $request->bypass_reason;
+                    $mailBody = "Application bypass requested by " . $user->name . " due to reason: " . $request->bypass_reason
+                        . "\n\nPlease note: Please wait 24 hours for approval. Pending requests will be automatically approved by the system after 24 hours.";
 
                     // Email to system
                     Mail::to('system@adms.jshb.computered.co.in')->send(new \App\Mail\GenericNotificationMail($mailSubject, $mailBody, route('admin.bypass-requests.index')));
@@ -152,8 +153,9 @@ class ApplicationService
                 $admins = User::on('adms_jshb')->where('role_id', 1)->get();
                 $mailSubject = "Bypass Request Pending for Application: " . $application->application_no;
                 $mailBody = "A workflow bypass request has been requested by " . $user->name
-                . " for Application No: " . $application->application_no
-                . ".\nReason: " . $request->bypass_reason;
+                    . " for Application No: " . $application->application_no
+                    . ".\nReason: " . $request->bypass_reason
+                    . "\n\nPlease note: Please wait 24 hours for approval. Pending requests will be automatically approved by the system after 24 hours.";
                 $link = route('admin.bypass-requests.index');
 
                 foreach ($admins as $admin) {
@@ -177,7 +179,7 @@ class ApplicationService
                 }
 
                 return redirect()->route('engineer.applications.show', $application)
-                    ->with('success', 'Bypass Request submitted successfully. Waiting for Admin approval.');
+                    ->with('success', 'Bypass Request submitted successfully. Please wait 24 hours for approval (requests pending over 24 hours are automatically approved by the system).');
             }
 
             // Not a new bypass request - Validate if it's a skipped level

@@ -42,14 +42,14 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)
-            ->orWhere('name', $request->email)
+            ->orWhere('username', $request->email)
             ->first();
 
         // If not found in default DB, check adms_allottees DB
         if (! $user) {
             $user = User::on('adms_allottees')
                 ->where('email', $request->email)
-                ->orWhere('name', $request->email)
+                ->orWhere('username', $request->email)
                 ->first();
         }
 
@@ -225,7 +225,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $request->email)
-            ->orWhere('name', $request->email)
+            ->orWhere('username', $request->email)
             ->first();
 
         if (!$user) {

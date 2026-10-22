@@ -181,6 +181,10 @@ Route::middleware('auth')
         Route::post('/allottees/{allottee}/site-verification', [App\Http\Controllers\Admin\AllotteeSiteVerificationController::class, 'store'])->name('allottees.site-verification.store');
         Route::post('/allottees/{allottee}/extra-construction-calculation', [App\Http\Controllers\Admin\AllotteeExtraConstructionController::class, 'store'])->name('allottees.extra-construction.store');
 
+        // Full Allottee Deletion (All related components, applications, documents + revert citizen portal staging)
+        Route::delete('/allottees/{allottee}', [AllotteeController::class, 'destroy'])->name('allottees.destroy');
+        Route::post('/allottees/{allottee}/destroy', [AllotteeController::class, 'destroy'])->name('allottees.destroy.post');
+
         // Delete Allottee Components
         Route::get('/allottees/delete/{allottee}', [AllotteeController::class, 'deleteAllotteeComponents'])->name('allottee.delete.components');
         Route::get('/allottees/delete/emi/{allottee}', [AllotteeController::class, 'deleteEMISetup'])->name('allottee.delete.emi.setup');
