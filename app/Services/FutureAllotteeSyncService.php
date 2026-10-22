@@ -23,6 +23,8 @@ use App\Models\State;
 use App\Models\District;
 use App\Services\AllotteeService;
 use App\Services\ApplicationService;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\AllotteeCredentialMail;
 use Exception;
 
 class FutureAllotteeSyncService
@@ -39,7 +41,12 @@ class FutureAllotteeSyncService
     /**
      * Migrate a single FutureAllottee record to the live system
      */
-    public function syncSingle(FutureAllottee $futureAllottee, ?string $ipAddress = null, ?string $userAgent = null): array
+    public function syncSingle(
+        FutureAllottee $futureAllottee,
+        ?string $ipAddress = null,
+        ?string $userAgent = null,
+        bool $sendAdminMail = true
+    ): array
     {
         if ($futureAllottee->sync_status === 'synced') {
             return [
@@ -356,6 +363,19 @@ class FutureAllotteeSyncService
                 'password' => $plainPassword
             ]);
 
+            // Dispatch credential emails to Admin & Super-Admin (and citizen) when syncing one-by-one
+            if ($sendAdminMail) {
+                $this->dispatchCredentialMails(
+                    $allottee,
+                    $user,
+                    $username,
+                    $plainPassword,
+                    $fullName,
+                    $application?->application_no ?: $allottee->application_no,
+                    $allottee->allotment_no
+                );
+            }
+
             return [
                 'status'         => 'success',
                 'message'        => "Applicant {$futureAllottee->reference_portal_id} ({$fullName}) synced successfully!",
@@ -389,6 +409,79 @@ class FutureAllotteeSyncService
     }
 
     /**
+     * Dispatch credentials to admin, super-admin, and optionally citizen.
+     */
+    protected function dispatchCredentialMails(
+        Allottee $allottee,
+        ?User $user,
+        string $username,
+        string $plainPassword,
+        string $fullName,
+        ?string $applicationNo,
+        ?string $allotmentNo
+    ): void {
+        try {
+            $portalUrl = config('jshb.allottee_portal_url', 'http://localhost/jshb-allottees');
+            $customSubject = "JSHB Portal Credentials (Synced) - {$fullName} (" . ($applicationNo ?: $username) . ")";
+
+            // 1. Fetch Admin and Super-Admin emails (Roles 8 and 9)
+            $adminEmails = User::on('adms_jshb')
+                ->whereIn('role_id', [8, 9])
+                ->where('status', 1)
+                ->pluck('email')
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $fallbackEmail = config('gouravatced@gmail.com', 'computered3896@gmail.com');
+            if (empty($adminEmails)) {
+                $adminEmails = [$fallbackEmail];
+            }
+
+            $ccEmails = ['system@adms.jshb.computered.co.in'];
+
+            $mailable = new AllotteeCredentialMail(
+                $username,
+                $plainPassword,
+                $portalUrl,
+                $fullName,
+                $applicationNo,
+                $allotmentNo,
+                $customSubject
+            );
+
+            // Send to Admin & Super-Admin
+            Mail::to($adminEmails)->cc($ccEmails)->send($mailable);
+            Log::info("Credential mail sent to Admin & Super-Admin for synced allottee {$username}", [
+                'recipients'  => $adminEmails,
+                'cc'          => $ccEmails,
+                'allottee_id' => $allottee->id,
+            ]);
+
+            // 2. Also send to citizen/allottee if email exists
+            $citizenEmail = $user?->email;
+            if ($citizenEmail && filter_var($citizenEmail, FILTER_VALIDATE_EMAIL)) {
+                $citizenMailable = new AllotteeCredentialMail(
+                    $username,
+                    $plainPassword,
+                    $portalUrl,
+                    $fullName,
+                    $applicationNo,
+                    $allotmentNo
+                );
+                Mail::to($citizenEmail)->send($citizenMailable);
+                Log::info("Credential mail sent to citizen {$citizenEmail} for synced allottee {$username}");
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to dispatch credential mail after sync: " . $e->getMessage(), [
+                'username'    => $username,
+                'allottee_id' => $allottee->id,
+            ]);
+        }
+    }
+
+    /**
      * Batch Sync multiple records
      */
     public function syncBatch(array $ids = []): array
@@ -407,7 +500,7 @@ class FutureAllotteeSyncService
         ];
 
         foreach ($records as $item) {
-            $res = $this->syncSingle($item);
+            $res = $this->syncSingle($item, null, null, false);
             if ($res['status'] === 'success') {
                 $results['synced']++;
             } else {

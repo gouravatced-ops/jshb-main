@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Application;
 use App\Models\User;
+use App\Models\ApplicationMovement;
 
 class ApplicationExtensionRequest extends Model
 {
@@ -18,6 +19,7 @@ class ApplicationExtensionRequest extends Model
         'request_reason',
         'remarks',
         'status',
+        'extension_days',
         'approved_at',
     ];
 

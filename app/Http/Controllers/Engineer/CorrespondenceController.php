@@ -129,12 +129,17 @@ class CorrespondenceController extends Controller
         return view('engineer.applications.correspondence.show', compact('application', 'correspondence'));
     }
 
+
     private function sendPublishedEmail($correspondence, $application)
     {
         $user = Auth::user();
-        if (!$user || !$user->email) return;
+
+        if (!$user || !$user->email) {
+            return;
+        }
 
         $systemEmail = 'system@adms.jshb.computered.co.in';
+
         $subject = "Correspondence Published - Reference # {$correspondence->reference_number}";
 
         $mailBody = "Dear {$user->name},\n\n";
@@ -145,9 +150,21 @@ class CorrespondenceController extends Controller
         $mailBody .= "This order letter is now officially attached to the application.";
 
         try {
-            Mail::to($user->email)->cc($systemEmail)->send(new GenericNotificationMail($subject, $mailBody, null));
-        } catch (\Exception $e) {
-            Log::error("Failed to send correspondence email: " . $e->getMessage());
+            Mail::to($user->email)
+                ->cc($systemEmail)
+                ->send(
+                    new GenericNotificationMail(
+                        $subject,
+                        $mailBody,
+                        null
+                    )
+                );
+        } catch (\Throwable $e) {
+            Log::error('Failed to send correspondence email', [
+                'error' => $e->getMessage(),
+                'reference_number' => $correspondence->reference_number,
+            ]);
         }
     }
+
 }

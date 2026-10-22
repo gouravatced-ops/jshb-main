@@ -40,6 +40,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\EmiCalculatorService;
 use App\Services\ApplicationService;
@@ -1547,6 +1548,42 @@ class AllotteeController extends Controller
         return view('admin.allottee.index', compact('allottees'));
     }
 
+    public function destroy($allottee, AllotteeService $allotteeService)
+    {
+        try {
+            if (!($allottee instanceof Allottee)) {
+                $decryptedId = decryptId($allottee) ?? $allottee;
+                $allottee = Allottee::findOrFail($decryptedId);
+            }
+
+            $result = $allotteeService->deleteAllottee($allottee);
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json($result);
+            }
+
+            return redirect()
+                ->route('admin.allottees.index')
+                ->with('success', $result['message']);
+        } catch (\Throwable $e) {
+            Log::error('Allottee destruction failed: ' . $e->getMessage(), [
+                'allottee_id' => is_object($allottee) ? ($allottee->id ?? null) : $allottee,
+                'trace'       => $e->getTraceAsString(),
+            ]);
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete allottee: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return redirect()
+                ->route('admin.allottees.index')
+                ->with('error', 'Failed to delete allottee: ' . $e->getMessage());
+        }
+    }
+
     public function deleteAllotteeComponents(Allottee $allottee)
     {
         $allottee->update([
@@ -1697,40 +1734,110 @@ class AllotteeController extends Controller
             $allottee = Allottee::findOrFail($id);
             $user = User::on('adms_allottees')->where('username', $allottee->username)->first();
 
-            if (!$user || !$user->email) {
+            if (!$user && $allottee->user_id) {
+                $user = User::on('adms_allottees')->find($allottee->user_id);
+            }
+
+            if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No valid email address found for this allottee.',
-                ]);
+                    'message' => 'Portal user account not found for this allottee.',
+                ], 404);
+            }
+
+            // Find citizen email (either on user or contact details)
+            $citizenEmail = $user->email;
+            if (!$citizenEmail) {
+                $contact = AllotteesContactDetail::where('allottee_id', $allottee->id)->first();
+                if ($contact && $contact->email) {
+                    $citizenEmail = $contact->email;
+                    $user->email = $citizenEmail;
+                }
             }
 
             $plainPassword = $this->generatePassword();
             $user->password = Hash::make($plainPassword);
+            $user->password_created_at = now();
             $user->save();
 
             Log::channel('user_credentials')->info('Credentials updated manually via Admin', [
-                'username' => $user->username,
-                'password' => $plainPassword
+                'username'    => $user->username,
+                'password'    => $plainPassword,
+                'allottee_id' => $allottee->id
             ]);
 
             $portalUrl = config('jshb.allottee_portal_url', 'http://localhost/jshb-allottees');
+            $fullName = trim($allottee->allottee_name . ' ' . $allottee->allottee_middle_name . ' ' . $allottee->allottee_surname);
+            $applicationNo = $allottee->application_no;
+            $allotmentNo = $allottee->allotment_no;
+            $adminSubject = "JSHB Portal Credentials (Manual Dispatch) - {$fullName} (" . ($applicationNo ?: $user->username) . ")";
 
-            $notificationService = app(NotificationService::class);
-            $notificationService->send([
-                'user_id' => $user->id,
-                'allottee_id' => $allottee->id,
-                'is_allottee' => true,
-                'notification_type' => 'info',
-                'subject' => 'Your JSHB Allottee Portal Login Credentials',
-                'message' => 'Credentials sent manually by admin.',
-                'email_id' => $user->email,
-                'send_email' => true,
-                'mailable' => new AllotteeCredentialMail($user->username, $plainPassword, $portalUrl)
+            // 1. Send Credential Mail to Admin and Super-Admin (Roles 8 and 9)
+            $adminEmails = User::on('adms_jshb')
+                ->whereIn('role_id', [8, 9])
+                ->where('status', 1)
+                ->pluck('email')
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $fallbackEmail = config('gouravatced@gmail.com', 'computered3896@gmail.com');
+            if (empty($adminEmails)) {
+                $adminEmails = [$fallbackEmail];
+            }
+
+            $ccEmails = ['system@adms.jshb.computered.co.in'];
+
+            $adminMailable = new AllotteeCredentialMail(
+                $user->username,
+                $plainPassword,
+                $portalUrl,
+                $fullName,
+                $applicationNo,
+                $allotmentNo,
+                $adminSubject
+            );
+
+            Mail::to($adminEmails)->cc($ccEmails)->send($adminMailable);
+            Log::info("Manual credential mail sent to Admin & Super-Admin for allottee {$user->username}", [
+                'recipients'  => $adminEmails,
+                'cc'          => $ccEmails,
+                'allottee_id' => $allottee->id
             ]);
+
+            // 2. Send Credential Mail to Citizen/Allottee if email is available
+            $sentToCitizen = false;
+            if ($citizenEmail && filter_var($citizenEmail, FILTER_VALIDATE_EMAIL)) {
+                $notificationService = app(NotificationService::class);
+                $notificationService->send([
+                    'user_id'           => $user->id,
+                    'allottee_id'       => $allottee->id,
+                    'is_allottee'       => true,
+                    'notification_type' => 'info',
+                    'subject'           => 'Your JSHB Allottee Portal Login Credentials',
+                    'message'           => 'Credentials sent manually by admin.',
+                    'email_id'          => $citizenEmail,
+                    'send_email'        => true,
+                    'mailable'          => new AllotteeCredentialMail(
+                        $user->username,
+                        $plainPassword,
+                        $portalUrl,
+                        $fullName,
+                        $applicationNo,
+                        $allotmentNo
+                    )
+                ]);
+                $sentToCitizen = true;
+            }
+
+            $message = $sentToCitizen
+                ? 'Credential mail sent successfully to allottee (' . $citizenEmail . ') and Admin/Super-Admin.'
+                : 'Credential mail dropped to Admin and Super-Admin. (Note: Allottee has no email on record).';
 
             return response()->json([
                 'success' => true,
-                'message' => 'Credential mail sent successfully.',
+                'message' => $message,
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to send credential mail manually: ' . $e->getMessage());
@@ -1739,5 +1846,10 @@ class AllotteeController extends Controller
                 'message' => 'Failed to send mail: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    private function generatePassword($length = 12): string
+    {
+        return app(AllotteeService::class)->generatePassword($length);
     }
 }

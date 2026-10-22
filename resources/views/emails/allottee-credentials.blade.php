@@ -223,19 +223,37 @@
 
         <!-- Body -->
         <div class="body-content">
-            <p class="greeting">Dear Allottee,</p>
+            <p class="greeting">Dear {{ !empty($allotteeName) ? $allotteeName : 'Allottee' }},</p>
             <p class="message-text">Congratulations! Your application has been processed, and your JSHB Allottee Portal account is now active. Please use the credentials below to log in and track your application status.</p>
 
             <!-- Credentials Code -->
             <div class="credentials-container">
-                <table width="100%" cellpadding="5" cellspacing="0" border="0">
+                <table width="100%" cellpadding="6" cellspacing="0" border="0">
+                    @if(!empty($allotteeName))
                     <tr>
-                        <td width="90" style="color: #555; font-size: 14px; font-weight: bold; vertical-align: top;">Username:</td>
-                        <td style="color: #1B2A4A; font-size: 16px; word-break: break-all;">{{ $username }}</td>
+                        <td width="130" style="color: #555; font-size: 14px; font-weight: bold; vertical-align: top; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px;">Allottee Name:</td>
+                        <td style="color: #1B2A4A; font-size: 15px; font-weight: 600; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px;">{{ $allotteeName }}</td>
+                    </tr>
+                    @endif
+                    @if(!empty($applicationNo))
+                    <tr>
+                        <td width="130" style="color: #555; font-size: 14px; font-weight: bold; vertical-align: top; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px;">Application No:</td>
+                        <td style="color: #1B2A4A; font-size: 14px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px;">{{ $applicationNo }}</td>
+                    </tr>
+                    @endif
+                    @if(!empty($allotmentNo))
+                    <tr>
+                        <td width="130" style="color: #555; font-size: 14px; font-weight: bold; vertical-align: top; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px;">Allotment No:</td>
+                        <td style="color: #1B2A4A; font-size: 14px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px;">{{ $allotmentNo }}</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td width="130" style="color: #555; font-size: 14px; font-weight: bold; vertical-align: top; padding-top: 6px;">Username:</td>
+                        <td style="color: #1B2A4A; font-size: 15px; word-break: break-all; font-weight: bold; padding-top: 6px;">{{ $username }}</td>
                     </tr>
                     <tr>
-                        <td width="90" style="color: #555; font-size: 14px; font-weight: bold; vertical-align: top;">Password:</td>
-                        <td style="color: #1B2A4A; font-size: 16px; word-break: break-all;">{{ $password }}</td>
+                        <td width="130" style="color: #555; font-size: 14px; font-weight: bold; vertical-align: top;">Password:</td>
+                        <td style="color: #17A673; font-size: 15px; word-break: break-all; font-weight: bold;">{{ $password }}</td>
                     </tr>
                 </table>
             </div>

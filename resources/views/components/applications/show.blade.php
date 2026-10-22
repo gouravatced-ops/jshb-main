@@ -34,13 +34,23 @@ $effectiveRoleId = Auth::user()->assistant_to_id
 @endphp
 
 @if($application->bypassRequests->isNotEmpty())
+@php
+    $pendingBypass = $application->bypassRequests->first();
+@endphp
 <div class="compact-card" style="margin-bottom: 15px; border-left: 4px solid #ffc107;">
     <div class="compact-card-body" style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; background: #fff8e1;">
         <div>
             <strong style="color: #d35400; font-size: 14px; margin-right: 15px;">
                 <i class="fa-solid fa-triangle-exclamation" style="color: #e67e22;"></i> Bypass Request Pending
             </strong><br>
-            <span style="color: #666; font-size: 13px;">A workflow bypass request is pending approval from Admin/Higher Authority.</span>
+            <span style="color: #856404; font-size: 13px;">
+                A workflow bypass request is pending approval from Admin/Higher Authority. Please wait <strong>24 hours</strong> for approval. (Requests pending over 24 hours will be automatically processed and approved by the system).
+            </span>
+            @if($pendingBypass && $pendingBypass->created_at)
+            <div style="font-size: 12px; color: #b7791f; margin-top: 4px;">
+                <i class="fa-solid fa-clock"></i> Submitted: {{ $pendingBypass->created_at->format('d M Y, h:i A') }} &bull; Auto-approval scheduled after 24 hrs
+            </div>
+            @endif
         </div>
     </div>
 </div>

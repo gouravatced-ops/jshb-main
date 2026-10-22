@@ -114,70 +114,80 @@ class SendDailyActivityReport extends Command
             'bypass_report' => $bypassReport,
         ];
 
-        // Send Email to Admins (Role ID 8) and Super-Admins/Management (Role ID 9)
-        $recipients = User::whereIn('role_id', [8, 9])->pluck('email')->filter()->toArray();
-        $fallbackEmail = config('gouravatced@gmail.com', 'computered3896@gmail.com');
+        // 1. Primary recipient is system email
+        $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
 
-        if (empty($recipients)) {
-            $recipients = [$fallbackEmail];
+        // 2. CC recipients are ONLY Super-Admin accounts (Role ID 9) - Admin role (Role ID 8) is excluded
+        $superAdminEmails = User::where('role_id', 9)
+            ->where('status', 1)
+            ->pluck('email')
+            ->filter(fn($email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $fallbackEmail = config('gouravatced@gmail.com', 'computered3896@gmail.com');
+        if (empty($superAdminEmails)) {
+            $superAdminEmails = [$fallbackEmail];
         }
 
-        $ccEmails = ['system@adms.jshb.computered.co.in'];
+        // Remove system email from CC if it's already there to prevent duplicate sending
+        $ccEmails = array_values(array_diff($superAdminEmails, [$systemEmail]));
+        if (empty($ccEmails)) {
+            $ccEmails = [$fallbackEmail];
+        }
 
-        // Create Batch Program Record
+        // Create Batch Program Record (Single Job)
         $batch = BatchProgram::create([
-            'command_name' => 'SendDailyActivityReport',
-            'total_jobs' => count($recipients),
-            'unique_engineers_count' => count($recipients), // loosely mapping
-            'started_at' => now(),
-            'status' => 'running',
+            'command_name'           => 'SendDailyActivityReport',
+            'total_jobs'             => 1,
+            'unique_engineers_count' => 1,
+            'started_at'             => now(),
+            'status'                 => 'running',
         ]);
 
         $mailable = new DailyActivityReportMail($reportData, $reportDate);
         $mailBody = $mailable->render(); // Capture the HTML body
 
-        $successCount = 0;
+        // Find system user if available
+        $systemUser = User::where('email', $systemEmail)->first();
 
-        foreach ($recipients as $email) {
-            $user = User::where('email', $email)->first();
+        // Create a SINGLE detail row with system as recipient and multiple super-admins in CC
+        $detail = BatchProgramDetail::create([
+            'batch_program_id' => $batch->id,
+            'user_id'          => $systemUser ? $systemUser->id : null,
+            'recipient_email'  => $systemEmail,
+            'cc_email'         => implode(', ', $ccEmails),
+            'mail_body'        => $mailBody,
+            'status'           => 'queued',
+            'queued_at'        => now(),
+        ]);
 
-            $detail = BatchProgramDetail::create([
-                'batch_program_id' => $batch->id,
-                'user_id' => $user ? $user->id : null,
-                'recipient_email' => $email,
-                'cc_email' => implode(', ', $ccEmails),
-                'mail_body' => $mailBody,
-                'status' => 'queued',
-                'queued_at' => now(),
+        $success = false;
+        try {
+            $freshMailable = new DailyActivityReportMail($reportData, $reportDate);
+
+            // Dispatch single job to queue
+            ProcessBatchEmailJob::dispatch($detail->id, $systemEmail, $freshMailable);
+            $success = true;
+        } catch (\Exception $e) {
+            $detail->update([
+                'status'        => 'failed',
+                'error_message' => $e->getMessage(),
             ]);
-
-            try {
-                // Instantiate a fresh Mailable
-                $freshMailable = new DailyActivityReportMail($reportData, $reportDate);
-
-                // Dispatch to background job instead of sending directly
-                ProcessBatchEmailJob::dispatch($detail->id, $email, $freshMailable);
-
-                $successCount++;
-            } catch (\Exception $e) {
-                $detail->update([
-                    'status' => 'failed',
-                    'error_message' => $e->getMessage(),
-                ]);
-                $log->error("Failed to queue daily activity report to {$email}: " . $e->getMessage());
-            }
+            $log->error("Failed to queue daily activity report: " . $e->getMessage());
         }
 
         $batch->update([
-            'status' => 'completed',
+            'status'       => 'completed',
             'completed_at' => now(),
         ]);
 
-        if ($successCount > 0) {
-            $log->info("Successfully sent daily activity report to {$successCount} recipients.");
-            $this->info("Report sent successfully to {$successCount} recipients.");
+        if ($success) {
+            $log->info("Successfully queued single daily activity report to {$systemEmail} with CC to super-admins: " . implode(', ', $ccEmails));
+            $this->info("Daily activity report queued successfully (To: {$systemEmail}, CC: " . implode(', ', $ccEmails) . ").");
         } else {
-            $this->error("Failed to send reports. Check logs.");
+            $this->error("Failed to send report. Check logs.");
         }
     }
 }

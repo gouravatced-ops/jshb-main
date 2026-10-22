@@ -24,7 +24,7 @@
         <div class="card-head">
             <div>
                 <div class="card-title">Workflow Bypass Requests</div>
-                <div class="card-subtitle">Review and approve requests to skip workflow steps</div>
+                <div class="card-subtitle">Review and approve requests to skip workflow steps. <span class="badge bg-warning text-dark ms-2"><i class="fa-solid fa-clock"></i> Auto-approves after 24 hours</span></div>
             </div>
         </div>
 
