@@ -13,12 +13,30 @@ use Illuminate\Support\Facades\Auth;
 
 class NoticeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $notices = Notice::with('creator', 'division', 'targetUser')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-        return view('admin.notices.index', compact('notices'));
+        $query = Notice::with('creator', 'division', 'targetUser')->orderBy('created_at', 'desc');
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('message', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('notice_type')) {
+            $query->where('notice_type', $request->notice_type);
+        }
+
+        $totalCount = Notice::count();
+        $announcementCount = Notice::where('notice_type', 'announcement')->count();
+        $warningCount = Notice::where('notice_type', 'warning')->count();
+        $infoCount = Notice::whereIn('notice_type', ['info', 'new'])->count();
+
+        $notices = $query->paginate(15)->withQueryString();
+
+        return view('admin.notices.index', compact('notices', 'totalCount', 'announcementCount', 'warningCount', 'infoCount'));
     }
 
     public function create()

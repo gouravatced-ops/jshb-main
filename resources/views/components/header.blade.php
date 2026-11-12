@@ -37,14 +37,14 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
         </button> -->
 
         {{-- @if($authUser?->user_type === 'engineer' || $authUser?->user_type === 'accountant' || $authUser?->user_type === 'administration') --}}
-            <span style="font-size: 13px; color: var(--text-dark); margin-right: 15px; font-weight: 600; display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+            <span class="header-user-role-badge">
                 <i class="fa-solid fa-user-gear" style="margin-right: 8px; color: var(--pink-color);"></i>
                 {{ $authUser->roleRelation?->name ?: ucfirst($authUser?->user_type) }} &nbsp; <strong>({{ $authUser->division?->name ?: 'Administration' }})</strong>
             </span>
         {{-- @endif --}}
 
         <!-- Lock Screen -->
-        <button class="header-icon-btn" title="Lock Screen" onclick="activateLockScreen()">
+        <button class="header-icon-btn header-lock-btn" title="Lock Screen" onclick="activateLockScreen()">
             <i class="fa-solid fa-lock"></i>
         </button>
         <!-- Notifications -->
@@ -118,7 +118,7 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
                 <div class="profile-avatar">
                     <img src="{{ route('media.profile', ['filename' => $authUser->photo ?? 'default', 'user_id' => $authUser->id ?? '']) }}" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
                 </div>
-                <div style="text-align:left">
+                <div class="profile-user-info" style="text-align:left">
                     <div class="profile-name">{{ $authUser->name ?? 'Guest User' }}</div>
                     <div class="profile-role">{{ ucfirst($authUser->roleRelation->name ?? 'User') }}</div>
                 </div>

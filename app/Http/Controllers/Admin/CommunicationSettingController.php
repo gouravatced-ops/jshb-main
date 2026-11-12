@@ -11,17 +11,34 @@ class CommunicationSettingController extends Controller
 {
     public function index()
     {
-        $roles = Role::all();
+        $roles = Role::where('status', 1)->orderBy('id')->get();
+        if ($roles->isEmpty()) {
+            $roles = Role::orderBy('id')->get();
+        }
         $settings = CommunicationSetting::all()->keyBy('role_id');
 
-        return view('admin.communication_settings.index', compact('roles', 'settings'));
+        $totalRoles = $roles->count();
+        $emailEnabledCount = $settings->where('is_email_enabled', 1)->count();
+        $smsEnabledCount = $settings->where('is_sms_enabled', 1)->count();
+        $whatsappEnabledCount = $settings->where('is_whatsapp_enabled', 1)->count();
+
+        return view('admin.communication_settings.index', compact(
+            'roles',
+            'settings',
+            'totalRoles',
+            'emailEnabledCount',
+            'smsEnabledCount',
+            'whatsappEnabledCount'
+        ));
     }
 
     public function update(Request $request)
     {
         $settingsInput = $request->input('settings', []);
+        $allRoles = Role::pluck('id');
 
-        foreach ($settingsInput as $roleId => $channels) {
+        foreach ($allRoles as $roleId) {
+            $channels = $settingsInput[$roleId] ?? [];
             CommunicationSetting::updateOrCreate(
                 ['role_id' => $roleId],
                 [

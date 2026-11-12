@@ -11,14 +11,34 @@ use Illuminate\Support\Facades\Auth;
 
 class ApplicationExtensionRequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $requests = ApplicationExtensionRequest::where('requested_by', Auth::id())
-            ->with('application')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-            
-        return view('engineer.extensions.index', compact('requests'));
+        $userId = Auth::id();
+        $baseQuery = ApplicationExtensionRequest::where('requested_by', $userId);
+
+        $totalCount = (clone $baseQuery)->count();
+        $approvedCount = (clone $baseQuery)->where('status', 'approved')->count();
+        $pendingCount = (clone $baseQuery)->where('status', 'pending')->count();
+        $rejectedCount = (clone $baseQuery)->where('status', 'rejected')->count();
+
+        $query = (clone $baseQuery)->with('application');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('application', function ($appQ) use ($search) {
+                    $appQ->where('application_no', 'like', "%{$search}%");
+                })->orWhere('request_reason', 'like', "%{$search}%");
+            });
+        }
+
+        $requests = $query->orderBy('created_at', 'desc')->paginate(15)->appends($request->all());
+
+        return view('engineer.extensions.index', compact('requests', 'totalCount', 'approvedCount', 'pendingCount', 'rejectedCount'));
     }
 
     public function create($id)

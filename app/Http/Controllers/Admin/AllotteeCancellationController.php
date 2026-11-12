@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Allottee;
 use App\Models\AllotteePaymentOrder;
 use App\Models\AllotteeGeneratedDocument;
+use App\Models\Division;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,19 +18,54 @@ class AllotteeCancellationController extends Controller
 {
     use DocumentUploadTrait;
 
-    public function index()
+    public function index(Request $request)
     {
         // Fetch allottees with overdue 15% allotment payment orders that are not yet paid or cancelled
-        $allottees = Allottee::with(['division', 'subDivision', 'propertyCategory', 'scheme', 'quarterType'])
+        $query = Allottee::with(['division', 'subDivision', 'propertyCategory', 'scheme', 'quarterType', 'allotteeOrders'])
             ->where('is_cancelled', false)
             ->whereHas('allotteeOrders', function ($query) {
                 $query->where('order_type', 'allotment')
                     ->where('due_date', '<', now()->format('Y-m-d'))
                     ->whereNotIn('order_status', ['paid', 'cancelled']);
-            })
-            ->get();
+            });
 
-        return view('admin.allottee.cancellations.index', compact('allottees'));
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('allotment_no', 'like', "%{$search}%")
+                  ->orWhere('application_no', 'like', "%{$search}%")
+                  ->orWhere('property_number', 'like', "%{$search}%")
+                  ->orWhere('allottee_name', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('division_id')) {
+            $query->where('division_id', $request->division_id);
+        }
+
+        $allottees = $query->paginate(15)->withQueryString();
+
+        $overdueCount = Allottee::where('is_cancelled', false)->whereHas('allotteeOrders', function ($q) {
+            $q->where('order_type', 'allotment')
+                ->where('due_date', '<', now()->format('Y-m-d'))
+                ->whereNotIn('order_status', ['paid', 'cancelled']);
+        })->count();
+
+        $cancelledCount = Allottee::where('is_cancelled', true)->count();
+        $liveAllotteeCount = Allottee::where('is_cancelled', false)->count();
+        $totalOrdersCount = AllotteePaymentOrder::where('order_type', 'allotment')->count();
+
+        $divisions = Division::all();
+
+        return view('admin.allottee.cancellations.index', compact(
+            'allottees',
+            'overdueCount',
+            'cancelledCount',
+            'liveAllotteeCount',
+            'totalOrdersCount',
+            'divisions'
+        ));
     }
 
     public function bulkCancel(Request $request)
