@@ -43,11 +43,47 @@ class ProcessBatchEmailJob implements ShouldQueue
         }
 
         try {
+            // Validate primary recipient before processing
+            $validation = \Thenetbotz\EmailValidator\Facades\EmailValidator::validate($this->email);
+            if (!$validation->valid) {
+                $readableReason = \App\Listeners\ValidateEmailRecipientListener::getReadableReason($validation->reason);
+                $detail->update([
+                    'status' => 'failed',
+                    'error_message' => "Blocked: {$readableReason} ({$validation->reason})",
+                ]);
+
+                $logMsg = "[BATCH MAIL BLOCKED] Detail ID {$this->batchDetailId} | Recipient: {$this->email} | Reason: {$readableReason} ({$validation->reason})";
+                Log::warning($logMsg);
+                if (config()->has('logging.channels.send_mail')) {
+                    Log::channel('send_mail')->warning($logMsg);
+                }
+                return;
+            }
+
+            // Filter valid CC emails
+            $validCcEmails = [];
+            if (!empty($detail->cc_email)) {
+                $rawCcEmails = array_map('trim', explode(',', $detail->cc_email));
+                foreach ($rawCcEmails as $cc) {
+                    if (empty($cc)) continue;
+                    $ccRes = \Thenetbotz\EmailValidator\Facades\EmailValidator::validate($cc);
+                    if ($ccRes->valid) {
+                        $validCcEmails[] = $cc;
+                    } else {
+                        $ccReason = \App\Listeners\ValidateEmailRecipientListener::getReadableReason($ccRes->reason);
+                        $ccMsg = "[BATCH MAIL CC STRIPPED] Detail ID {$this->batchDetailId} | Stripped CC: {$cc} | Reason: {$ccReason} ({$ccRes->reason})";
+                        Log::warning($ccMsg);
+                        if (config()->has('logging.channels.send_mail')) {
+                            Log::channel('send_mail')->warning($ccMsg);
+                        }
+                    }
+                }
+            }
+
             // Prepare Mail
             $mail = Mail::to($this->email);
-            if (!empty($detail->cc_email)) {
-                $ccEmails = array_map('trim', explode(',', $detail->cc_email));
-                $mail->cc($ccEmails);
+            if (!empty($validCcEmails)) {
+                $mail->cc($validCcEmails);
             }
 
             // Send the email

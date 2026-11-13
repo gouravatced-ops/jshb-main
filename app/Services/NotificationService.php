@@ -109,6 +109,28 @@ class NotificationService
                     $mailable->fromAddress = $fromAddress;
                 }
 
+                // Validate email before sending
+                $validation = \Thenetbotz\EmailValidator\Facades\EmailValidator::validate($emailId);
+                if (!$validation->valid) {
+                    $readableReason = \App\Listeners\ValidateEmailRecipientListener::getReadableReason($validation->reason);
+                    $logMsg = "[NOTIFICATION MAIL BLOCKED] Recipient: {$emailId} | Subject: {$subject} | Reason: {$readableReason} ({$validation->reason})";
+                    Log::warning($logMsg);
+                    if (config()->has('logging.channels.send_mail')) {
+                        Log::channel('send_mail')->warning($logMsg);
+                    }
+                    $this->logCommunication(
+                        $isAllottee,
+                        $userId,
+                        'email',
+                        $subject,
+                        $message,
+                        'failed',
+                        "Blocked: {$readableReason} ({$validation->reason})",
+                        $params
+                    );
+                    return $notification;
+                }
+
                 $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
                 $mailPending = Mail::to($emailId);
 
