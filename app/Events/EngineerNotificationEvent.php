@@ -41,4 +41,28 @@ class EngineerNotificationEvent implements ShouldBroadcastNow
     {
         return 'EngineerNotification';
     }
+
+    public function broadcastWith(): array
+    {
+        $data = is_array($this->notification) ? $this->notification : $this->notification->toArray();
+        $title = $data['subject'] ?? ($data['title'] ?? 'New Notification');
+        $msg = $data['message'] ?? '';
+        $type = $data['notification_type'] ?? ($data['type'] ?? 'info');
+        $link = $data['link'] ?? ($data['action_url'] ?? null);
+
+        return [
+            'id' => $data['id'] ?? null,
+            'title' => $title,
+            'subject' => $title,
+            'message' => $msg,
+            'type' => $type,
+            'notification_type' => $type,
+            'action_url' => $link,
+            'link' => $link,
+            'sender_id' => $data['sender_id'] ?? null,
+            'created_at' => isset($data['created_at']) ? (string)$data['created_at'] : now()->toDateTimeString(),
+            'time_ago' => 'Just now',
+            'notification' => $data,
+        ];
+    }
 }

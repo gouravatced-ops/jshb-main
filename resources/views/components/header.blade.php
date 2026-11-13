@@ -51,28 +51,23 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
         <div style="position:relative">
             <button class="header-icon-btn" id="notifBtn" onclick="toggleNotif()" title="Notifications">
                 <i class="fa-solid fa-bell"></i>
-                @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
-                <span class="notif-dot"></span>
-                @endif
+                <span class="notif-dot" id="notifBellDot" style="{{ (isset($unreadNotifCount) && $unreadNotifCount > 0) ? '' : 'display:none;' }}"></span>
             </button>
             <div class="notif-dropdown" id="notifDropdown">
                 <div class="notif-head">
                     <span class="notif-head-title">Notifications
-                        @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
-                        <span style="font-size:11px;background:var(--pink-light);color:var(--primary-color);border-radius:20px;padding:2px 7px;margin-left:5px;">
-                            {{ $unreadNotifCount }} New
+                        <span id="notifCountBadge" style="font-size:11px;background:var(--pink-light);color:var(--primary-color);border-radius:20px;padding:2px 7px;margin-left:5px;{{ (isset($unreadNotifCount) && $unreadNotifCount > 0) ? '' : 'display:none;' }}">
+                            {{ $unreadNotifCount ?? 0 }} New
                         </span>
-                        @endif
                     </span>
-                    @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
-                    <span class="notif-mark" style="cursor:pointer;" onclick="markAllNotificationsRead()">Mark all read</span>
-                    @endif
+                    <span class="notif-mark" id="markAllReadBtn" style="cursor:pointer;{{ (isset($unreadNotifCount) && $unreadNotifCount > 0) ? '' : 'display:none;' }}" onclick="markAllNotificationsRead()">Mark all read</span>
                 </div>
 
+                <div id="notifItemsList" style="max-height:360px; overflow-y:auto;">
                 @if(isset($headerNotifications) && count($headerNotifications) > 0)
                     @foreach($headerNotifications as $notif)
-                    <div class="notif-item">
-                        <div class="notif-avatar {{ $notif->notification_type == 'success' ? 'green' : ($notif->notification_type == 'warning' ? 'pink' : 'sky') }}">
+                    <div class="notif-item {{ !$notif->is_read ? 'unread' : '' }}" id="notif-item-{{ $notif->id }}" onclick="markSingleNotificationRead({{ $notif->id }}, '{{ $notif->link ?? '' }}')" style="cursor:pointer;">
+                        <div class="notif-avatar {{ $notif->notification_type == 'success' ? 'green' : ($notif->notification_type == 'warning' || $notif->notification_type == 'document_request' ? 'pink' : 'sky') }}">
                             @if($notif->notification_type == 'success')
                                 <i class="fa-solid fa-circle-check"></i>
                             @elseif($notif->notification_type == 'warning' || $notif->notification_type == 'document_request')
@@ -83,15 +78,9 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
                         </div>
                         <div class="notif-body">
                             <div class="notif-msg">
-                                @if($notif->link)
-                                    <a href="{{ $notif->link }}" style="text-decoration:none; color:inherit;">
-                                        <strong>{{ $notif->subject }}</strong>: {{ \Illuminate\Support\Str::limit($notif->message, 50) }}
-                                    </a>
-                                @else
-                                    <strong>{{ $notif->subject }}</strong>: {{ \Illuminate\Support\Str::limit($notif->message, 50) }}
-                                @endif
+                                <strong>{{ $notif->subject }}</strong>: {{ \Illuminate\Support\Str::limit($notif->message, 50) }}
                             </div>
-                            <div class="notif-time"><i class="fa-regular fa-clock"></i> {{ $notif->created_at->diffForHumans() }}</div>
+                            <div class="notif-time"><i class="fa-regular fa-clock"></i> {{ $notif->created_at ? $notif->created_at->diffForHumans() : 'Just now' }}</div>
                         </div>
                         @if(!$notif->is_read)
                             <div class="unread-dot"></div>
@@ -99,10 +88,18 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
                     </div>
                     @endforeach
                 @else
-                    <div class="notif-item" style="justify-content:center; padding: 20px;">
-                        <span class="text-muted">No notifications</span>
+                    <div class="notif-empty" id="notifEmptyState" style="text-align:center; padding: 25px 15px; color: #888;">
+                        <i class="fa-regular fa-bell-slash" style="font-size:22px; display:block; margin-bottom:6px; opacity:0.6;"></i>
+                        <span style="font-size:12px;">No notifications yet</span>
                     </div>
                 @endif
+                </div>
+
+                <div class="notif-footer" style="padding:10px 15px; text-align:center; border-top:1px solid #f0f0f0; background:#fafafa; border-radius:0 0 12px 12px;">
+                    <a href="{{ route('my-notifications.index') }}" style="font-size:12px; font-weight:600; color:var(--primary-color, #1f7b4d); text-decoration:none;">
+                        View All Notifications <i class="fa-solid fa-arrow-right" style="font-size:10px; margin-left:4px;"></i>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -185,4 +182,141 @@ function handleClearCache(event, element) {
         element.style.pointerEvents = 'auto';
     });
 }
+
+function markSingleNotificationRead(id, link) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    fetch('/notifications/' + id + '/read', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const item = document.getElementById('notif-item-' + id);
+        if (item) {
+            item.classList.remove('unread');
+            const dot = item.querySelector('.unread-dot');
+            if (dot) dot.remove();
+        }
+        if (typeof data.unread_count !== 'undefined') {
+            updateNotificationBadgeCount(data.unread_count);
+        }
+        if (link && link.trim() !== '') {
+            window.location.href = link;
+        }
+    })
+    .catch(err => {
+        console.error('Error marking notification as read:', err);
+        if (link && link.trim() !== '') {
+            window.location.href = link;
+        }
+    });
+}
+
+function markAllNotificationsRead() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    fetch('/notifications/mark-read', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.querySelectorAll('.unread-dot').forEach(el => el.remove());
+            document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+            updateNotificationBadgeCount(0);
+        }
+    })
+    .catch(err => console.error('Error marking all notifications as read:', err));
+}
+
+function updateNotificationBadgeCount(count) {
+    const bellDot = document.getElementById('notifBellDot');
+    const badge = document.getElementById('notifCountBadge');
+    const markAllBtn = document.getElementById('markAllReadBtn');
+
+    if (count > 0) {
+        if (bellDot) bellDot.style.display = 'block';
+        if (badge) {
+            badge.innerText = count + ' New';
+            badge.style.display = 'inline-block';
+        }
+        if (markAllBtn) markAllBtn.style.display = 'inline-block';
+    } else {
+        if (bellDot) bellDot.style.display = 'none';
+        if (badge) badge.style.display = 'none';
+        if (markAllBtn) markAllBtn.style.display = 'none';
+    }
+}
+
+window.addNewNotificationToDropdown = function(notif) {
+    const list = document.getElementById('notifItemsList');
+    if (!list) return;
+
+    // Remove empty placeholder
+    const emptyState = document.getElementById('notifEmptyState');
+    if (emptyState) emptyState.remove();
+
+    // Determine avatar styles
+    let avatarClass = 'sky';
+    let iconClass = 'fa-bell';
+    const type = notif.type || notif.notification_type || 'info';
+
+    if (type === 'success') {
+        avatarClass = 'green';
+        iconClass = 'fa-circle-check';
+    } else if (type === 'warning' || type === 'document_request') {
+        avatarClass = 'pink';
+        iconClass = 'fa-triangle-exclamation';
+    }
+
+    const notifId = notif.id || Date.now();
+    const subject = notif.subject || notif.title || 'New Notification';
+    const message = notif.message || '';
+    const link = notif.link || notif.action_url || '';
+    const timeAgo = notif.time_ago || 'Just now';
+    const shortMsg = message.length > 50 ? message.substring(0, 50) + '...' : message;
+
+    const div = document.createElement('div');
+    div.className = 'notif-item unread';
+    div.id = 'notif-item-' + notifId;
+    div.style.cursor = 'pointer';
+    div.onclick = function() {
+        markSingleNotificationRead(notifId, link);
+    };
+
+    const escapeHtml = (str) => {
+        if (!str) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return str.toString().replace(/[&<>"']/g, m => map[m]);
+    };
+
+    div.innerHTML = `
+        <div class="notif-avatar ${avatarClass}">
+            <i class="fa-solid ${iconClass}"></i>
+        </div>
+        <div class="notif-body">
+            <div class="notif-msg">
+                <strong>${escapeHtml(subject)}</strong>: ${escapeHtml(shortMsg)}
+            </div>
+            <div class="notif-time"><i class="fa-regular fa-clock"></i> ${timeAgo}</div>
+        </div>
+        <div class="unread-dot"></div>
+    `;
+
+    // Prepend to list
+    list.insertBefore(div, list.firstChild);
+
+    // Keep max 10
+    while (list.children.length > 10) {
+        list.removeChild(list.lastChild);
+    }
+};
 </script>
