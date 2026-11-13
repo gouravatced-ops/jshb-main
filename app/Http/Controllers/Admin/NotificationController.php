@@ -75,13 +75,92 @@ class NotificationController extends Controller
     public function markAllRead()
     {
         $user = auth()->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
         $isAllottee = ($user && ($user->user_type === 'allottee' || $user->getConnectionName() === 'adms_allottees'));
         $model = $isAllottee ? AllotteeNotification::class : Notification::class;
 
-        $model::where('user_id', auth()->id())
+        $model::where('user_id', $user->id)
             ->where('is_read', 0)
-            ->update(['is_read' => 1]);
+            ->update([
+                'is_read' => 1,
+                'read_at' => now(),
+            ]);
 
-        return response()->json(['status' => 'success']);
+        return response()->json([
+            'status' => 'success',
+            'unread_count' => 0,
+        ]);
+    }
+
+    public function markSingleRead($id)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
+        $isAllottee = ($user && ($user->user_type === 'allottee' || $user->getConnectionName() === 'adms_allottees'));
+        $model = $isAllottee ? AllotteeNotification::class : Notification::class;
+
+        $notif = $model::where('user_id', $user->id)->where('id', $id)->first();
+        if ($notif) {
+            $notif->is_read = 1;
+            $notif->read_at = now();
+            $notif->save();
+
+            $unreadCount = $model::where('user_id', $user->id)->where('is_read', 0)->count();
+
+            return response()->json([
+                'status' => 'success',
+                'unread_count' => $unreadCount,
+            ]);
+        }
+
+        return response()->json(['status' => 'error', 'message' => 'Notification not found'], 404);
+    }
+
+    public function getUnreadCount()
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['unread_count' => 0]);
+        }
+
+        $isAllottee = ($user && ($user->user_type === 'allottee' || $user->getConnectionName() === 'adms_allottees'));
+        $model = $isAllottee ? AllotteeNotification::class : Notification::class;
+
+        $unreadCount = $model::where('user_id', $user->id)->where('is_read', 0)->count();
+
+        return response()->json([
+            'status' => 'success',
+            'unread_count' => $unreadCount,
+        ]);
+    }
+
+    public function getLatest()
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['notifications' => [], 'unread_count' => 0]);
+        }
+
+        $isAllottee = ($user && ($user->user_type === 'allottee' || $user->getConnectionName() === 'adms_allottees'));
+        $model = $isAllottee ? AllotteeNotification::class : Notification::class;
+
+        $notifications = $model::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        $unreadCount = $model::where('user_id', $user->id)->where('is_read', 0)->count();
+
+        return response()->json([
+            'status' => 'success',
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount,
+        ]);
     }
 }

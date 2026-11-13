@@ -142,6 +142,9 @@ Route::middleware('auth')->group(function () {
 
     // Notifications
     Route::post('/notifications/mark-read', [App\Http\Controllers\Admin\NotificationController::class, 'markAllRead'])->name('notifications.mark-read');
+    Route::post('/notifications/{id}/read', [App\Http\Controllers\Admin\NotificationController::class, 'markSingleRead'])->name('notifications.single-read');
+    Route::get('/notifications/unread-count', [App\Http\Controllers\Admin\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+    Route::get('/notifications/latest', [App\Http\Controllers\Admin\NotificationController::class, 'getLatest'])->name('notifications.latest');
     Route::get('/my-notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('my-notifications.index');
 
     // common Routes for retrive condition response of data

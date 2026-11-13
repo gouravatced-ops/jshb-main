@@ -320,6 +320,49 @@ class NotificationService
         return $notification;
     }
 
+    /**
+     * Send notification to multiple users.
+     *
+     * @param array $userIds
+     * @param array $params
+     * @return array
+     */
+    public function sendToMany(array $userIds, array $params): array
+    {
+        $notifications = [];
+        foreach ($userIds as $userId) {
+            $userParams = array_merge($params, ['user_id' => $userId]);
+            $notifications[] = $this->send($userParams);
+        }
+        return $notifications;
+    }
+
+    /**
+     * Send notification to all users of a specific role.
+     *
+     * @param int|string $roleId
+     * @param array $params
+     * @return array
+     */
+    public function sendToRole($roleId, array $params): array
+    {
+        $userIds = User::where('role_id', $roleId)->pluck('id')->toArray();
+        return $this->sendToMany($userIds, $params);
+    }
+
+    /**
+     * Send notification to all users of a specific user group / type.
+     *
+     * @param string $userType
+     * @param array $params
+     * @return array
+     */
+    public function sendToUserGroup(string $userType, array $params): array
+    {
+        $userIds = User::where('user_type', $userType)->pluck('id')->toArray();
+        return $this->sendToMany($userIds, $params);
+    }
+
     private function logCommunication($isAllottee, $userId, $type, $subject, $content, $status, $error, $params = [])
     {
         $request = request();

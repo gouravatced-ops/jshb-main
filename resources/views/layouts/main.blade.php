@@ -153,6 +153,52 @@
         <div class="image-modal-caption" id="globalImageCaption"></div>
     </div>
 
+    <!-- Realtime Broadcasting: Pusher JS & Laravel Echo (CDN with local fallback) -->
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script>window.Pusher || document.write('<script src="{{ asset("js/pusher.min.js") }}"><\/script>')</script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.16.1/echo.iife.js"></script>
+    <script>window.Echo || document.write('<script src="{{ asset("js/echo.iife.js") }}"><\/script>')</script>
+
+    @if(Auth::check())
+    <script>
+        (function() {
+            try {
+                if (typeof Pusher !== 'undefined' && typeof Echo !== 'undefined') {
+                    window.Pusher = Pusher;
+
+                    const reverbKey = "{{ config('broadcasting.connections.reverb.key') }}";
+                    const reverbHost = "{{ config('broadcasting.connections.reverb.options.host') ?: request()->getHost() }}";
+                    const reverbPort = {{ (int)(config('broadcasting.connections.reverb.options.port') ?: 8080) }};
+                    const reverbScheme = "{{ config('broadcasting.connections.reverb.options.scheme') ?: 'http' }}";
+                    const useTLS = reverbScheme === 'https';
+
+                    window.echoInstance = new Echo({
+                        broadcaster: 'reverb',
+                        key: reverbKey,
+                        wsHost: reverbHost,
+                        wsPort: reverbPort,
+                        wssPort: reverbPort,
+                        forceTLS: useTLS,
+                        enabledTransports: ['ws', 'wss'],
+                        authEndpoint: '{{ url("/broadcasting/auth") }}',
+                        auth: {
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                            }
+                        }
+                    });
+
+                    window.Echo = window.echoInstance;
+                    console.log('[Reverb] Echo initialized successfully on ' + reverbHost + ':' + reverbPort);
+                }
+            } catch (err) {
+                console.error('[Reverb] Failed to initialize Echo:', err);
+            }
+        })();
+    </script>
+    @endif
+
     <script src="{{ asset('js/dashboard.js') }}"></script>
     <script src="{{ asset('js/fieldvalidation.js') }}"></script>
     <script src="{{ asset('js/chart.umd.min.js') }}"></script>
@@ -405,44 +451,66 @@
                 window.Echo.private('App.Models.User.' + userId)
                     .listen('.EngineerNotification', (e) => {
                         console.log('Realtime Notification Received:', e);
-                        logToBackend(`Realtime Notification Delivered to Browser | Subject: ${e.notification.subject || 'N/A'}`);
+                        const notifData = e.notification || e;
+                        const subject = e.subject || e.title || notifData.subject || notifData.title || 'New Notification';
+                        const message = e.message || notifData.message || '';
+                        const type = e.type || e.notification_type || notifData.notification_type || notifData.type || 'info';
+                        const link = e.link || e.action_url || notifData.link || notifData.action_url || '';
+                        const notifId = e.id || notifData.id || Date.now();
 
-                        // Show Native Browser Notification instead of Toaster
-                        if ("Notification" in window) {
-                            if (Notification.permission === "granted") {
-                                const notification = new Notification(e.notification.subject || 'New Notification', {
-                                    body: e.notification.message || 'You have a new update.',
-                                    // icon: '/images/logo.png' // add icon if needed
-                                });
+                        logToBackend(`Realtime Notification Delivered to Browser | Subject: ${subject}`);
 
-                                if (e.notification.link) {
-                                    notification.onclick = function() {
-                                        window.open(e.notification.link, '_blank');
-                                    };
-                                }
-                            } else if (Notification.permission !== "denied") {
-                                Notification.requestPermission().then(function(permission) {
-                                    if (permission === "granted") {
-                                        const notification = new Notification(e.notification.subject || 'New Notification', {
-                                            body: e.notification.message || 'You have a new update.'
-                                        });
-                                        if (e.notification.link) {
-                                            notification.onclick = function() {
-                                                window.open(e.notification.link, '_blank');
-                                            };
-                                        }
-                                    }
-                                });
+                        // 1. Prepend to header dropdown in real time
+                        if (typeof window.addNewNotificationToDropdown === 'function') {
+                            window.addNewNotificationToDropdown({
+                                id: notifId,
+                                subject: subject,
+                                message: message,
+                                type: type,
+                                link: link,
+                                time_ago: 'Just now'
+                            });
+                        }
+
+                        // 2. Increment header bell & counter badge
+                        const bellDot = document.getElementById('notifBellDot');
+                        const countBadge = document.getElementById('notifCountBadge');
+                        const markAllBtn = document.getElementById('markAllReadBtn');
+
+                        if (bellDot) bellDot.style.display = 'block';
+                        if (countBadge) {
+                            let currentCount = parseInt(countBadge.innerText) || 0;
+                            countBadge.innerText = (currentCount + 1) + ' New';
+                            countBadge.style.display = 'inline-block';
+                        }
+                        if (markAllBtn) markAllBtn.style.display = 'inline-block';
+
+                        // 3. Trigger live floating toast via Universal Toaster component
+                        if (typeof window.showToast === 'function') {
+                            const toastType = (type === 'document_request' ? 'warning' : (type === 'success' || type === 'error' || type === 'warning' ? type : 'info'));
+                            window.showToast(subject, message, toastType);
+                        }
+
+                        // 4. Native Browser Notification (if granted)
+                        if ("Notification" in window && Notification.permission === "granted") {
+                            const notification = new Notification(subject, {
+                                body: message || 'You have a new update.',
+                            });
+
+                            if (link) {
+                                notification.onclick = function() {
+                                    window.open(link, '_blank');
+                                };
                             }
                         }
 
-                        // Play a sound (optional)
+                        // 5. Sound alert
                         try {
                             const audio = new Audio('/sounds/notification.mp3');
                             audio.play().catch(e => {});
                         } catch (err) {}
 
-                        // Increment badge if present
+                        // Increment general badge if present
                         const badge = document.querySelector('.notification-badge');
                         if (badge) {
                             let count = parseInt(badge.innerText) || 0;
