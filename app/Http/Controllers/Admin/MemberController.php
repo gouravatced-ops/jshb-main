@@ -38,8 +38,14 @@ class MemberController extends Controller
         }
 
         $search = trim((string) $request->get('search', ''));
-
         $type = $request->get('type', 'all');
+        $divisionId = $request->get('division_id');
+        $subDivisionId = $request->get('sub_division_id');
+
+        // If a division or sub-division is selected while on non_divisional tab, switch to divisional
+        if (($divisionId || $subDivisionId) && $type === 'non_divisional') {
+            $type = 'divisional';
+        }
 
         $members = User::query()
             ->with(['roleRelation', 'detail', 'division', 'subDivision'])
@@ -52,17 +58,35 @@ class MemberController extends Controller
             ->when($type === 'non_divisional', function ($query) {
                 $query->whereNull('division_id');
             })
+            ->when($divisionId, function ($query, $divisionId) {
+                $query->where('division_id', $divisionId);
+            })
+            ->when($subDivisionId, function ($query, $subDivisionId) {
+                $query->where('sub_division_id', $subDivisionId);
+            })
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%');
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('username', 'like', '%' . $search . '%');
                 });
             })
             ->orderByDesc('created_at')
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.members.index', compact('members', 'search', 'type'));
+        $divisions = Division::where('status', true)->orderBy('name')->get();
+        $subDivisions = SubDivision::where('status', true)->orderBy('name')->get();
+
+        return view('admin.members.index', compact(
+            'members',
+            'search',
+            'type',
+            'divisions',
+            'subDivisions',
+            'divisionId',
+            'subDivisionId'
+        ));
     }
 
     public function create()

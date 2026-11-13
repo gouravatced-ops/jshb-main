@@ -33,31 +33,121 @@
             <div class="card-subtitle">Manage administrative board members, staff, and roles</div>
         </div>
         <div class="card-actions">
-            <form method="GET" action="{{ route('admin.members.index') }}" class="search-box">
-                <input type="hidden" name="type" value="{{ $type }}">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" name="search" value="{{ $search }}"
-                    placeholder="Search members..." autocomplete="off">
-            </form>
+            @php
+                $hasActiveFilters = ($search !== '' || !empty($divisionId) || !empty($subDivisionId));
+            @endphp
+            <button type="button" id="toggleFilterBtn" class="btn-sky" style="cursor: pointer;">
+                <i class="fa-solid fa-filter"></i>
+                <span id="filterBtnText">{{ $hasActiveFilters ? 'Hide Filter' : 'Filter' }}</span>
+                @if($hasActiveFilters)
+                    <span style="background: #f59e0b; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px;">Active</span>
+                @endif
+            </button>
             <a class="btn-pink" href="{{ route('admin.members.create') }}">
                 <i class="fa-solid fa-user-plus"></i> Add Member
             </a>
         </div>
     </div>
 
-    <div class="members-tabs" style="display: flex; gap: 20px; margin: 0 24px 20px; border-bottom: 1px solid #e2e8f0;">
-        <a href="{{ route('admin.members.index', ['type' => 'all', 'search' => $search]) }}"
+    <div class="members-tabs" style="display: flex; gap: 20px; margin: 0 24px 16px; border-bottom: 1px solid #e2e8f0;">
+        <a href="{{ route('admin.members.index', array_merge(request()->query(), ['type' => 'all'])) }}"
             style="text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 4px; border-bottom: 2px solid {{ $type === 'all' ? '#0ea5e9' : 'transparent' }}; color: {{ $type === 'all' ? '#0ea5e9' : '#64748b' }}; transition: all 0.2s;">
             All Members
         </a>
-        <a href="{{ route('admin.members.index', ['type' => 'divisional', 'search' => $search]) }}"
+        <a href="{{ route('admin.members.index', array_merge(request()->query(), ['type' => 'divisional'])) }}"
             style="text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 4px; border-bottom: 2px solid {{ $type === 'divisional' ? '#0ea5e9' : 'transparent' }}; color: {{ $type === 'divisional' ? '#0ea5e9' : '#64748b' }}; transition: all 0.2s;">
             Divisional Based
         </a>
-        <a href="{{ route('admin.members.index', ['type' => 'non_divisional', 'search' => $search]) }}"
+        <a href="{{ route('admin.members.index', array_merge(request()->query(), ['type' => 'non_divisional', 'division_id' => null, 'sub_division_id' => null])) }}"
             style="text-decoration: none; font-weight: 500; font-size: 15px; padding: 10px 4px; border-bottom: 2px solid {{ $type === 'non_divisional' ? '#0ea5e9' : 'transparent' }}; color: {{ $type === 'non_divisional' ? '#0ea5e9' : '#64748b' }}; transition: all 0.2s;">
             Non-Divisional Based
         </a>
+    </div>
+
+    <!-- Filter Bar: Search, Division & Sub-Division (Hidden by default unless toggled or filters active) -->
+    <div id="membersFilterBox" class="members-filter-box" style="display: {{ $hasActiveFilters ? 'block' : 'none' }}; margin: 0 24px 20px; padding: 14px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <form method="GET" action="{{ route('admin.members.index') }}" id="memberFilterForm" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <input type="hidden" name="type" id="filterTypeInput" value="{{ $type }}">
+
+            <!-- Search Field -->
+            <div style="flex: 1; min-width: 220px; position: relative;">
+                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px;"></i>
+                <input type="text" name="search" id="memberSearchInput" value="{{ $search }}"
+                    placeholder="Search name, email, username..." autocomplete="off"
+                    style="width: 100%; padding: 8px 12px 8px 34px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; color: #1e293b; background: #fff; outline: none;">
+            </div>
+
+            <!-- Division Dropdown -->
+            <div style="min-width: 190px; flex-shrink: 0;">
+                <select name="division_id" id="filterDivisionSelect"
+                    style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; color: #1e293b; background: #fff; outline: none; cursor: pointer;">
+                    <option value="">All Divisions</option>
+                    @foreach($divisions as $division)
+                        <option value="{{ $division->id }}" {{ (string)$divisionId === (string)$division->id ? 'selected' : '' }}>
+                            {{ $division->name }} ({{ $division->division_code }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Sub Division Dropdown (Filtered by division_id) -->
+            <div style="min-width: 200px; flex-shrink: 0;">
+                <select name="sub_division_id" id="filterSubDivisionSelect"
+                    style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; color: #1e293b; background: #fff; outline: none; cursor: pointer;">
+                    <option value="">All Sub Divisions</option>
+                    @foreach($subDivisions as $subDivision)
+                        <option value="{{ $subDivision->id }}" data-division="{{ $subDivision->division_id }}"
+                            {{ (string)$subDivisionId === (string)$subDivision->id ? 'selected' : '' }}>
+                            {{ $subDivision->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Filter & Reset Buttons -->
+            <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 13px; border-radius: 6px; border: none; background: #0ea5e9; color: #fff; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; height: 35px;">
+                    <i class="fa-solid fa-filter"></i> Filter
+                </button>
+                @if($search !== '' || !empty($divisionId) || !empty($subDivisionId))
+                    <a href="{{ route('admin.members.index', ['type' => $type]) }}" class="btn-secondary" title="Clear Filters"
+                        style="padding: 8px 14px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #64748b; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; height: 35px;">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </a>
+                @endif
+            </div>
+        </form>
+
+        <!-- Active Filter Tags (if any filter is selected) -->
+        @if(!empty($divisionId) || !empty($subDivisionId) || $search !== '')
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; flex-wrap: wrap;">
+                <span style="font-size: 12px; color: #64748b; font-weight: 600;">Active Filters:</span>
+                @if($search !== '')
+                    <span style="font-size: 12px; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                        Search: "{{ $search }}"
+                        <a href="{{ route('admin.members.index', array_merge(request()->except('search'))) }}" style="color: #0284c7; text-decoration: none;">&times;</a>
+                    </span>
+                @endif
+                @if(!empty($divisionId))
+                    @php $activeDiv = $divisions->firstWhere('id', $divisionId); @endphp
+                    @if($activeDiv)
+                        <span style="font-size: 12px; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                            Division: {{ $activeDiv->name }}
+                            <a href="{{ route('admin.members.index', array_merge(request()->except(['division_id', 'sub_division_id']))) }}" style="color: #4338ca; text-decoration: none;">&times;</a>
+                        </span>
+                    @endif
+                @endif
+                @if(!empty($subDivisionId))
+                    @php $activeSubDiv = $subDivisions->firstWhere('id', $subDivisionId); @endphp
+                    @if($activeSubDiv)
+                        <span style="font-size: 12px; background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                            Sub Division: {{ $activeSubDiv->name }}
+                            <a href="{{ route('admin.members.index', array_merge(request()->except('sub_division_id'))) }}" style="color: #b45309; text-decoration: none;">&times;</a>
+                        </span>
+                    @endif
+                @endif
+            </div>
+        @endif
     </div>
 
     <div class="table-responsive">
@@ -201,6 +291,69 @@
 @section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Toggle Filter Box Hide / Show
+        const toggleFilterBtn = document.getElementById('toggleFilterBtn');
+        const filterBox = document.getElementById('membersFilterBox');
+        const filterBtnText = document.getElementById('filterBtnText');
+
+        if (toggleFilterBtn && filterBox) {
+            toggleFilterBtn.addEventListener('click', function() {
+                const isHidden = filterBox.style.display === 'none' || getComputedStyle(filterBox).display === 'none';
+                filterBox.style.display = isHidden ? 'block' : 'none';
+                if (filterBtnText) {
+                    filterBtnText.textContent = isHidden ? 'Hide Filter' : 'Filter';
+                }
+            });
+        }
+
+        // Dynamic Sub-Division filter dependent on Division selection
+        const divisionSelect = document.getElementById('filterDivisionSelect');
+        const subDivisionSelect = document.getElementById('filterSubDivisionSelect');
+        const filterTypeInput = document.getElementById('filterTypeInput');
+
+        function filterSubDivisions() {
+            if (!divisionSelect || !subDivisionSelect) return;
+            const selectedDivision = divisionSelect.value;
+            let selectedStillVisible = false;
+
+            Array.from(subDivisionSelect.options).forEach(opt => {
+                if (opt.value === "") {
+                    opt.textContent = selectedDivision ? "All Sub Divisions in Division" : "All Sub Divisions";
+                    return;
+                }
+
+                const optDivision = opt.getAttribute('data-division');
+                if (!selectedDivision || optDivision === selectedDivision) {
+                    opt.style.display = "";
+                    opt.hidden = false;
+                    opt.disabled = false;
+                    if (opt.value === subDivisionSelect.value) {
+                        selectedStillVisible = true;
+                    }
+                } else {
+                    opt.style.display = "none";
+                    opt.hidden = true;
+                    opt.disabled = true;
+                }
+            });
+
+            if (subDivisionSelect.value && !selectedStillVisible) {
+                subDivisionSelect.value = "";
+            }
+        }
+
+        if (divisionSelect) {
+            divisionSelect.addEventListener('change', function() {
+                filterSubDivisions();
+                if (this.value && filterTypeInput && filterTypeInput.value === 'non_divisional') {
+                    filterTypeInput.value = 'divisional';
+                }
+            });
+            // Initial filter run on page load
+            filterSubDivisions();
+        }
+
+        // Test Realtime Notification
         document.querySelectorAll('.notify-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();

@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\EncryptedRouteKey;
+use App\Models\SubDivision;
+use App\Models\Allottee;
 
 class Division extends Model
 {
@@ -18,7 +20,6 @@ class Division extends Model
         'status',
     ];
 
-    
     protected $casts = [
         'status' => 'boolean',
     ];
@@ -28,5 +29,15 @@ class Division extends Model
     public function getDvEnIdAttribute()
     {
         return encryptId($this->id);
+    }
+
+    public function subDivisions()
+    {
+        return $this->hasMany(SubDivision::class, 'division_id');
+    }
+
+    public function allottees()
+    {
+        return $this->hasMany(Allottee::class, 'division_id');
     }
 }

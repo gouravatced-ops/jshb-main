@@ -3,297 +3,376 @@
 @section('title', 'Citizen Portal Sync | Future Allottees | JSHB')
 
 @section('content')
-<div class="container-fluid py-2">
-    <!-- Page Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+<div class="card">
+    <div class="card-head">
         <div>
-            <h4 class="mb-1 text-dark fw-bold">
-                <i class="fa-solid fa-arrows-rotate text-primary me-2"></i>Citizen Portal Sync (Future Allottees)
-            </h4>
-            <p class="text-muted small mb-0">Review incoming citizen applications from the online portal and migrate them into live allottees & applications.</p>
+            <div class="card-title">Citizen Portal Sync (Future Allottees)</div>
+            <div class="card-subtitle">Review incoming citizen applications from the online portal and migrate them into live allottees</div>
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="card-actions">
+            @php
+                $hasFilters = request('search') || request('scheme_id') || request('status');
+            @endphp
+            <button type="button" id="toggleFilterBtn" class="btn-sky" style="cursor: pointer;">
+                <i class="fa-solid fa-filter"></i>
+                <span id="filterBtnText">{{ $hasFilters ? 'Hide Filter' : 'Filter' }}</span>
+                @if($hasFilters)
+                    <span style="background: #f59e0b; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px;">Active</span>
+                @endif
+            </button>
+
             <!-- Generate Sample Data Button -->
-            <form action="{{ route('admin.future-allottees.seed') }}" method="POST" class="d-inline" onsubmit="return confirm('Generate 10 realistic sample citizen applications in staging?');">
+            <form action="{{ route('admin.future-allottees.seed') }}" method="POST" style="display:inline;" onsubmit="return confirm('Generate 10 realistic sample citizen applications in staging?');">
                 @csrf
-                <button type="submit" class="btn btn-outline-secondary btn-sm shadow-sm">
-                    <i class="fa-solid fa-wand-magic-sparkles me-1 text-warning"></i> Generate 10 Test Applicants
+                <button type="submit" class="btn-secondary" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; cursor: pointer;">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color: #facc15;"></i> Generate 10 Test Applicants
                 </button>
             </form>
 
             <!-- Bulk Sync Button -->
-            <button type="button" class="btn btn-primary btn-sm shadow-sm" id="btnSyncAllPending" onclick="syncAllPending()">
-                <i class="fa-solid fa-bolt me-1"></i> Sync All Pending (One-Click)
+            <button type="button" class="btn-pink" id="btnSyncAllPending" onclick="syncAllPending()">
+                <i class="fa-solid fa-bolt"></i> Sync All Pending (One-Click)
             </button>
         </div>
     </div>
 
-    <!-- Alerts -->
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
-            <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="alert alert-success" style="margin: 20px 20px 0;">
+            {{ session('success') }}
         </div>
     @endif
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
-            <i class="fa-solid fa-circle-exclamation me-2"></i> {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="alert alert-danger" style="margin: 20px 20px 0; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 16px; border-radius: 6px;">
+            {{ session('error') }}
         </div>
     @endif
 
-    <!-- Metrics Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
-                <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                    <div>
-                        <span class="text-muted small fw-medium d-block">Total Submissions</span>
-                        <h3 class="mb-0 fw-bold text-dark">{{ number_format($totalCount) }}</h3>
-                    </div>
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 text-primary">
-                        <i class="fa-solid fa-users fa-lg"></i>
-                    </div>
-                </div>
+    <style>
+        /* Modern Pill Action Buttons */
+        .btn-action-pill {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            padding: 5px 12px !important;
+            height: 30px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            line-height: 1 !important;
+            border-radius: 6px !important;
+            text-decoration: none !important;
+            cursor: pointer !important;
+            white-space: nowrap !important;
+            border: 1px solid transparent !important;
+            transition: all 0.15s ease-in-out !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            width: auto !important;
+            box-sizing: border-box !important;
+        }
+
+        .btn-action-pill i {
+            font-size: 11px !important;
+        }
+
+        .btn-action-pill.btn-action-view {
+            background: #f0f9ff !important;
+            color: #0284c7 !important;
+            border-color: #bae6fd !important;
+        }
+        .btn-action-pill.btn-action-view:hover {
+            background: #e0f2fe !important;
+            color: #0369a1 !important;
+            border-color: #7dd3fc !important;
+            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.15) !important;
+            transform: translateY(-1px);
+        }
+
+        .btn-action-pill.btn-action-sync {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+            color: #ffffff !important;
+            border-color: #0284c7 !important;
+        }
+        .btn-action-pill.btn-action-sync:hover {
+            background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(14, 165, 233, 0.25) !important;
+            transform: translateY(-1px);
+        }
+
+        .btn-action-pill.btn-action-live {
+            background: #f0fdf4 !important;
+            color: #15803d !important;
+            border-color: #bbf7d0 !important;
+        }
+        .btn-action-pill.btn-action-live:hover {
+            background: #dcfce7 !important;
+            color: #166534 !important;
+            border-color: #86efac !important;
+            box-shadow: 0 2px 4px rgba(22, 163, 74, 0.15) !important;
+            transform: translateY(-1px);
+        }
+    </style>
+
+    <!-- Metrics Cards Bar -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 20px 24px 16px;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">Total Submissions</div>
+                <div style="font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 2px;">{{ number_format($totalCount) }}</div>
+            </div>
+            <div style="width: 38px; height: 38px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                <i class="fa-solid fa-users"></i>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
-                <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                    <div>
-                        <span class="text-muted small fw-medium d-block">Pending to Sync</span>
-                        <h3 class="mb-0 fw-bold text-warning">{{ number_format($pendingCount) }}</h3>
-                    </div>
-                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 text-warning">
-                        <i class="fa-solid fa-clock-rotate-left fa-lg"></i>
-                    </div>
-                </div>
+
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 11px; text-transform: uppercase; color: #92400e; font-weight: 700; letter-spacing: 0.5px;">Pending to Sync</div>
+                <div style="font-size: 20px; font-weight: 800; color: #b45309; margin-top: 2px;">{{ number_format($pendingCount) }}</div>
+            </div>
+            <div style="width: 38px; height: 38px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
-                <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                    <div>
-                        <span class="text-muted small fw-medium d-block">Successfully Synced</span>
-                        <h3 class="mb-0 fw-bold text-success">{{ number_format($syncedCount) }}</h3>
-                    </div>
-                    <div class="rounded-circle bg-success bg-opacity-10 p-3 text-success">
-                        <i class="fa-solid fa-circle-check fa-lg"></i>
-                    </div>
-                </div>
+
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 11px; text-transform: uppercase; color: #166534; font-weight: 700; letter-spacing: 0.5px;">Successfully Synced</div>
+                <div style="font-size: 20px; font-weight: 800; color: #15803d; margin-top: 2px;">{{ number_format($syncedCount) }}</div>
+            </div>
+            <div style="width: 38px; height: 38px; border-radius: 8px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                <i class="fa-solid fa-circle-check"></i>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
-                <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                    <div>
-                        <span class="text-muted small fw-medium d-block">Sync Failed</span>
-                        <h3 class="mb-0 fw-bold text-danger">{{ number_format($failedCount) }}</h3>
-                    </div>
-                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 text-danger">
-                        <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
-                    </div>
-                </div>
+
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 11px; text-transform: uppercase; color: #991b1b; font-weight: 700; letter-spacing: 0.5px;">Sync Failed</div>
+                <div style="font-size: 20px; font-weight: 800; color: #b91c1c; margin-top: 2px;">{{ number_format($failedCount) }}</div>
+            </div>
+            <div style="width: 38px; height: 38px; border-radius: 8px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
         </div>
     </div>
 
-    <!-- Filter & Table Card -->
-    <div class="card border-0 shadow-sm rounded-3 mb-4">
-        <div class="card-header bg-white py-3 border-bottom">
-            <form action="{{ route('admin.future-allottees.index') }}" method="GET" class="row g-2 align-items-center">
-                <div class="col-md-4">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" name="search" class="form-control border-start-0" placeholder="Search by name, ref no, mobile, aadhaar..." value="{{ request('search') }}">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <select name="scheme_id" class="form-select form-select-sm">
-                        <option value="">All Schemes</option>
-                        @foreach($schemes as $s)
-                            <option value="{{ $s->id }}" {{ request('scheme_id') == $s->id ? 'selected' : '' }}>
-                                {{ $s->scheme_code }} ({{ Str::limit($s->scheme_name, 25) }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="status" class="form-select form-select-sm">
-                        <option value="">All Statuses</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="synced" {{ request('status') == 'synced' ? 'selected' : '' }}>Synced</option>
-                        <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm px-3"><i class="fa-solid fa-filter me-1"></i>Filter</button>
-                    <a href="{{ route('admin.future-allottees.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-rotate-left me-1"></i>Reset</a>
-                </div>
-            </form>
-        </div>
-
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-muted small text-uppercase">
-                        <tr>
-                            <th class="ps-3 py-3" style="width: 40px;">
-                                <input type="checkbox" class="form-check-input" id="checkSelectAll" title="Select All Pending">
-                            </th>
-                            <th>Ref No & Date</th>
-                            <th>Applicant Name</th>
-                            <th>Target Scheme / Location</th>
-                            <th>Payment Details</th>
-                            <!-- <th>Receipt Slip</th> -->
-                            <th>Sync Status</th>
-                            <th class="text-end pe-3">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y">
-                        @forelse($allottees as $item)
-                        <tr>
-                            <td class="ps-3">
-                                @if($item->sync_status !== 'synced')
-                                    <input type="checkbox" class="form-check-input row-select" value="{{ $item->id }}">
-                                @else
-                                    <i class="fa-solid fa-check text-success small" title="Already Synced"></i>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark font-monospace fw-semibold border">{{ $item->reference_portal_id }}</span>
-                                @if($item->application_no)
-                                    <div class="small text-primary fw-semibold font-monospace mt-1"><i class="fa-solid fa-hashtag me-1" style="font-size: 10px;"></i>{{ $item->application_no }}</div>
-                                @endif
-                                <div class="text-muted small mt-1">{{ $item->created_at ? $item->created_at->format('d M Y, h:i A') : 'N/A' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold text-dark">
-                                    {{ trim(
-                                            ($item->prefix ?? '') . ' ' .
-                                            ($item->allottee_name ?? '') . ' ' .
-                                            ($item->allottee_middle_name ?? '') . ' ' .
-                                            ($item->allottee_surname ?? '')
-                                        ) ?: '-' }}
-                                </div>
-                                @if($item->allottee_name_hindi)
-                                    <div class="small text-secondary" style="font-family: 'KrutiDev', sans-serif, Arial; font-size: 20px;">
-                                        {{ trim(
-                                            ($item->allottee_prefix_hindi ?? '') . ' ' .
-                                            ($item->allottee_name_hindi ?? '') . ' ' .
-                                            ($item->allottee_middle_hindi ?? '') . ' ' .
-                                            ($item->allottee_surname_hindi ?? '')
-                                        ) ?: '-' }}
-                                    </div>
-                                @endif
-                                <div class="small text-muted">
-                                    <i class="fa-solid fa-phone me-1 text-secondary" style="font-size: 10px;"></i>{{ $item->mobile }}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="fw-medium text-dark">{{ $item->scheme?->scheme_code ?? 'Scheme #' . $item->scheme_id }}</div>
-                                <div class="small text-dark">
-                                    {{ $item->division?->name ?? 'Div ' . $item->division_id }}
-                                    @if($item->subDivision)
-                                        • {{ $item->subDivision->name }}
-                                    @endif
-                                </div>
-                            </td>
-                            <td>
-                                @if($item->transaction)
-                                    <div class="fw-bold text-success">₹{{ number_format($item->transaction->amount, 2) }}</div>
-                                    <div class="small text-muted font-monospace">
-                                        <span class="badge bg-light text-secondary border py-0 px-1">{{ strtoupper($item->transaction->payment_mode) }}</span>
-                                        {{ $item->transaction->utr_no }}
-                                    </div>
-                                @else
-                                    <span class="text-muted small">No payment info</span>
-                                @endif
-                            </td>
-                            <!-- <td>
-                                @if($item->transaction && $item->transaction->receipt_path)
-                                    <a href="{{ asset($item->transaction->receipt_path) }}" target="_blank" class="btn btn-outline-primary btn-sm py-1 px-2 text-nowrap" style="font-size: 11px;">
-                                        <i class="fa-solid fa-file-invoice me-1"></i> View Slip
-                                    </a>
-                                @else
-                                    <span class="text-muted small">N/A</span>
-                                @endif
-                            </td> -->
-                            <td>
-                                @if($item->sync_status === 'synced')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                                        <i class="fa-solid fa-circle-check me-1"></i> Synced
-                                    </span>
-                                    <div class="text-muted small mt-1" style="font-size: 10px;">
-                                        {{ $item->synced_at ? $item->synced_at->format('d/m/y h:i A') : '' }}
-                                    </div>
-                                @elseif($item->sync_status === 'failed')
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1" title="{{ $item->error_log }}">
-                                        <i class="fa-solid fa-circle-xmark me-1"></i> Failed
-                                    </span>
-                                    <div class="text-danger small mt-1 text-truncate" style="max-width: 140px; font-size: 10px;" title="{{ $item->error_log }}">
-                                        {{ $item->error_log }}
-                                    </div>
-                                @else
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">
-                                        <i class="fa-solid fa-clock me-1"></i> Pending
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="text-end pe-3">
-                                <div class="btn-group btn-group-sm">
-                                    <!-- Preview Button -->
-                                    <!-- <button type="button" class="btn btn-light btn-sm border" onclick="previewRecord({{ $item->id }})" title="Preview Details">
-                                        <i class="fa-solid fa-eye text-secondary"></i>
-                                    </button> -->
-
-                                    <!-- Sync Button -->
-                                    @if($item->sync_status !== 'synced')
-                                        <form action="{{ route('admin.future-allottees.sync', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Sync applicant {{ $item->full_name }} into live allottee & application?');">
-                                            @csrf
-                                            <button type="submit" class="btn btn-primary btn-sm ms-1" title="Migrate / Sync to Live">
-                                                <i class="fa-solid fa-play me-1"></i> Sync
-                                            </button>
-                                        </form>
-                                    @else
-                                        @if($item->synced_allottee_id)
-                                            <a href="{{ route('admin.allottees.show', encryptId($item->synced_allottee_id)) }}" class="btn btn-outline-success btn-sm ms-1" title="View Live Allottee">
-                                                <i class="fa-solid fa-user-check me-1"></i> Live
-                                            </a>
-                                        @endif
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-inbox fa-3x mb-3 text-secondary opacity-50 d-block"></i>
-                                <h6>No Staging Applications Found</h6>
-                                <p class="small mb-3">Click below to generate sample citizen applications for testing.</p>
-                                <form action="{{ route('admin.future-allottees.seed') }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Generate 10 Test Applicants
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+    <!-- Filter Bar: Search, Scheme & Status -->
+    <div id="filterBox" style="display: {{ $hasFilters ? 'block' : 'none' }}; margin: 0 24px 18px; padding: 14px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <form action="{{ route('admin.future-allottees.index') }}" method="GET" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <!-- Search Field -->
+            <div style="flex: 1; min-width: 220px; position: relative;">
+                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px;"></i>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, ref no, mobile, aadhaar..." autocomplete="off"
+                    style="width: 100%; padding: 8px 12px 8px 34px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; color: #1e293b; background: #fff; outline: none;">
             </div>
-        </div>
 
-        @if($allottees->hasPages())
-        <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center">
-            <span class="small text-muted">Showing {{ $allottees->firstItem() }} to {{ $allottees->lastItem() }} of {{ $allottees->total() }} records</span>
-            <div>
-                {{ $allottees->links('pagination::bootstrap-5') }}
+            <!-- Scheme Dropdown -->
+            <div style="min-width: 200px;">
+                <select name="scheme_id" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; color: #1e293b; background: #fff; outline: none; cursor: pointer;">
+                    <option value="">All Schemes</option>
+                    @foreach($schemes as $s)
+                        <option value="{{ $s->id }}" {{ request('scheme_id') == $s->id ? 'selected' : '' }}>
+                            {{ $s->scheme_code }} ({{ Str::limit($s->scheme_name, 22) }})
+                        </option>
+                    @endforeach
+                </select>
             </div>
-        </div>
+
+            <!-- Status Dropdown -->
+            <div style="min-width: 150px;">
+                <select name="status" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; color: #1e293b; background: #fff; outline: none; cursor: pointer;">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="synced" {{ request('status') == 'synced' ? 'selected' : '' }}>Synced</option>
+                    <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+                </select>
+            </div>
+
+            <!-- Filter & Reset Buttons -->
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 13px; border-radius: 6px; border: none; background: #0ea5e9; color: #fff; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; height: 35px;">
+                    <i class="fa-solid fa-filter"></i> Filter
+                </button>
+                @if($hasFilters)
+                    <a href="{{ route('admin.future-allottees.index') }}" class="btn-secondary" style="padding: 8px 14px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #64748b; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; height: 35px;">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </a>
+                @endif
+            </div>
+        </form>
+
+        <!-- Active Filter Badges -->
+        @if($hasFilters)
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; flex-wrap: wrap;">
+                <span style="font-size: 12px; color: #64748b; font-weight: 600;">Active Filters:</span>
+                @if(request('search'))
+                    <span style="font-size: 12px; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                        Search: "{{ request('search') }}"
+                        <a href="{{ route('admin.future-allottees.index', array_merge(request()->except('search'))) }}" style="color: #0284c7; text-decoration: none;">&times;</a>
+                    </span>
+                @endif
+                @if(request('scheme_id'))
+                    @php $activeScheme = $schemes->firstWhere('id', request('scheme_id')); @endphp
+                    @if($activeScheme)
+                        <span style="font-size: 12px; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                            Scheme: {{ $activeScheme->scheme_code }}
+                            <a href="{{ route('admin.future-allottees.index', array_merge(request()->except('scheme_id'))) }}" style="color: #4338ca; text-decoration: none;">&times;</a>
+                        </span>
+                    @endif
+                @endif
+                @if(request('status'))
+                    <span style="font-size: 12px; background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                        Status: {{ ucfirst(request('status')) }}
+                        <a href="{{ route('admin.future-allottees.index', array_merge(request()->except('status'))) }}" style="color: #b45309; text-decoration: none;">&times;</a>
+                    </span>
+                @endif
+            </div>
         @endif
     </div>
+
+    <!-- Table Section -->
+    <div class="table-responsive">
+        <table class="ep-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px; text-align: center;">
+                        <input type="checkbox" id="checkSelectAll" title="Select All Pending" style="cursor: pointer;">
+                    </th>
+                    <th>#</th>
+                    <th>Ref No & Date</th>
+                    <th>Applicant Details</th>
+                    <th>Scheme / Division</th>
+                    <th>Payment Info</th>
+                    <th>Sync Status</th>
+                    <th style="text-align: center; width: 160px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($allottees as $item)
+                <tr>
+                    <td style="text-align: center;">
+                        @if($item->sync_status !== 'synced')
+                            <input type="checkbox" class="row-select" value="{{ $item->id }}" style="cursor: pointer;">
+                        @else
+                            <i class="fa-solid fa-check" style="color: #16a34a;" title="Already Synced"></i>
+                        @endif
+                    </td>
+                    <td>{{ $allottees->firstItem() + $loop->index }}</td>
+                    <td>
+                        <span class="badge" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 700; font-family: monospace;">{{ $item->reference_portal_id }}</span>
+                        @if($item->application_no)
+                            <div class="table-email" style="color: #0284c7; font-weight: 600; font-family: monospace; font-size: 12px; margin-top: 3px;">
+                                <i class="fa-solid fa-hashtag" style="font-size: 10px;"></i> {{ $item->application_no }}
+                            </div>
+                        @endif
+                        <div style="font-size: 11px; color: #64748b; margin-top: 3px;">{{ $item->created_at ? $item->created_at->format('d M Y, h:i A') : 'N/A' }}</div>
+                    </td>
+                    <td>
+                        <div class="table-name" style="font-weight: 700; color: #0f172a;">
+                            {{ trim(($item->prefix ?? '') . ' ' . ($item->allottee_name ?? '') . ' ' . ($item->allottee_middle_name ?? '') . ' ' . ($item->allottee_surname ?? '')) ?: '-' }}
+                        </div>
+                        @if($item->allottee_name_hindi)
+                            <div style="font-family: 'KrutiDev', sans-serif, Arial; font-size: 18px; color: #475569; margin-top: 1px;">
+                                {{ trim(($item->allottee_prefix_hindi ?? '') . ' ' . ($item->allottee_name_hindi ?? '') . ' ' . ($item->allottee_middle_hindi ?? '') . ' ' . ($item->allottee_surname_hindi ?? '')) ?: '-' }}
+                            </div>
+                        @endif
+                        <div class="table-email" style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                            <i class="fa-solid fa-phone" style="font-size: 10px; color: #0284c7;"></i> {{ $item->mobile }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-name" style="color: #0f172a; font-weight: 600;">{{ $item->scheme?->scheme_code ?? 'Scheme #' . $item->scheme_id }}</div>
+                        <div class="table-email" style="color: #64748b; font-size: 12px;">
+                            {{ $item->division?->name ?? 'Div ' . $item->division_id }}
+                            @if($item->subDivision)
+                                • {{ $item->subDivision->name }}
+                            @endif
+                        </div>
+                    </td>
+                    <td>
+                        @if($item->transaction)
+                            <div style="font-weight: 800; color: #16a34a; font-size: 14px;">₹{{ number_format($item->transaction->amount, 2) }}</div>
+                            <div style="font-size: 11px; color: #64748b; margin-top: 2px; font-family: monospace;">
+                                <span class="badge" style="background: #e2e8f0; color: #334155; font-size: 10px; padding: 1px 5px; border-radius: 3px;">{{ strtoupper($item->transaction->payment_mode) }}</span>
+                                {{ $item->transaction->utr_no }}
+                            </div>
+                        @else
+                            <span style="font-size: 12px; color: #94a3b8;">No payment info</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($item->sync_status === 'synced')
+                            <span class="badge-status active">
+                                <i class="fa-solid fa-circle-check"></i> Synced
+                            </span>
+                            <div style="font-size: 10px; color: #64748b; margin-top: 3px;">
+                                {{ $item->synced_at ? $item->synced_at->format('d/m/y h:i A') : '' }}
+                            </div>
+                        @elseif($item->sync_status === 'failed')
+                            <span class="badge-status inactive" title="{{ $item->error_log }}">
+                                <i class="fa-solid fa-circle-xmark"></i> Failed
+                            </span>
+                        @else
+                            <span class="badge-status" style="background: #fef3c7; color: #92400e;">
+                                <i class="fa-solid fa-clock"></i> Pending
+                            </span>
+                        @endif
+                    </td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                            <button type="button" class="btn-action-pill btn-action-view" onclick="previewRecord({{ $item->id }})" title="Preview Applicant Application">
+                                <i class="fa-solid fa-eye"></i>
+                                <span>View</span>
+                            </button>
+
+                            @if($item->sync_status !== 'synced')
+                                <form action="{{ route('admin.future-allottees.sync', $item->id) }}" method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('Sync applicant {{ $item->full_name }} into live allottee & application?');">
+                                    @csrf
+                                    <button type="submit" class="btn-action-pill btn-action-sync" title="Migrate & Sync to Live Allottee">
+                                        <i class="fa-solid fa-bolt"></i>
+                                        <span>Sync</span>
+                                    </button>
+                                </form>
+                            @else
+                                @if($item->synced_allottee_id)
+                                    <a href="{{ route('admin.allottees.show', encryptId($item->synced_allottee_id)) }}" target="_blank" class="btn-action-pill btn-action-live" title="View in Live Allottees">
+                                        <i class="fa-solid fa-user-check"></i>
+                                        <span>Live</span>
+                                    </a>
+                                @else
+                                    <span class="btn-action-pill btn-action-live" style="opacity: 0.85; cursor: default;" title="Already Synced">
+                                        <i class="fa-solid fa-check"></i>
+                                        <span>Synced</span>
+                                    </span>
+                                @endif
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px 20px; color: #64748b;">
+                        <i class="fa-solid fa-inbox fa-3x" style="color: #cbd5e1; margin-bottom: 12px; display: block;"></i>
+                        <h4 style="font-size: 16px; color: #1e293b; font-weight: 700; margin-bottom: 6px;">No Staging Applications Found</h4>
+                        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">Click below to generate sample citizen applications for testing.</p>
+                        <form action="{{ route('admin.future-allottees.seed') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="btn-pink" style="cursor: pointer;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate 10 Test Applicants
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    @if($allottees->hasPages())
+    <div style="padding: 20px;">
+        {{ $allottees->links() }}
+    </div>
+    @endif
 </div>
 
 <!-- Preview Modal -->
@@ -327,6 +406,21 @@
 
 @push('scripts')
 <script>
+    // Toggle Filter Box
+    const toggleFilterBtn = document.getElementById('toggleFilterBtn');
+    const filterBox = document.getElementById('filterBox');
+    const filterBtnText = document.getElementById('filterBtnText');
+
+    if (toggleFilterBtn && filterBox) {
+        toggleFilterBtn.addEventListener('click', function() {
+            const isHidden = filterBox.style.display === 'none' || getComputedStyle(filterBox).display === 'none';
+            filterBox.style.display = isHidden ? 'block' : 'none';
+            if (filterBtnText) {
+                filterBtnText.textContent = isHidden ? 'Hide Filter' : 'Filter';
+            }
+        });
+    }
+
     // Select all pending checkboxes
     document.getElementById('checkSelectAll')?.addEventListener('change', function() {
         const checked = this.checked;
@@ -428,7 +522,7 @@
                                         </div>
                                         <div class="col-md-4 text-md-end">
                                             ${t.receipt_path ? `
-                                                <a href="/${t.receipt_path.replace(/^\\//, '')}" target="_blank" class="btn btn-outline-success btn-sm">
+                                                <a href="/${t.receipt_path.replace(/^\//, '')}" target="_blank" class="btn btn-outline-success btn-sm">
                                                     <i class="fa-solid fa-file-pdf me-1"></i> Open Payment Slip
                                                 </a>
                                             ` : '<span class="text-muted">No slip uploaded</span>'}

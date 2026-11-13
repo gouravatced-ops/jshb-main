@@ -2,7 +2,7 @@
 <div class="nav-item-wrap">
     <a class="nav-link-custom {{ request()->routeIs('my-notifications.index') ? 'active' : '' }}" href="{{ route('my-notifications.index') }}">
         <div class="nav-icon"><i class="fa-solid fa-bell"></i></div>
-        <span class="nav-text">My Notifications</span>
+        <span class="nav-text">Notifications</span>
         @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
         <span class="badge bg-danger rounded-pill ms-auto me-2">{{ $unreadNotifCount }}</span>
         @endif

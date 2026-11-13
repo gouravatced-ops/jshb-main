@@ -15,17 +15,26 @@ class ActivityLogController extends Controller
     {
         $query = Activity::with('causer')->latest();
 
-        // Optional filtering by log name or causer could be added here
-        if ($request->filled('log_name')) {
-            $query->where('log_name', $request->log_name);
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('log_name', 'like', "%{$search}%")
+                  ->orWhere('subject_type', 'like', "%{$search}%");
+            });
         }
 
         if ($request->filled('event')) {
             $query->where('event', $request->event);
         }
 
-        $activities = $query->paginate(20);
+        $totalCount = Activity::count();
+        $createdCount = Activity::where('event', 'created')->count();
+        $updatedCount = Activity::where('event', 'updated')->count();
+        $deletedCount = Activity::where('event', 'deleted')->count();
 
-        return view('admin.activity_logs.index', compact('activities'));
+        $activities = $query->paginate(20)->withQueryString();
+
+        return view('admin.activity_logs.index', compact('activities', 'totalCount', 'createdCount', 'updatedCount', 'deletedCount'));
     }
 }

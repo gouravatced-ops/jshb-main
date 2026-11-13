@@ -34,6 +34,18 @@ Route::get('/tenders', function () {
     return view('tenders');
 })->name('tenders');
 
+Route::get('/workflow', function () {
+    return view('workflow');
+})->name('workflow.visualizer');
+
+Route::get('/work-report', function () {
+    return view('workflow');
+})->name('work.report');
+
+Route::get('/officer-workflow', function () {
+    return view('officer-workflow');
+})->name('officer.workflow');
+
 Route::get('/run-storage-link', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('storage:link');

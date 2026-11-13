@@ -12,18 +12,50 @@ class TransactionController extends Controller
     {
         $query = AllotteeTransaction::with('allottee')->orderBy('created_at', 'desc');
 
-        // Simple filtering
+        // Search by transaction_no, utr_no, or allottee info
         if ($request->filled('transaction_no')) {
-            $query->where('transaction_no', 'like', '%' . $request->transaction_no . '%');
+            $search = trim($request->transaction_no);
+            $query->where(function ($q) use ($search) {
+                $q->where('transaction_no', 'like', '%' . $search . '%')
+                  ->orWhere('utr_no', 'like', '%' . $search . '%')
+                  ->orWhereHas('allottee', function ($aq) use ($search) {
+                      $aq->where('property_number', 'like', '%' . $search . '%')
+                         ->orWhere('allottee_name', 'like', '%' . $search . '%')
+                         ->orWhere('username', 'like', '%' . $search . '%');
+                  });
+            });
         }
 
         if ($request->filled('status')) {
-            $query->where('payment_status', $request->status);
+            $status = $request->status;
+            if ($status === 'success') {
+                $query->whereIn('payment_status', ['success', 'paid', 'completed']);
+            } else {
+                $query->where('payment_status', $status);
+            }
         }
 
-        $transactions = $query->paginate(15);
+        if ($request->filled('payment_mode')) {
+            $query->where('payment_mode', $request->payment_mode);
+        }
 
-        return view('admin.transactions.index', compact('transactions'));
+        // Summary metrics
+        $totalCount = AllotteeTransaction::count();
+        $successCount = AllotteeTransaction::whereIn('payment_status', ['success', 'paid', 'completed'])->count();
+        $pendingCount = AllotteeTransaction::where('payment_status', 'pending')->count();
+        $failedCount = AllotteeTransaction::where('payment_status', 'failed')->count();
+        $totalSuccessAmount = AllotteeTransaction::whereIn('payment_status', ['success', 'paid', 'completed'])->sum('total_amount');
+
+        $transactions = $query->paginate(15)->withQueryString();
+
+        return view('admin.transactions.index', compact(
+            'transactions',
+            'totalCount',
+            'successCount',
+            'pendingCount',
+            'failedCount',
+            'totalSuccessAmount'
+        ));
     }
 
 }
