@@ -64,6 +64,16 @@ class AutoEscalateStalledApplications extends Command
         $admins = User::where('role_id', 8)->get();
 
         $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
+        $systemUser = User::where('email', $systemEmail)->first();
+
+        // Collect unique admin emails for CC, excluding system email itself
+        $adminCcEmails = $admins->pluck('email')
+            ->filter()
+            ->reject(fn ($email) => strcasecmp($email, $systemEmail) === 0)
+            ->unique()
+            ->values()
+            ->all();
+        $adminCcString = implode(', ', $adminCcEmails);
 
         $totalJobs = 0;
 
@@ -82,25 +92,11 @@ class AutoEscalateStalledApplications extends Command
                 continue; // Skip escalation if they already asked for an extension and are waiting
             }
 
-            // Notify Admins
+            $subject = "ESCALATION: Stalled Application #$appNo";
+            $message = "Application #$appNo has been stalled with Officer $engineerName for more than $daysThreshold days past its due date. No extension has been requested.";
+
+            // 1. In-app notifications for each Admin (web dashboard notification)
             foreach ($admins as $admin) {
-                $subject = "ESCALATION: Stalled Application #$appNo";
-                $message = "Application #$appNo has been stalled with Officer $engineerName for more than $daysThreshold days past its due date. No extension has been requested.";
-
-                $mailable = new GenericNotificationMail($subject, $message, null, false);
-                $detail = BatchProgramDetail::create([
-                    'batch_program_id' => $batchProgram->id,
-                    'user_id' => $admin->id,
-                    'application_id' => $movement->application_id,
-                    'recipient_email' => $admin->email,
-                    'cc_email' => $systemEmail,
-                    'mail_body' => $mailable->render(),
-                    'status' => 'queued',
-                    'queued_at' => now(),
-                ]);
-                ProcessBatchEmailJob::dispatch($detail->id, $admin->email, $mailable);
-                $totalJobs++;
-
                 $notificationService->send([
                     'user_id' => $admin->id,
                     'is_allottee' => false,
@@ -112,6 +108,21 @@ class AutoEscalateStalledApplications extends Command
                     'application_id' => $movement->application_id,
                 ]);
             }
+
+            // 2. Send ONE single Email: Main (To) is system email, and ALL admins in CC
+            $mailable = new GenericNotificationMail($subject, $message, null, false);
+            $detail = BatchProgramDetail::create([
+                'batch_program_id' => $batchProgram->id,
+                'user_id'          => $systemUser?->id ?? $admins->first()?->id,
+                'application_id'   => $movement->application_id,
+                'recipient_email'  => $systemEmail,
+                'cc_email'         => $adminCcString ?: null,
+                'mail_body'        => $mailable->render(),
+                'status'           => 'queued',
+                'queued_at'        => now(),
+            ]);
+            ProcessBatchEmailJob::dispatch($detail->id, $systemEmail, $mailable);
+            $totalJobs++;
 
             // Notify Engineer (Warning)
             $subjectEng = "WARNING: Application #$appNo Escalated";

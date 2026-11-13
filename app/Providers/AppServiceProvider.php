@@ -41,6 +41,9 @@ class AppServiceProvider extends ServiceProvider
         // Register Events
         Event::listen(AllotteeCreated::class, SendAllotteeCredentials::class);
 
+        // Universal Email Recipient Validation (blocks disposable, syntax-invalid, no-MX emails before sending)
+        Event::listen(\Illuminate\Mail\Events\MessageSending::class, \App\Listeners\ValidateEmailRecipientListener::class);
+
         // ----------------------------------------------------
         // MODULE-BASED GATES (Using User Model Attributes)
         // ----------------------------------------------------

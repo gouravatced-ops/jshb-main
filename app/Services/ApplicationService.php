@@ -110,11 +110,23 @@ class ApplicationService
                     $mailBody = "Application bypass requested by " . $user->name . " due to reason: " . $request->bypass_reason
                         . "\n\nPlease note: Please wait 24 hours for approval. Pending requests will be automatically approved by the system after 24 hours.";
 
-                    // Email to system
-                    Mail::to('system@adms.jshb.computered.co.in')->send(new \App\Mail\GenericNotificationMail($mailSubject, $mailBody, route('admin.bypass-requests.index')));
-
-                    // Notify Admins
+                    $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
                     $admins = User::on('adms_jshb')->where('role_id', 8)->get();
+                    $adminEmails = $admins->pluck('email')
+                        ->filter()
+                        ->reject(fn ($e) => strcasecmp($e, $systemEmail) === 0)
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    // Email to system with all Admins in CC
+                    $systemMail = Mail::to($systemEmail);
+                    if (!empty($adminEmails)) {
+                        $systemMail->cc($adminEmails);
+                    }
+                    $systemMail->send(new \App\Mail\GenericNotificationMail($mailSubject, $mailBody, route('admin.bypass-requests.index')));
+
+                    // Notify Admins in-app
                     foreach ($admins as $admin) {
                         Notification::create([
                             'application_id' => $application->id,
@@ -125,10 +137,6 @@ class ApplicationService
                             'link' => route('admin.bypass-requests.index'),
                             'is_read' => false
                         ]);
-
-                        if ($admin->email) {
-                            Mail::to($admin->email)->send(new \App\Mail\GenericNotificationMail($mailSubject, $mailBody, route('admin.bypass-requests.index')));
-                        }
                     }
                 } catch (\Exception $e) {
                     Log::error("Failed to send bypass submission notifications: " . $e->getMessage());
@@ -149,8 +157,15 @@ class ApplicationService
                     ]);
                 }
 
-                // Notify Admins
-                $admins = User::on('adms_jshb')->where('role_id', 1)->get();
+                // Notify DAs
+                $systemEmail = config('jshb.mail_system_username', 'system@adms.jshb.computered.co.in');
+                $daUsers = User::on('adms_jshb')->where('role_id', 1)->get();
+                $daEmails = $daUsers->pluck('email')
+                    ->filter()
+                    ->reject(fn ($e) => strcasecmp($e, $systemEmail) === 0)
+                    ->unique()
+                    ->values()
+                    ->all();
                 $mailSubject = "Bypass Request Pending for Application: " . $application->application_no;
                 $mailBody = "A workflow bypass request has been requested by " . $user->name
                     . " for Application No: " . $application->application_no
@@ -158,24 +173,24 @@ class ApplicationService
                     . "\n\nPlease note: Please wait 24 hours for approval. Pending requests will be automatically approved by the system after 24 hours.";
                 $link = route('admin.bypass-requests.index');
 
-                foreach ($admins as $admin) {
+                if (!empty($daEmails)) {
+                    try {
+                        Mail::to($systemEmail)->cc($daEmails)->send(new GenericNotificationMail($mailSubject, $mailBody, $link));
+                    } catch (\Exception $e) {
+                        Log::error("Failed to send bypass request mail: " . $e->getMessage());
+                    }
+                }
+
+                foreach ($daUsers as $daUser) {
                     Notification::create([
                         'application_id' => $application->id,
-                        'user_id' => $admin->id,
+                        'user_id' => $daUser->id,
                         'notification_type' => 'bypass_request',
                         'subject' => $mailSubject,
                         'message' => $mailBody,
                         'link' => $link,
                         'is_read' => false
                     ]);
-
-                    if ($admin->email) {
-                        try {
-                            Mail::to($admin->email)->send(new GenericNotificationMail($mailSubject, $mailBody, $link));
-                        } catch (\Exception $e) {
-                            Log::error("Failed to send bypass request mail to admin: " . $e->getMessage());
-                        }
-                    }
                 }
 
                 return redirect()->route('engineer.applications.show', $application)
