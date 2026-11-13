@@ -43,6 +43,13 @@ $profileInitials = strtoupper(($nameParts[0][0] ?? 'U') . ($nameParts[1][0] ?? '
             </span>
         {{-- @endif --}}
 
+        @if(Auth::check() && (Auth::user()->roleRelation?->slug === 'super-admin' || Auth::user()->role_id == 9 || Auth::user()->roleRelation?->slug === 'admin' || Auth::user()->role_id == 8 || Auth::user()->user_type === 'administration'))
+        <!-- Super-Admin System Logs Console (Individual Full Page) -->
+        <a href="{{ route('admin.system-logs') }}" target="_blank" class="header-icon-btn" title="Super Admin System Logs (Live Date-Wise Console)" style="text-decoration:none; color:inherit; display:inline-flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-terminal" style="color: #6366f1;"></i>
+        </a>
+        @endif
+
         <!-- Lock Screen -->
         <button class="header-icon-btn header-lock-btn" title="Lock Screen" onclick="activateLockScreen()">
             <i class="fa-solid fa-lock"></i>

@@ -149,6 +149,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/engineer/test/message/notification', [App\Http\Controllers\RealtimeNotificationTestController::class, 'index'])->name('engineer.test.notification');
     Route::post('/engineer/test/message/notification', [App\Http\Controllers\RealtimeNotificationTestController::class, 'send'])->name('engineer.test.notification.send');
 
+    // Super-Admin System Logs Console (Individual Standalone View)
+    Route::get('/admin/system-logs', [App\Http\Controllers\Admin\SystemLogViewerController::class, 'index'])->name('admin.system-logs');
+    Route::get('/admin/system-logs/content', [App\Http\Controllers\Admin\SystemLogViewerController::class, 'getContent'])->name('admin.system-logs.content');
+    Route::get('/admin/system-logs/download', [App\Http\Controllers\Admin\SystemLogViewerController::class, 'download'])->name('admin.system-logs.download');
+    Route::post('/admin/system-logs/clear', [App\Http\Controllers\Admin\SystemLogViewerController::class, 'clear'])->name('admin.system-logs.clear');
+
     // common Routes for retrive condition response of data
     Route::get('/get-sub-divisions/{division}', [CommonController::class, 'getDivision']);
     Route::get('/get-property-types/{category}', [CommonController::class, 'getPropertyType']);
