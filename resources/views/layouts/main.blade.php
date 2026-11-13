@@ -153,12 +153,9 @@
         <div class="image-modal-caption" id="globalImageCaption"></div>
     </div>
 
-    <!-- Realtime Broadcasting: Pusher JS & Laravel Echo (CDN with local fallback) -->
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-    <script>window.Pusher || document.write('<script src="{{ asset("js/pusher.min.js") }}"><\/script>')</script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.16.1/echo.iife.js"></script>
-    <script>window.Echo || document.write('<script src="{{ asset("js/echo.iife.js") }}"><\/script>')</script>
+    <!-- Realtime Broadcasting: Pusher JS & Laravel Echo (Local Assets, Zero CSP Issues) -->
+    <script src="{{ asset('js/pusher.min.js') }}"></script>
+    <script src="{{ asset('js/echo.iife.js') }}"></script>
 
     @if(Auth::check())
     <script>
