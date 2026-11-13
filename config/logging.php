@@ -18,7 +18,7 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    'default' => env('LOG_CHANNEL', 'daily_folder'),
 
     /*
     |--------------------------------------------------------------------------
@@ -52,9 +52,15 @@ return [
 
     'channels' => [
 
+        'daily_folder' => [
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'level' => env('LOG_LEVEL', 'debug'),
+        ],
+
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            'channels' => explode(',', (string) env('LOG_STACK', 'daily_folder')),
             'ignore_exceptions' => false,
         ],
 

@@ -24,8 +24,8 @@
 
 <body>
 
-    <!-- TOASTER -->
-    <div class="toaster-wrap" id="toasterWrap"></div>
+    <!-- TOASTER (Universal Session & Live Notification Component) -->
+    <x-toaster />
 
     <!-- LOADER -->
     <div id="loader-overlay">
