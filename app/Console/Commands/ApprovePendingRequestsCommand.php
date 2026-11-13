@@ -45,7 +45,7 @@ class ApprovePendingRequestsCommand extends Command
     {
         $log = Log::build([
             'driver' => 'single',
-            'path'   => storage_path('logs/pending_approvals.log'),
+            'path'   => getDailyLogPath('pending_approvals.log'),
         ]);
 
         $executionTime = now()->format('d M Y, h:i A');

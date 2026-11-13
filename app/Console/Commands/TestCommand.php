@@ -28,8 +28,8 @@ class TestCommand extends Command
         $time = now()->toDateTimeString();
         $message = "[{$time}] Hello World - The server cron job is working perfectly!" . PHP_EOL;
 
-        // Save to storage/logs/test_command.log
-        file_put_contents(storage_path('logs/test_command.log'), $message, FILE_APPEND);
+        // Save to storage/logs/{date}/test_command.log
+        file_put_contents(getDailyLogPath('test_command.log'), $message, FILE_APPEND);
 
         $this->info('Test log written successfully.');
     }

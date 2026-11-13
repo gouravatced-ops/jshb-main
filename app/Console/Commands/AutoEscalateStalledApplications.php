@@ -36,7 +36,7 @@ class AutoEscalateStalledApplications extends Command
     {
         $log = Log::build([
             'driver' => 'single',
-            'path' => storage_path('logs/task_log.log'),
+            'path' => getDailyLogPath('task_log.log'),
         ]);
 
         $log->info('--- AutoEscalateStalledApplications Command Started ---');

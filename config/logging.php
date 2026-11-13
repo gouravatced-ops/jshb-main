@@ -55,6 +55,7 @@ return [
         'daily_folder' => [
             'driver' => 'custom',
             'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'laravel.log',
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
@@ -65,74 +66,73 @@ return [
         ],
 
         'user_credentials' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/user_credentials.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'user_credentials.log',
             'level' => env('LOG_LEVEL', 'debug'),
-            'replace_placeholders' => true,
         ],
 
         'single' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/laravel.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'laravel.log',
             'level' => env('LOG_LEVEL', 'debug'),
-            'replace_placeholders' => true,
         ],
 
         'otp_dispatch' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/otp_dispatch.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'otp_dispatch.log',
             'level' => 'info',
-            'replace_placeholders' => true,
         ],
 
         'otp_sent' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/otp_sent.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'otp_sent.log',
             'level' => 'info',
-            'replace_placeholders' => true,
         ],
 
         'test_notification' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/test_notification.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'test_notification.log',
             'level' => 'debug',
-            'replace_placeholders' => true,
         ],
 
         'notification_log' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/notification.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'notification.log',
             'level' => 'info',
-            'replace_placeholders' => true,
         ],
 
         'send_mail' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/send_mail.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'send_mail.log',
             'level' => 'info',
-            'replace_placeholders' => true,
         ],
 
         'sms' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/sms.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'sms.log',
             'level' => 'info',
-            'replace_placeholders' => true,
         ],
 
         'whatsapp' => [
-            'driver' => 'single',
-            'path' => storage_path('logs/whatsapp.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'whatsapp.log',
             'level' => 'info',
-            'replace_placeholders' => true,
         ],
 
         'daily' => [
-            'driver' => 'daily',
-            'path' => storage_path('logs/laravel.log'),
+            'driver' => 'custom',
+            'via' => \App\Logging\DailyFolderLogger::class,
+            'file' => 'laravel.log',
             'level' => env('LOG_LEVEL', 'debug'),
-            'days' => env('LOG_DAILY_DAYS', 14),
-            'replace_placeholders' => true,
         ],
 
         'slack' => [
@@ -186,7 +186,7 @@ return [
         ],
 
         'emergency' => [
-            'path' => storage_path('logs/laravel.log'),
+            'path' => getDailyLogPath('laravel.log'),
         ],
 
     ],

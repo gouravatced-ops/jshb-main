@@ -908,3 +908,22 @@ if (!function_exists('sendNotification')) {
         ]);
     }
 }
+
+if (!function_exists('getDailyLogPath')) {
+    /**
+     * Get path to a log file inside a date-based folder: storage/logs/{Y-m-d}/{filename}
+     *
+     * @param string $fileName
+     * @param string|null $date
+     * @return string
+     */
+    function getDailyLogPath(string $fileName = 'laravel.log', ?string $date = null): string
+    {
+        $date = $date ?: date('Y-m-d');
+        $dir = storage_path("logs/{$date}");
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0777, true);
+        }
+        return "{$dir}/{$fileName}";
+    }
+}
