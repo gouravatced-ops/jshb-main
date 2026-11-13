@@ -24,7 +24,7 @@ class SendDailyActivityReport extends Command
 
     public function handle()
     {
-        $log = Log::build(['driver' => 'single', 'path' => storage_path('logs/daily_activity_report.log')]);
+        $log = Log::build(['driver' => 'single', 'path' => getDailyLogPath('daily_activity_report.log')]);
         $log->info('--- Starting Daily Activity Report Cron Job ---');
 
         $startOfYesterday = Carbon::yesterday()->startOfDay();

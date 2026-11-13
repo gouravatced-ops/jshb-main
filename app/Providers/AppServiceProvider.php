@@ -91,19 +91,19 @@ class AppServiceProvider extends ServiceProvider
         // Global Queue Worker Debug Logging
         Queue::before(function (JobProcessing $event) {
             $msg = "[".now()->toDateTimeString()."] [START] Job: " . $event->job->resolveName() . " (Attempts: " . $event->job->attempts() . ")" . PHP_EOL;
-            file_put_contents(storage_path('logs/queue_worker_debug.log'), $msg, FILE_APPEND);
+            file_put_contents(getDailyLogPath('queue_worker_debug.log'), $msg, FILE_APPEND);
         });
 
         Queue::after(function (JobProcessed $event) {
             $msg = "[".now()->toDateTimeString()."] [SUCCESS] Job: " . $event->job->resolveName() . PHP_EOL;
-            file_put_contents(storage_path('logs/queue_worker_debug.log'), $msg, FILE_APPEND);
+            file_put_contents(getDailyLogPath('queue_worker_debug.log'), $msg, FILE_APPEND);
         });
 
         Queue::failing(function (JobFailed $event) {
             $msg = "[".now()->toDateTimeString()."] [FAILED] Job: " . $event->job->resolveName() . PHP_EOL;
             $msg .= " - Error Message: " . $event->exception->getMessage() . PHP_EOL;
             $msg .= " - File: " . $event->exception->getFile() . " on line " . $event->exception->getLine() . PHP_EOL;
-            file_put_contents(storage_path('logs/queue_worker_debug.log'), $msg, FILE_APPEND);
+            file_put_contents(getDailyLogPath('queue_worker_debug.log'), $msg, FILE_APPEND);
         });
     }
 }

@@ -19,7 +19,7 @@ class SendApplicationDueReminders extends Command
 
     public function handle()
     {
-        $log = Log::build(['driver' => 'single', 'path' => storage_path('logs/application_due_reminders.log')]);
+        $log = Log::build(['driver' => 'single', 'path' => getDailyLogPath('application_due_reminders.log')]);
         $log->info('--- Starting Application Due Reminders Command (with Batch Tracking) ---');
 
         $query = ApplicationMovement::with(['toUser', 'application'])

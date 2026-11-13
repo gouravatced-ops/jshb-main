@@ -24,7 +24,7 @@ class ProcessDocumentGenerationQueue extends Command
 
     public function handle()
     {
-        $log = Log::build(['driver' => 'single', 'path' => storage_path('logs/document_generation.log')]);
+        $log = Log::build(['driver' => 'single', 'path' => getDailyLogPath('document_generation.log')]);
         $portion = $this->option('portion');
 
         $log->info("--- Starting Document Generation Queue (Portion: {$portion}) ---");

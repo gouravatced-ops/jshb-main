@@ -11,19 +11,27 @@ use Monolog\Processor\IntrospectionProcessor;
 
 class DailyFolderHandler extends AbstractProcessingHandler
 {
+    protected string $fileName;
+
+    public function __construct(string $fileName = 'laravel.log', int|string|Level $level = Level::Debug, bool $bubble = true)
+    {
+        parent::__construct($level, $bubble);
+        $this->fileName = $fileName;
+    }
+
     protected function write(LogRecord $record): void
     {
         $today = now()->format('Y-m-d');
-        $dir = storage_path("logs/issues/{$today}");
+        $dir = storage_path("logs/{$today}");
 
         if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
+            @mkdir($dir, 0777, true);
         }
 
         $formatted = (string) $record->formatted;
 
-        // Write to single laravel.log file
-        file_put_contents("{$dir}/laravel.log", $formatted, FILE_APPEND | LOCK_EX);
+        // Write directly to storage/logs/{today}/{fileName}
+        file_put_contents("{$dir}/{$this->fileName}", $formatted, FILE_APPEND | LOCK_EX);
     }
 }
 
@@ -31,20 +39,21 @@ class DailyFolderLogger
 {
     /**
      * Create a custom Monolog instance that dynamically routes all Log:: calls
-     * to storage/logs/issues/{todaydate}/laravel.logs
+     * to storage/logs/{todaydate}/{filename}
      *
      * @param array $config
      * @return Logger
      */
     public function __invoke(array $config): Logger
     {
-        $channelName = $config['name'] ?? 'daily_issues';
+        $channelName = $config['name'] ?? 'daily_folder';
+        $fileName = $config['file'] ?? ($config['filename'] ?? 'laravel.log');
         $logger = new Logger($channelName);
 
         $levelName = $config['level'] ?? env('LOG_LEVEL', 'debug');
         $level = Level::fromName($levelName);
 
-        $handler = new DailyFolderHandler($level);
+        $handler = new DailyFolderHandler($fileName, $level);
 
         // Formatter with multiline exceptions and stack traces enabled
         $formatter = new LineFormatter(
