@@ -30,7 +30,7 @@
                     <!-- Left Side: Organization Logo -->
                     <div class="logo-circle">
                         <a href="https://adms.jshb.computered.co.in/" rel="noopener noreferrer">
-                        <img src="{{ asset(config('panel.logo')) }}" alt="JH Housing Board Logo" style="background:white; border-radius:12px;" onerror="this.src='https://placehold.co/80x80/ffffff/1f7b4d?text=JH'">
+                        <img src="{{ asset(config('panel.logo')) }}" alt="JH State Housing Board Logo" style="background:white; border-radius:12px;" onerror="this.src='https://placehold.co/80x80/ffffff/1f7b4d?text=JH'">
                         </a>
                     </div>
 
@@ -195,10 +195,10 @@
                                 </a>
                             </div>
                             <!-- <div class="govt-icon secondimage">
-                <a href="https://jharkhand.gov.in/" target="_blank" rel="noopener noreferrer">
-                  <img src="{{ asset(config('panel.govermentLogo')) }}" alt="Govt of Jharkhand">
-                </a>
-              </div> -->
+                                <a href="https://jharkhand.gov.in/" target="_blank" rel="noopener noreferrer">
+                                <img src="{{ asset(config('panel.govermentLogo')) }}" alt="Govt of Jharkhand">
+                                </a>
+                            </div> -->
                         </div>
                     </div>
 
