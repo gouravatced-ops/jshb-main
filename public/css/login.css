@@ -427,7 +427,7 @@ body {
 .form-foot {
     display: flex;
     justify-content: flex-end;
-    margin: 0.6rem 0 1.2rem;
+    margin: 0.6rem 0 0.6rem;
 }
 
 .forgot-link {
@@ -445,7 +445,7 @@ body {
     width: 100%;
     background: var(--green-primary);
     border: 1px solid var(--green-dark);
-    padding: 0.85rem;
+    padding: 0.65rem;
     font-weight: 700;
     font-size: 1rem;
     color: white;

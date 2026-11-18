@@ -91,7 +91,7 @@
                     <span class="badge-text">SECURE LOGIN</span>
                 </div>
                 <!-- <h1 class="login-title">Welcome </h1> -->
-                <p class="login-sub">Sign in to access housing schemes, engineer dashboard & official records.</p>
+                <p class="login-sub">Sign in to access your dashboard & official records.</p>
 
                 <!-- session flash messages (demo dynamic) -->
                 @if (session('error'))
@@ -141,7 +141,7 @@
                     @endif
 
                     @if(! $otpRequired)
-                    <div class="toggle-login-mode {{ $loginMethod === '2fa_only' ? 'toggled' : '' }}" id="toggle-login-mode" style="margin-top: 1rem;">
+                    <div class="toggle-login-mode {{ $loginMethod === '2fa_only' ? 'toggled' : '' }}" id="toggle-login-mode">
                         <i class="fa-solid {{ $loginMethod === '2fa_only' ? 'fa-lock' : 'fa-shield-halved' }}"></i> <span id="toggle-text">{{ $loginMethod === '2fa_only' ? 'Login with Password instead' : 'Login with 2FA instead' }}</span>
                     </div>
                     @endif
@@ -179,7 +179,7 @@
                 </form>
 
                 <div class="note-link">
-                    <a href="{{ route('landing') }}"><i class="fa-solid fa-globe"></i> Housing Board Portal</a>
+                    <a href="{{ route('landing') }}"><i class="fa-solid fa-globe"></i> JSHB Portal</a>
                 </div>
 
                 <!-- Government & Bank logos, partner section -->
@@ -211,7 +211,7 @@
                     </div>
 
                 </div>
-                <p class="footer-note">© Jharkhand Housing Board | Secured by Govt. Infrastructure</p>
+                <p class="footer-note">© JSHB | Secured by Govt. Infrastructure</p>
             </div>
         </div>
     </div>
