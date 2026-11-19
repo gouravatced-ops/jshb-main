@@ -107,10 +107,10 @@ $rejectMovement = $application->movements->where('action_type', 'rejected')->las
             @if($application->currentStep->can_reject)
             <a href="{{ route($routePrefix . '.applications.action.form', ['application' => $application, 'action_type' => 'reject']) }}" class="btn-compact" style="background: #dc3545; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-times"></i> Reject</a>
             @endif
-            @if($application->currentStep->action_type == 'approve' && strtolower($application->status) !== 'completed')
+            @if(($application->currentStep->can_approve || $application->currentStep->action_type == 'approve') && strtolower($application->status) !== 'completed')
             <a href="{{ route($routePrefix . '.applications.action.form', ['application' => $application, 'action_type' => 'approve']) }}" class="btn-compact" style="background: #17a2b8; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-check"></i> Approve</a>
             @endif
-            @if($hasSiteVerificationRoute && (strtolower($application->currentStep->action_type) == 'site_verification' || strtolower($application->currentStep->action_type) == 'site verification'))
+            @if($hasSiteVerificationRoute && ($application->currentStep->can_verify_site || strtolower($application->currentStep->action_type) == 'site_verified' || strtolower($application->currentStep->action_type) == 'site verification'))
             @if(isset($isSiteVerificationCompleted) && $isSiteVerificationCompleted)
             <a href="{{ route($routePrefix . '.applications.site-verification.form', \Illuminate\Support\Facades\Crypt::encryptString($application->id)) }}" class="btn-compact" style="background: #28a745; color: #fff; border: none; cursor: pointer; text-decoration: none;"><i class="fa-solid fa-circle-check"></i> Site Verified (View)</a>
             @else

@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Application;
+use App\Models\Workflow;
+use App\Models\Role;
 
 class WorkflowStep extends Model
 {
@@ -22,6 +24,9 @@ class WorkflowStep extends Model
         'can_forward',
         'can_reject',
         'can_send_back',
+        'can_approve',
+        'can_verify_site',
+        'can_correspondence',
         'can_upload_document',
         'can_add_note',
         'requires_signature',

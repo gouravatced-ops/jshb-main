@@ -25,7 +25,7 @@ class WorkflowController extends Controller
         $workflows = $this->filteredQuery($search)
             ->with(['steps' => function($q) {
                 $q->orderBy('step_order', 'asc');
-            }, 'steps.role'])
+            }, 'steps.role', 'requiredDocuments'])
             ->orderByDesc('id')
             ->paginate(20)
             ->withQueryString();
@@ -65,6 +65,12 @@ class WorkflowController extends Controller
                             'can_forward' => $step->can_forward,
                             'can_send_back' => $step->can_send_back,
                             'can_reject' => $step->can_reject,
+                            'can_approve' => $step->can_approve,
+                            'can_verify_site' => $step->can_verify_site,
+                            'can_correspondence' => $step->can_correspondence,
+                            'can_add_note' => $step->can_add_note,
+                            'can_upload_document' => $step->can_upload_document,
+                            'requires_signature' => $step->requires_signature,
                         ];
                     })->toArray()
                 ];
@@ -109,7 +115,11 @@ class WorkflowController extends Controller
             ]);
 
             if (isset($data['steps']) && is_array($data['steps'])) {
-                foreach ($data['steps'] as $index => $step) {
+                // Sort steps by step_order
+                $sortedSteps = collect($data['steps'])->sortBy('step_order')->values()->all();
+                $totalSteps = count($sortedSteps);
+
+                foreach ($sortedSteps as $index => $step) {
                     $workflow->steps()->create([
                         'step_order' => $step['step_order'],
                         'step_name' => $step['step_name'],
@@ -119,11 +129,14 @@ class WorkflowController extends Controller
                         'can_forward' => $step['can_forward'] ?? 0,
                         'can_reject' => $step['can_reject'] ?? 0,
                         'can_send_back' => $step['can_send_back'] ?? 0,
+                        'can_approve' => $step['can_approve'] ?? ($step['action_type'] === 'approve' ? 1 : 0),
+                        'can_verify_site' => $step['can_verify_site'] ?? ($step['action_type'] === 'site_verification' ? 1 : 0),
+                        'can_correspondence' => $step['can_correspondence'] ?? 0,
                         'can_upload_document' => $step['can_upload_document'] ?? 0,
-                        'can_add_note' => $step['can_add_note'] ?? 0,
+                        'can_add_note' => $step['can_add_note'] ?? 1,
                         'requires_signature' => $step['requires_signature'] ?? 0,
-                        'is_starting_step' => $step['is_starting_step'] ?? 0,
-                        'is_final_step' => $step['is_final_step'] ?? 0,
+                        'is_starting_step' => $step['is_starting_step'] ?? ($index === 0 ? 1 : 0),
+                        'is_final_step' => $step['is_final_step'] ?? (($index === $totalSteps - 1 || $step['action_type'] === 'approve') ? 1 : 0),
                         'allowed_days' => $step['allowed_days'] ?? null,
                         'notification_template' => $step['notification_template'] ?? null,
                     ]);
@@ -173,49 +186,41 @@ class WorkflowController extends Controller
             $existingStepIds = [];
 
             if (isset($data['steps']) && is_array($data['steps'])) {
-                foreach ($data['steps'] as $step) {
+                $sortedSteps = collect($data['steps'])->sortBy('step_order')->values()->all();
+                $totalSteps = count($sortedSteps);
+
+                foreach ($sortedSteps as $index => $step) {
+                    $stepData = [
+                        'step_order' => $step['step_order'],
+                        'step_name' => $step['step_name'],
+                        'step_code' => $step['step_code'],
+                        'role_id' => $step['role_id'],
+                        'action_type' => $step['action_type'],
+                        'can_forward' => $step['can_forward'] ?? 0,
+                        'can_reject' => $step['can_reject'] ?? 0,
+                        'can_send_back' => $step['can_send_back'] ?? 0,
+                        'can_approve' => $step['can_approve'] ?? ($step['action_type'] === 'approve' ? 1 : 0),
+                        'can_verify_site' => $step['can_verify_site'] ?? ($step['action_type'] === 'site_verification' ? 1 : 0),
+                        'can_correspondence' => $step['can_correspondence'] ?? 0,
+                        'can_upload_document' => $step['can_upload_document'] ?? 0,
+                        'can_add_note' => $step['can_add_note'] ?? 1,
+                        'requires_signature' => $step['requires_signature'] ?? 0,
+                        'is_starting_step' => $step['is_starting_step'] ?? ($index === 0 ? 1 : 0),
+                        'is_final_step' => $step['is_final_step'] ?? (($index === $totalSteps - 1 || $step['action_type'] === 'approve') ? 1 : 0),
+                        'allowed_days' => $step['allowed_days'] ?? null,
+                        'notification_template' => $step['notification_template'] ?? null,
+                    ];
+
                     if (isset($step['id']) && $step['id']) {
                         // Update existing
                         $workflowStep = WorkflowStep::find($step['id']);
                         if ($workflowStep) {
-                            $workflowStep->update([
-                                'step_order' => $step['step_order'],
-                                'step_name' => $step['step_name'],
-                                'step_code' => $step['step_code'],
-                                'role_id' => $step['role_id'],
-                                'action_type' => $step['action_type'],
-                                'can_forward' => $step['can_forward'] ?? 0,
-                                'can_reject' => $step['can_reject'] ?? 0,
-                                'can_send_back' => $step['can_send_back'] ?? 0,
-                                'can_upload_document' => $step['can_upload_document'] ?? 0,
-                                'can_add_note' => $step['can_add_note'] ?? 0,
-                                'requires_signature' => $step['requires_signature'] ?? 0,
-                                'is_starting_step' => $step['is_starting_step'] ?? 0,
-                                'is_final_step' => $step['is_final_step'] ?? 0,
-                                'allowed_days' => $step['allowed_days'] ?? null,
-                                'notification_template' => $step['notification_template'] ?? null,
-                            ]);
+                            $workflowStep->update($stepData);
                             $existingStepIds[] = $workflowStep->id;
                         }
                     } else {
                         // Create new
-                        $newStep = $workflow->steps()->create([
-                            'step_order' => $step['step_order'],
-                            'step_name' => $step['step_name'],
-                            'step_code' => $step['step_code'],
-                            'role_id' => $step['role_id'],
-                            'action_type' => $step['action_type'],
-                            'can_forward' => $step['can_forward'] ?? 0,
-                            'can_reject' => $step['can_reject'] ?? 0,
-                            'can_send_back' => $step['can_send_back'] ?? 0,
-                            'can_upload_document' => $step['can_upload_document'] ?? 0,
-                            'can_add_note' => $step['can_add_note'] ?? 0,
-                            'requires_signature' => $step['requires_signature'] ?? 0,
-                            'is_starting_step' => $step['is_starting_step'] ?? 0,
-                            'is_final_step' => $step['is_final_step'] ?? 0,
-                            'allowed_days' => $step['allowed_days'] ?? null,
-                            'notification_template' => $step['notification_template'] ?? null,
-                        ]);
+                        $newStep = $workflow->steps()->create($stepData);
                         $existingStepIds[] = $newStep->id;
                     }
                 }
@@ -298,6 +303,9 @@ class WorkflowController extends Controller
             'steps.*.can_forward' => ['nullable', 'boolean'],
             'steps.*.can_reject' => ['nullable', 'boolean'],
             'steps.*.can_send_back' => ['nullable', 'boolean'],
+            'steps.*.can_approve' => ['nullable', 'boolean'],
+            'steps.*.can_verify_site' => ['nullable', 'boolean'],
+            'steps.*.can_correspondence' => ['nullable', 'boolean'],
             'steps.*.can_upload_document' => ['nullable', 'boolean'],
             'steps.*.can_add_note' => ['nullable', 'boolean'],
             'steps.*.requires_signature' => ['nullable', 'boolean'],
