@@ -43,7 +43,7 @@
             text-align: center;
             font-weight: bold;
             font-size: 16px;
-            margin: 15px 0;
+            margin: 10px 0;
             text-decoration: underline;
         }
 

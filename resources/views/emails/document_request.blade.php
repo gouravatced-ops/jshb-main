@@ -151,7 +151,7 @@
             border-left: 4px solid #F5A623;
             padding: 10px 15px;
             border-radius: 0 4px 4px 0;
-            margin: 15px 0;
+            margin: 10px 0;
             font-size: 12px;
             color: #664d03;
         }
