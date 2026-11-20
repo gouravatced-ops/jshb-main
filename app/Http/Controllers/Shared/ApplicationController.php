@@ -298,7 +298,7 @@ class ApplicationController extends Controller
             } else {
                 $eligibleSteps = WorkflowStep::with('role')
                     ->where('workflow_id', $application->workflow_id)
-                    ->whereIn('action_type', ['verify', 'approve'])
+                    ->whereIn('action_type', ['verify', 'approve', 'view'])
                     ->where('step_order', '>', $application->currentStep->step_order)
                     ->orderBy('step_order', 'asc')
                     ->get();

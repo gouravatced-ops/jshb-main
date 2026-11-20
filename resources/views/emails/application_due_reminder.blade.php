@@ -95,7 +95,7 @@
             background: #ffffff;
             border-radius: 5px;
             padding: 15px 15px 15px 30px;
-            margin: 15px 0;
+            margin: 10px 0;
             border-left: 4px solid #F6C23E; /* Yellow warning accent */
         }
 
